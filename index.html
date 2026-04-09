@@ -479,36 +479,138 @@ function genLv(idx){
     ents.push({type:'heart',x:62,y:gY-4,collected:false});ents.push({type:'door',x:pw-4,y:gY});
     decs.push({type:'wall',x:14*T,y:(gY-6)*T,w:10*T,h:6*T,color:'#C8A060'},{type:'wall',x:30*T,y:(gY-7)*T,w:8*T,h:5*T,color:'#C8A060'});
     decs.push({type:'win',x:17*T,y:(gY-5)*T},{type:'win',x:21*T,y:(gY-5)*T},{type:'sdoor',x:19*T,y:gY*T-30});decs.push({type:'rock',x:6*T,y:gY*T},{type:'bush',x:42*T,y:gY*T},{type:'bush',x:70*T,y:(gY-3)*T});break;
-  case 7:flat(0,10,gY);stUp(10,gY,4);flat(18,28,gY-4);stDn(28,gY-4,2);flat(32,40,gY-2);stUp(40,gY-2,3);flat(46,54,gY-5);stDn(54,gY-5,3);flat(60,70,gY-2);stDn(70,gY-2,1);flat(72,82,gY-1);stUp(82,gY-1,2);flat(86,pw,gY-3);
-    gLine(2,8,gY);gLine(12,16,gY-2,2);gLine(20,26,gY-4);gLine(34,38,gY-2);gLine(42,44,gY-4,2);gLine(48,52,gY-5);gLine(56,58,gY-4);gLine(62,68,gY-2);gLine(74,80,gY-1);gLine(88,pw-6,gY-3);
-    ents.push({type:'key',x:50,y:gY-6,collected:false});frog(22,gY-5,19,27);frog(36,gY-3,33,39);frog(50,gY-6,47,53);frog(66,gY-3,61,69);frog(76,gY-2,73,81);snake(62,gY-3,60,69);
-    ents.push({type:'heart',x:44,y:gY-4,collected:false},{type:'heart',x:78,y:gY-2,collected:false});ents.push({type:'door',x:pw-4,y:gY-3});
-    decs.push({type:'bush',x:4*T,y:gY*T},{type:'bush',x:30*T,y:(gY-2)*T},{type:'bush',x:58*T,y:(gY-2)*T},{type:'bush',x:84*T,y:(gY-3)*T});decs.push({type:'rock',x:16*T,y:(gY-4)*T},{type:'rock',x:70*T,y:(gY-2)*T});break;
-  case 8:flat(0,8,gY);stUp(8,gY,3);flat(14,22,gY-3);stDn(22,gY-3,3);flat(28,36,gY);stUp(36,gY,4);flat(44,54,gY-4);stDn(54,gY-4,2);flat(58,68,gY-2);stUp(68,gY-2,3);flat(74,84,gY-5);stDn(84,gY-5,3);flat(90,pw,gY-2);
-    gLine(2,6,gY);gLine(10,12,gY-2,2);gLine(16,20,gY-3);gLine(30,34,gY);gLine(38,42,gY-2,2);gLine(46,52,gY-4);gLine(60,66,gY-2);gLine(70,72,gY-4,2);gLine(76,82,gY-5);gLine(92,pw-6,gY-2);
-    ents.push({type:'key',x:48,y:gY-5,collected:false});
-    bubble(18,gY-6);bubble(32,gY-4);bubble(40,gY-6);bubble(62,gY-5);bubble(78,gY-8);bubble(86,gY-6);
-    frog(16,gY-4,14,21);frog(46,gY-5,44,52);frog(64,gY-3,59,67);frog(80,gY-6,76,83);snake(30,gY-1,28,35);
-    ents.push({type:'heart',x:52,y:gY-5,collected:false});ents.push({type:'door',x:pw-4,y:gY-2});
-    decs.push({type:'bush',x:6*T,y:gY*T},{type:'bush',x:26*T,y:gY*T},{type:'bush',x:56*T,y:(gY-2)*T},{type:'bush',x:88*T,y:(gY-2)*T});decs.push({type:'rock',x:28*T,y:gY*T},{type:'rock',x:72*T,y:(gY-5)*T});decs.push({type:'cactus',x:34*T,y:gY*T});break;
-  case 9:flat(0,10,gY);solid(10,gY-8,3,8);flat(10,20,gY);solid(17,gY-8,3,8);flat(20,28,gY-4);stDn(28,gY-4,2);flat(32,42,gY-2);solid(38,gY-8,3,6);stUp(42,gY-2,3);flat(48,56,gY-5);stDn(56,gY-5,2);flat(60,72,gY-3);stUp(72,gY-3,2);flat(76,86,gY-5);stDn(86,gY-5,2);flat(90,pw,gY-3);
-    gLine(2,8,gY);gLine(12,16,gY);gLine(22,26,gY-4);gLine(34,36,gY-2);gLine(44,46,gY-4,2);gLine(50,54,gY-5);gLine(62,70,gY-3);gLine(78,84,gY-5);gLine(92,pw-6,gY-3);
-    ents.push({type:'key',x:52,y:gY-6,collected:false});frog(14,gY-1,11,16);frog(24,gY-5,21,27);frog(52,gY-6,49,55);frog(66,gY-4,62,70);frog(80,gY-6,77,85);snake(34,gY-3,32,40);snake(62,gY-4,60,70);
-    ents.push({type:'heart',x:36,y:gY-3,collected:false});ents.push({type:'door',x:pw-4,y:gY-3});
-    decs.push({type:'rock',x:14*T,y:gY*T},{type:'rock',x:40*T,y:(gY-2)*T},{type:'rock',x:58*T,y:(gY-3)*T});decs.push({type:'bush',x:4*T,y:gY*T},{type:'bush',x:60*T,y:(gY-3)*T});break;
-  case 10:flat(0,6,gY);solid(6,gY-10,3,10);flat(6,14,gY);solid(14,gY-10,3,10);flat(14,22,gY-5);solid(22,gY-10,3,10);flat(22,30,gY);stUp(30,gY,3);flat(36,44,gY-3);solid(40,gY-9,3,6);flat(44,52,gY-6);stDn(52,gY-6,2);flat(56,64,gY-4);solid(60,gY-10,3,6);stDn(64,gY-4,2);flat(68,78,gY-2);stUp(78,gY-2,2);flat(82,pw,gY-4);
-    gLine(2,4,gY);gLine(8,12,gY);gLine(15,20,gY-5,2);gLine(24,28,gY);gLine(32,34,gY-2);gLine(38,42,gY-3);gLine(46,50,gY-6);gLine(58,62,gY-4);gLine(70,76,gY-2);gLine(84,pw-6,gY-4);
-    ents.push({type:'key',x:48,y:gY-7,collected:false});frog(10,gY-1,7,13);frog(17,gY-6,15,21);frog(26,gY-1,23,29);frog(38,gY-4,36,43);frog(48,gY-7,45,51);frog(72,gY-3,69,77);snake(24,gY-1,22,29);snake(70,gY-3,68,77);
-    ents.push({type:'heart',x:59,y:gY-5,collected:false});ents.push({type:'door',x:pw-4,y:gY-4});
-    decs.push({type:'rock',x:56*T,y:(gY-4)*T},{type:'plant',x:36*T,y:(gY-3)*T},{type:'plant',x:68*T,y:(gY-2)*T});break;
-  case 11:flat(0,10,gY);stUp(10,gY,3);flat(16,24,gY-3);stUp(24,gY-3,2);flat(28,38,gY-5);stDn(38,gY-5,2);flat(42,50,gY-3);stDn(50,gY-3,2);flat(54,64,gY-1);stUp(64,gY-1,3);flat(70,80,gY-4);stDn(80,gY-4,2);flat(84,92,gY-2);stUp(92,gY-2,2);flat(96,pw,gY-4);
-    gLine(2,8,gY);gLine(12,14,gY-2,2);gLine(18,22,gY-3);gLine(26,28,gY-4);gLine(30,36,gY-5);gLine(40,42,gY-4);gLine(44,48,gY-3);gLine(56,62,gY-1);gLine(66,68,gY-2,2);gLine(72,78,gY-4);gLine(86,90,gY-2);gLine(98,pw-6,gY-4);
-    ents.push({type:'key',x:34,y:gY-6,collected:false});
-    frog(20,gY-4,17,23);frog(34,gY-6,29,37);frog(46,gY-4,43,49);frog(58,gY-2,55,63);frog(74,gY-5,71,79);frog(88,gY-3,85,91);frog(100,gY-5,97,pw-6);
-    snake(56,gY-2,54,63);snake(86,gY-3,84,91);bubble(32,gY-8);bubble(60,gY-4);bubble(76,gY-7);bubble(90,gY-5);
-    ents.push({type:'heart',x:42,y:gY-4,collected:false},{type:'heart',x:72,y:gY-5,collected:false},{type:'heart',x:96,y:gY-5,collected:false});
+  case 7:// Green Hills - harder: big gaps, more enemies, rain
+    flat(0,8,gY);stUp(8,gY,3);flat(14,20,gY-3);
+    // BIG GAP - must jump across
+    flat(24,30,gY-4);// isolated platform
+    // another gap
+    flat(34,40,gY-2);stUp(40,gY-2,2);flat(44,50,gY-4);
+    // big gap with floating platform
+    solid(53,gY-3,3,1);// tiny floating platform
+    flat(58,64,gY-5);
+    // tower obstacle
+    solid(64,gY-10,3,5);// tall column to jump over
+    flat(67,74,gY-5);
+    // big drop then climb
+    stDn(74,gY-5,3);flat(80,86,gY-2);
+    // gap
+    flat(90,96,gY-3);stUp(96,gY-3,2);flat(100,pw,gY-5);
+    gLine(2,6,gY);gLine(10,12,gY-2);gLine(15,19,gY-3,2);gLine(25,29,gY-4);gLine(35,39,gY-2);gem(45,gY-5);gem(47,gY-5);gem(49,gY-5);gem(54,gY-4);gLine(59,63,gY-5);gLine(68,73,gY-5);gLine(82,85,gY-2);gLine(91,95,gY-3);gLine(102,pw-6,gY-5);
+    ents.push({type:'key',x:70,y:gY-6,collected:false});
+    frog(17,gY-4,14,19);frog(27,gY-5,24,29);frog(37,gY-3,34,39);frog(47,gY-5,44,49);frog(61,gY-6,58,63);frog(71,gY-6,68,73);frog(83,gY-3,80,85);frog(93,gY-4,90,95);
+    snake(35,gY-3,34,39);snake(82,gY-3,80,85);
+    bubble(22,gY-6);bubble(31,gY-5);bubble(51,gY-6);bubble(56,gY-7);bubble(76,gY-5);bubble(88,gY-4);
+    ents.push({type:'heart',x:54,y:gY-4,collected:false});ents.push({type:'door',x:pw-4,y:gY-5});
+    decs.push({type:'bush',x:2*T,y:gY*T},{type:'bush',x:24*T,y:(gY-4)*T},{type:'bush',x:58*T,y:(gY-5)*T},{type:'bush',x:90*T,y:(gY-3)*T});
+    decs.push({type:'rock',x:6*T,y:gY*T},{type:'rock',x:38*T,y:(gY-2)*T},{type:'rock',x:80*T,y:(gY-2)*T});break;
+  case 8:// Bubble Valley - deadly gaps, bubbles everywhere, isolated platforms
+    flat(0,6,gY);stUp(6,gY,2);flat(10,14,gY-2);
+    // gap
+    solid(17,gY-1,3,1);// tiny platform
+    flat(22,26,gY-3);
+    // big gap
+    solid(29,gY-4,3,1);solid(33,gY-2,3,1);// stepping stones
+    flat(38,42,gY-5);
+    // gap with bridge
+    bridge(42,gY-4,3);
+    flat(45,50,gY-4);
+    // tall tower
+    solid(50,gY-10,3,6);
+    flat(53,58,gY-4);
+    // BIG gap
+    solid(61,gY-3,3,1);solid(65,gY-5,3,1);// floating platforms
+    flat(70,76,gY-6);
+    stDn(76,gY-6,2);flat(80,86,gY-4);
+    // gap
+    flat(90,96,gY-3);stUp(96,gY-3,2);flat(100,pw,gY-5);
+    gLine(2,5,gY);gem(11,gY-3);gem(13,gY-3);gem(18,gY-2);gLine(23,25,gY-3);gem(30,gY-5);gem(34,gY-3);gLine(39,41,gY-5);gem(43,gY-5);gem(44,gY-5);gLine(46,49,gY-4);gLine(54,57,gY-4);gem(62,gY-4);gem(66,gY-6);gLine(71,75,gY-6);gLine(81,85,gY-4);gLine(91,95,gY-3);gLine(102,pw-6,gY-5);
+    ents.push({type:'key',x:73,y:gY-7,collected:false});
+    frog(12,gY-3,10,13);frog(24,gY-4,22,25);frog(40,gY-6,38,41);frog(48,gY-5,45,49);frog(55,gY-5,53,57);frog(74,gY-7,71,75);frog(83,gY-5,80,85);frog(93,gY-4,90,95);
+    snake(22,gY-4,22,25);snake(80,gY-5,80,85);
+    bubble(15,gY-4);bubble(20,gY-5);bubble(27,gY-6);bubble(36,gY-7);bubble(43,gY-7);bubble(52,gY-7);bubble(59,gY-5);bubble(63,gY-6);bubble(68,gY-8);bubble(78,gY-6);bubble(88,gY-5);bubble(98,gY-5);
+    ents.push({type:'heart',x:46,y:gY-5,collected:false});ents.push({type:'heart',x:82,y:gY-5,collected:false});
+    ents.push({type:'door',x:pw-4,y:gY-5});
+    decs.push({type:'bush',x:0,y:gY*T},{type:'bush',x:22*T,y:(gY-3)*T},{type:'bush',x:45*T,y:(gY-4)*T},{type:'bush',x:70*T,y:(gY-6)*T},{type:'bush',x:90*T,y:(gY-3)*T});
+    decs.push({type:'rock',x:38*T,y:(gY-5)*T},{type:'rock',x:80*T,y:(gY-4)*T});break;
+  case 9:// Boulder Caves - tight corridors, walls, many enemies
+    flat(0,8,gY);
+    solid(8,gY-10,3,10);// tall left wall
+    flat(8,16,gY);
+    solid(16,gY-10,3,10);// right wall creates corridor
+    flat(16,22,gY-5);// elevated corridor between walls
+    solid(22,gY-10,3,10);// another wall
+    flat(22,30,gY);
+    // gap
+    solid(33,gY-2,3,1);// stepping stone
+    flat(38,46,gY-3);
+    solid(42,gY-9,3,6);// column obstacle
+    stUp(46,gY-3,2);flat(50,56,gY-5);
+    // big gap
+    solid(59,gY-4,3,1);// floating
+    flat(64,72,gY-3);
+    solid(68,gY-9,3,6);// another column
+    stUp(72,gY-3,3);flat(78,86,gY-6);
+    stDn(86,gY-6,2);flat(90,pw,gY-4);
+    gLine(2,6,gY);gLine(10,14,gY);gLine(17,21,gY-5,2);gLine(24,28,gY);gem(34,gY-3);gLine(39,45,gY-3);gem(51,gY-6);gem(53,gY-6);gem(55,gY-6);gem(60,gY-5);gLine(65,71,gY-3);gLine(79,85,gY-6);gLine(92,pw-6,gY-4);
+    ents.push({type:'key',x:82,y:gY-7,collected:false});
+    frog(12,gY-1,9,15);frog(19,gY-6,17,21);frog(26,gY-1,23,29);frog(40,gY-4,38,45);frog(53,gY-6,50,55);frog(67,gY-4,64,71);frog(82,gY-7,79,85);
+    snake(24,gY-1,22,29);snake(64,gY-4,64,71);snake(90,gY-5,90,pw-5);
+    bubble(31,gY-4);bubble(36,gY-5);bubble(48,gY-6);bubble(57,gY-6);bubble(62,gY-5);bubble(75,gY-7);bubble(88,gY-7);
+    ents.push({type:'heart',x:34,y:gY-3,collected:false});ents.push({type:'heart',x:60,y:gY-5,collected:false});
     ents.push({type:'door',x:pw-4,y:gY-4});
-    decs.push({type:'rock',x:8*T,y:gY*T},{type:'rock',x:40*T,y:(gY-3)*T},{type:'rock',x:82*T,y:(gY-2)*T});decs.push({type:'bush',x:16*T,y:(gY-3)*T},{type:'bush',x:52*T,y:(gY-1)*T},{type:'bush',x:94*T,y:(gY-4)*T});break;
+    decs.push({type:'rock',x:4*T,y:gY*T},{type:'rock',x:38*T,y:(gY-3)*T},{type:'rock',x:64*T,y:(gY-3)*T});break;
+  case 10:// Golden Maze - tall columns, tight navigation, many enemies
+    flat(0,5,gY);
+    solid(5,gY-12,3,12);// massive column
+    flat(5,12,gY);
+    solid(12,gY-12,3,12);
+    flat(12,18,gY-6);// elevated path between columns
+    solid(18,gY-12,3,12);
+    flat(18,26,gY);
+    // gap
+    solid(29,gY-2,3,1);
+    stUp(34,gY,3);flat(40,46,gY-3);
+    solid(43,gY-10,3,7);// column in path
+    flat(46,52,gY-6);
+    // big gap
+    solid(55,gY-5,3,1);solid(59,gY-3,3,1);// stepping
+    flat(64,72,gY-4);
+    solid(68,gY-12,3,8);// column
+    stDn(72,gY-4,2);flat(76,82,gY-2);
+    // gap
+    solid(85,gY-3,3,1);
+    stUp(90,gY,2);flat(94,pw,gY-2);
+    gLine(2,4,gY);gLine(7,11,gY);gLine(13,17,gY-6,2);gLine(20,24,gY);gem(30,gY-3);gLine(36,38,gY-2);gLine(41,45,gY-3);gem(47,gY-7);gem(49,gY-7);gem(51,gY-7);gem(56,gY-6);gem(60,gY-4);gLine(65,71,gY-4);gLine(77,81,gY-2);gem(86,gY-4);gLine(96,pw-6,gY-2);
+    ents.push({type:'key',x:49,y:gY-7,collected:false});
+    frog(9,gY-1,6,11);frog(15,gY-7,13,17);frog(22,gY-1,19,25);frog(42,gY-4,40,45);frog(49,gY-7,46,51);frog(67,gY-5,64,71);frog(79,gY-3,76,81);
+    snake(20,gY-1,18,25);snake(64,gY-5,64,71);snake(76,gY-3,76,81);
+    bubble(27,gY-4);bubble(33,gY-3);bubble(53,gY-8);bubble(57,gY-7);bubble(62,gY-5);bubble(74,gY-5);bubble(83,gY-4);bubble(88,gY-3);
+    ents.push({type:'heart',x:56,y:gY-6,collected:false});ents.push({type:'door',x:pw-4,y:gY-2});
+    decs.push({type:'rock',x:64*T,y:(gY-4)*T},{type:'plant',x:40*T,y:(gY-3)*T},{type:'plant',x:76*T,y:(gY-2)*T});break;
+  case 11:// Final Rescue - everything hard, many hazards, rain
+    flat(0,6,gY);stUp(6,gY,3);flat(12,18,gY-3);
+    // gap
+    solid(21,gY-2,3,1);// stepping stone
+    stUp(26,gY,2);flat(30,36,gY-2);stUp(36,gY-2,2);flat(40,46,gY-4);
+    // big gap
+    solid(49,gY-3,3,1);solid(53,gY-5,3,1);// floating platforms
+    flat(58,64,gY-6);
+    // tower
+    solid(64,gY-12,3,6);
+    flat(67,74,gY-6);
+    stDn(74,gY-6,2);flat(78,84,gY-4);
+    // big gap
+    solid(87,gY-3,3,1);solid(91,gY-5,3,1);
+    flat(96,102,gY-6);stDn(102,gY-6,2);flat(106,pw,gY-4);
+    gLine(2,5,gY);gLine(8,10,gY-2);gLine(13,17,gY-3);gem(22,gY-3);gLine(31,35,gY-2);gem(37,gY-3);gem(39,gY-3);gLine(41,45,gY-4);gem(50,gY-4);gem(54,gY-6);gLine(59,63,gY-6);gLine(68,73,gY-6);gLine(79,83,gY-4);gem(88,gY-4);gem(92,gY-6);gLine(97,101,gY-6);gLine(108,pw-6,gY-4);
+    ents.push({type:'key',x:70,y:gY-7,collected:false});
+    frog(15,gY-4,12,17);frog(33,gY-3,30,35);frog(43,gY-5,40,45);frog(61,gY-7,58,63);frog(71,gY-7,68,73);frog(81,gY-5,78,83);frog(99,gY-7,96,101);frog(110,gY-5,107,pw-5);
+    snake(30,gY-3,30,35);snake(78,gY-5,78,83);snake(106,gY-5,106,pw-5);
+    bubble(19,gY-4);bubble(24,gY-5);bubble(37,gY-5);bubble(47,gY-5);bubble(51,gY-6);bubble(56,gY-8);bubble(65,gY-8);bubble(76,gY-7);bubble(85,gY-6);bubble(89,gY-5);bubble(94,gY-7);bubble(104,gY-6);
+    ents.push({type:'heart',x:50,y:gY-4,collected:false},{type:'heart',x:88,y:gY-4,collected:false},{type:'heart',x:99,y:gY-7,collected:false});
+    ents.push({type:'door',x:pw-4,y:gY-4});
+    decs.push({type:'rock',x:4*T,y:gY*T},{type:'rock',x:58*T,y:(gY-6)*T},{type:'rock',x:96*T,y:(gY-6)*T});
+    decs.push({type:'bush',x:12*T,y:(gY-3)*T},{type:'bush',x:40*T,y:(gY-4)*T},{type:'bush',x:67*T,y:(gY-6)*T},{type:'bush',x:106*T,y:(gY-4)*T});break;
   }
 
   // Right wall on every level so player can't fall off the edge
