@@ -176,25 +176,34 @@ function drawGrenade(x,y){
 }
 
 // Boss machine - steel boot
-function drawBoss(x,y,bootOff){
-  // Platform where villain stands
-  X.fillStyle='#666';X.fillRect(x,y,80,8);X.fillStyle='#888';X.fillRect(x+2,y+2,76,4);
-  // Villain on platform
-  X.fillStyle='#D4A060';X.fillRect(x+30,y-20,12,12);// head
-  X.fillStyle='#3A2810';X.fillRect(x+26,y-24,20,5);X.fillRect(x+30,y-28,12,5);// hat
-  X.fillStyle='#000';X.fillRect(x+33,y-16,2,2);X.fillRect(x+37,y-16,2,2);// eyes
-  X.fillStyle='#2A2A2A';X.fillRect(x+28,y-8,16,8);// body
-  // Machine arm
-  X.fillStyle='#777';X.fillRect(x+36,y+8,8,20+bootOff);
-  // Steel boot
-  X.fillStyle='#555';X.fillRect(x+20,y+28+bootOff,40,24);
-  X.fillStyle='#666';X.fillRect(x+22,y+30+bootOff,36,20);
-  X.fillStyle='#444';X.fillRect(x+18,y+48+bootOff,44,8);
-  // Boot sole (danger zone)
-  X.fillStyle='#333';X.fillRect(x+16,y+54+bootOff,48,4);
-  // HP bar
-  X.fillStyle='#333';X.fillRect(x+10,y-34,60,6);
-  X.fillStyle='#E53935';X.fillRect(x+12,y-32,56*(bossHp/bossMax),3);
+// Boss: a hopping metal boot mech with villain riding on top
+// bossX, bossY track the boot's world position; bootState controls AI
+let bossX=0,bossY=0,bossVx=0,bossVy=0,bossGnd=false,bossDir=1;
+function drawBoss(){
+  const x=bossX,y=bossY;
+  // Steel boot body (big rectangle)
+  X.fillStyle='#555';X.fillRect(x-24,y-40,48,40);
+  X.fillStyle='#666';X.fillRect(x-22,y-38,44,36);
+  X.fillStyle='#777';X.fillRect(x-20,y-36,40,28);
+  // Boot toe (extends forward based on direction)
+  X.fillStyle='#555';X.fillRect(x-30,y-12,60,14);
+  X.fillStyle='#666';X.fillRect(x-28,y-10,56,10);
+  // SPIKES on bottom!
+  X.fillStyle='#333';
+  for(let i=0;i<6;i++){X.fillRect(x-26+i*10,y+2,4,8);X.fillRect(x-25+i*10,y+6,2,6)}
+  X.fillStyle='#444';X.fillRect(x-30,y-2,60,4);
+  // Rivets
+  X.fillStyle='#888';X.fillRect(x-18,y-34,4,4);X.fillRect(x+14,y-34,4,4);X.fillRect(x-18,y-16,4,4);X.fillRect(x+14,y-16,4,4);
+  // Villain riding on top (head + hat poking out)
+  X.fillStyle='#D4A060';X.fillRect(x-6,y-52,12,12);// head
+  X.fillStyle='#3A2810';X.fillRect(x-10,y-56,20,5);X.fillRect(x-6,y-60,12,5);// hat
+  X.fillStyle='#000';X.fillRect(x-3,y-48,2,2);X.fillRect(x+3,y-48,2,2);// eyes
+  X.fillStyle='#AA2020';X.fillRect(x-4,y-44,8,2);// angry mouth
+  // HP bar above
+  X.fillStyle='#333';X.fillRect(x-30,y-68,60,6);
+  X.fillStyle='#E53935';X.fillRect(x-28,y-66,56*(bossHp/bossMax),3);
+  // "BOSS" label
+  X.fillStyle='#fff';X.font='6px "Press Start 2P",monospace';X.fillText('BOSS',x-12,y-70);
 }
 
 // Water surface
@@ -473,7 +482,7 @@ function genLv(idx){
 
 let LV=null,P={x:0,y:0,vx:0,vy:0,w:30,h:28,dir:1,gnd:false,fr:0,inv:0,dead:false},cam={x:0,y:0};
 function startLv(i){cl=i;biome=LEVELS[i].bio;LV=genLv(i);terrainDirty=true;P.x=2*T;P.y=14*T;P.vx=0;P.vy=0;P.dir=1;P.gnd=false;P.fr=0;P.inv=0;P.dead=false;keys=0;hp=mhp;pts=[];ftx=[];grenades=[];cam.x=P.x-400;cam.y=0;gt=300;tf=0;
-  if(LV.boss){bossHp=bossMax;bootY=0;bootState='up';bootTimer=120}
+  if(LV.boss){bossHp=bossMax;bootState='ground';bootTimer=90;bossX=65*T;bossY=16*T;bossVx=0;bossVy=0}
   gs='intro';lit=100}
 function startGame(){lives=5;score=0;gems=0;hp=mhp;keys=0;startLv(0)}
 function solid2(wx,wy){const tx=Math.floor(wx/T),ty=Math.floor(wy/T);if(tx<0||tx>=LV.pw||ty<0||ty>=LV.ph)return 0;const v=LV.grid[ty][tx];return v>0&&v!==2?1:0}// breakable(2) is solid too
@@ -498,11 +507,7 @@ function updPlayer(){
   else if(P.y>LV.ph*T+64)pDie();
   if(P.inv>0)P.inv--;
   tf++;if(tf>=60){tf=0;gt--;if(gt<=0)pDie()}
-  // Boss boot collision
-  if(LV.boss&&bossHp>0&&bootState==='down'){
-    const bx=60*T,by=16*T+bootY-4;
-    if(rOvr({x:P.x+4,y:P.y,w:P.w-8,h:P.h},{x:bx+16,y:by+54,w:48,h:8}))pHit();
-  }
+  // Boss collision handled in updEnts
 }
 function pHit(){if(P.inv>0)return;hp--;P.inv=90;sht=12;shi=4;sfx('hurt');if(hp<=0)pDie()}
 function pDie(){P.dead=true;lives--;sfx('die');setTimeout(()=>{if(lives<=0)gs='over';else startLv(cl)},1500)}
@@ -541,21 +546,62 @@ function updEnts(){
     }
     // Boss
     if(e.type==='boss'&&e.alive&&bossHp>0){
-      // Boss boot logic
+      // Hopping boot mech AI - seeks the pig!
       bootTimer--;
-      if(bootState==='up'&&bootTimer<=0){bootState='down';bootTimer=40;sfx('boss')}
-      else if(bootState==='down'){bootY=Math.min(bootY+4,60);if(bootTimer<=0){bootState='hold';bootTimer=30}}
-      else if(bootState==='hold'&&bootTimer<=0){bootState='up';bootTimer=80+Math.random()*40}
-      else if(bootState==='up')bootY=Math.max(bootY-2,0);
-      // Stomp the villain (on the platform at e.y)
-      const villainR={x:e.x*T+28,y:e.y*T-28,w:16,h:20};
-      if(!P.dead&&P.inv<=0&&rOvr(pr,villainR)){
-        if(P.vy>0&&P.y+P.h<villainR.y+10){
-          P.vy=JF*.7;sfx('stomp');bossHp--;sht=15;shi=6;
-          spP(e.x*T+36,e.y*T-20,'#FFD700',10);
-          if(bossHp<=0){e.alive=false;score+=1000;spT(e.x*T+20,e.y*T-40,'BOSS DOWN!','#FFD700');sfx('clear')}
-          else spT(e.x*T+20,e.y*T-40,bossHp+' HITS LEFT','#FF6B6B');
-        }else pHit();
+      const arenaLeft=50*T,arenaRight=78*T,arenaGnd=16*T;
+      if(bootState==='ground'){
+        // Sitting on ground - vulnerable! Wait then jump toward pig
+        if(bootTimer<=0){
+          bootState='jump';
+          // Jump toward pig
+          const dx=P.x-bossX;
+          bossVx=Math.max(-4,Math.min(4,dx*.03));
+          bossVy=-10-Math.random()*3;
+          bootTimer=60;
+          sfx('boss');
+        }
+      } else if(bootState==='jump'){
+        // In the air - spikes are deadly!
+        bossVy+=.4;
+        bossX+=bossVx;
+        bossY+=bossVy;
+        // Clamp to arena
+        bossX=Math.max(arenaLeft+30,Math.min(arenaRight-30,bossX));
+        // Land on ground
+        if(bossY>=arenaGnd){
+          bossY=arenaGnd;bossVy=0;bossVx=0;
+          bootState='ground';bootTimer=50+Math.random()*40;
+          sht=8;shi=4;sfx('boom');
+          spP(bossX,bossY,'#888',8);
+          // Damage pig if close when landing (shockwave)
+          if(!P.dead&&P.inv<=0&&Math.abs(P.x+15-bossX)<50&&P.y+P.h>arenaGnd-10)pHit();
+        }
+        // Spike damage while in air
+        if(!P.dead&&P.inv<=0){
+          const spikeR={x:bossX-28,y:bossY,w:56,h:14};
+          if(rOvr(pr,spikeR))pHit();
+        }
+      }
+      // Stomp the villain's HEAD on top of the boot (only when grounded!)
+      if(bootState==='ground'&&!P.dead&&P.inv<=0){
+        const headR={x:bossX-8,y:bossY-55,w:16,h:14};
+        if(rOvr(pr,headR)&&P.vy>0&&P.y+P.h<headR.y+10){
+          P.vy=JF*.8;sfx('stomp');bossHp--;sht=15;shi=8;
+          spP(bossX,bossY-50,'#FFD700',12);
+          if(bossHp<=0){
+            e.alive=false;score+=1000;
+            spT(bossX-30,bossY-70,'BOSS DEFEATED!','#FFD700');sfx('clear');
+            // Remove arena wall so pig can reach door
+            for(let yy=0;yy<LV.ph;yy++)if(LV.grid[yy]&&LV.grid[yy][80])LV.grid[yy][80]=0;
+            terrainDirty=true;
+          } else {
+            spT(bossX-20,bossY-70,bossHp+' HITS LEFT','#FF6B6B');
+            // Boss gets angry - jump immediately
+            bootState='jump';bossVx=(Math.random()-.5)*6;bossVy=-12;bootTimer=60;
+          }
+        }
+        // Body collision (not head) hurts pig
+        else if(rOvr(pr,{x:bossX-26,y:bossY-42,w:52,h:44}))pHit();
       }
     }
     // Collectibles
@@ -607,7 +653,7 @@ function renderPlay(){
     if(e.type==='bandit'&&e.alive)drawBandit(ex,ey,fc,e.dir);
     if(e.type==='bird'&&e.alive)drawBird(ex,ey,fc);
     if(e.type==='detonator'&&e.alive){drawCrate(ex,ey);X.fillStyle='#FFD700';X.fillRect(ex+12,ey-4,8,6);X.fillStyle='#FF6B00';X.fillRect(ex+14,ey-2,4,3)}
-    if(e.type==='boss'&&e.alive)drawBoss(ex,ey,bootY);
+    if(e.type==='boss'&&e.alive)drawBoss();
   });
   // Grenades
   grenades.forEach(g2=>drawGrenade(g2.x,g2.y));
