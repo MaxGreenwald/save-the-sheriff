@@ -61,28 +61,33 @@ const BIO={
 };
 let biome='desert';
 
-// Terrain rendering with outlined edges
-function drawTerrain(grid,pw,ph,cx,cy){
+// Terrain: rendered ONCE to offscreen canvas, then blitted each frame
+let terrainCache=null,terrainDirty=true;
+function buildTerrainCache(grid,pw,ph){
+  const tc=document.createElement('canvas');tc.width=pw*T;tc.height=ph*T;
+  const tx=tc.getContext('2d');tx.imageSmoothingEnabled=false;
   const c=BIO[biome];
-  const sx=Math.max(0,Math.floor(cx/T)-1),ex=Math.min(pw,Math.ceil((cx+800)/T)+1);
-  const sy=Math.max(0,Math.floor(cy/T)-1),ey=Math.min(ph,Math.ceil((cy+600)/T)+1);
-  for(let ty=sy;ty<ey;ty++)for(let tx=sx;tx<ex;tx++){
-    if(!grid[ty]||!grid[ty][tx])continue;
-    const px=tx*T,py=ty*T;
-    X.fillStyle=c.b;X.fillRect(px,py,T,T);
-    X.fillStyle=c.s;for(let y=py+5;y<py+T;y+=6)X.fillRect(px,y,T,1);
-    if(biome==='green'){X.strokeStyle='rgba(80,160,60,0.12)';X.lineWidth=1;X.beginPath();X.moveTo(px,py+T);X.lineTo(px+T,py);X.stroke();X.beginPath();X.moveTo(px+T/2,py+T);X.lineTo(px+T,py+T/2);X.stroke()}
+  for(let ty=0;ty<ph;ty++)for(let txx=0;txx<pw;txx++){
+    if(!grid[ty]||!grid[ty][txx])continue;
+    const px=txx*T,py=ty*T;
+    tx.fillStyle=c.b;tx.fillRect(px,py,T,T);
+    tx.fillStyle=c.s;for(let y=py+5;y<py+T;y+=6)tx.fillRect(px,y,T,1);
+    if(biome==='green'){tx.strokeStyle='rgba(80,160,60,0.12)';tx.lineWidth=1;tx.beginPath();tx.moveTo(px,py+T);tx.lineTo(px+T,py);tx.stroke();tx.beginPath();tx.moveTo(px+T/2,py+T);tx.lineTo(px+T,py+T/2);tx.stroke()}
+    // Outlines on exposed edges
+    const above=ty>0&&grid[ty-1]?grid[ty-1][txx]:0,below=ty<ph-1&&grid[ty+1]?grid[ty+1][txx]:0;
+    const left=txx>0?grid[ty][txx-1]:0,right=txx<pw-1?grid[ty][txx+1]:0;
+    tx.fillStyle=c.ol;
+    if(!above){tx.fillRect(px,py,T,2);tx.fillStyle=c.e;tx.fillRect(px,py+2,T,1);tx.fillStyle=c.ol}
+    if(!left)tx.fillRect(px,py,2,T);if(!right)tx.fillRect(px+T-2,py,2,T);if(!below)tx.fillRect(px,py+T-2,T,2);
   }
-  // Outline pass
-  for(let ty=sy;ty<ey;ty++)for(let tx=sx;tx<ex;tx++){
-    if(!grid[ty]||!grid[ty][tx])continue;
-    const px=tx*T,py=ty*T;
-    const above=ty>0&&grid[ty-1]?grid[ty-1][tx]:0,below=ty<ph-1&&grid[ty+1]?grid[ty+1][tx]:0;
-    const left=tx>0?grid[ty][tx-1]:0,right=tx<pw-1?grid[ty][tx+1]:0;
-    X.fillStyle=c.ol;
-    if(!above){X.fillRect(px,py,T,2);X.fillStyle=c.e;X.fillRect(px,py+2,T,1);X.fillStyle=c.ol}
-    if(!left)X.fillRect(px,py,2,T);if(!right)X.fillRect(px+T-2,py,2,T);if(!below)X.fillRect(px,py+T-2,T,2);
-  }
+  return tc;
+}
+function drawTerrain(grid,pw,ph,cx,cy){
+  if(terrainDirty||!terrainCache){terrainCache=buildTerrainCache(grid,pw,ph);terrainDirty=false}
+  // Blit only the visible portion
+  const sx=Math.max(0,Math.floor(cx)),sy=Math.max(0,Math.floor(cy));
+  const sw=Math.min(800,terrainCache.width-sx),sh=Math.min(600,terrainCache.height-sy);
+  if(sw>0&&sh>0)X.drawImage(terrainCache,sx,sy,sw,sh,sx,sy,sw,sh);
 }
 
 // ═══════════════════ SPRITES ═══════════════════
@@ -145,10 +150,10 @@ function drawBandit(x,y,f,d){
 
 // NEW: Rolling boulder
 function drawBoulder(x,y,r){
-  X.fillStyle='#888';X.beginPath();X.arc(x,y,r,0,Math.PI*2);X.fill();
-  X.fillStyle='#AAA';X.beginPath();X.arc(x-r*.2,y-r*.2,r*.6,0,Math.PI*2);X.fill();
-  X.fillStyle='#CCC';X.beginPath();X.arc(x-r*.3,y-r*.3,r*.25,0,Math.PI*2);X.fill();
-  X.strokeStyle='#666';X.lineWidth=2;X.beginPath();X.arc(x,y,r,0,Math.PI*2);X.stroke();
+  // Square approximation - much faster than arc
+  X.fillStyle='#777';X.fillRect(x-r,y-r+2,r*2,r*2-4);X.fillRect(x-r+2,y-r,r*2-4,r*2);
+  X.fillStyle='#999';X.fillRect(x-r+3,y-r+3,r*2-6,r*2-6);
+  X.fillStyle='#BBB';X.fillRect(x-r*.4,y-r*.4,r*.5,r*.5);
 }
 
 // NEW: Bird enemy (flies in sine wave)
@@ -194,30 +199,25 @@ function drawBoss(x,y,bootOff){
 
 // Water surface
 function drawWater(waterY,cx){
-  // Water body
   X.fillStyle='rgba(40,100,180,0.7)';X.fillRect(0,waterY,800,600-waterY);
-  // Animated waves
+  // Simplified waves - fewer segments
   X.fillStyle='rgba(60,140,220,0.5)';
-  for(let x2=0;x2<820;x2+=20){
-    const wy=waterY+Math.sin((x2+cx)*.02+fc*.05)*4;
-    X.fillRect(x2,wy,20,600-wy);
-  }
-  // Wave caps (white)
+  for(let x2=0;x2<820;x2+=40){const wy=waterY+Math.sin((x2+cx)*.02+fc*.05)*4;X.fillRect(x2,wy,40,600-wy)}
   X.fillStyle='rgba(255,255,255,0.6)';
-  for(let x2=0;x2<820;x2+=30){
-    const wy=waterY+Math.sin((x2+cx)*.02+fc*.05)*4-2;
-    X.fillRect(x2+5,wy,12,3);
-  }
+  for(let x2=0;x2<820;x2+=60){const wy=waterY+Math.sin((x2+cx)*.02+fc*.05)*4-2;X.fillRect(x2+8,wy,16,3)}
 }
 
 function drawBubble(x,y,f){
   const b=Math.sin(f*.03+x*.08)*8,ry=y+b,cx2=x+16,cy=ry+16;
-  X.strokeStyle='rgba(100,160,200,0.4)';X.lineWidth=2;X.beginPath();X.arc(cx2,cy,15,0,Math.PI*2);X.stroke();
-  X.fillStyle='rgba(180,220,250,0.35)';X.beginPath();X.arc(cx2,cy,14,0,Math.PI*2);X.fill();
-  X.fillStyle='rgba(210,240,255,0.4)';X.beginPath();X.arc(cx2,cy,11,0,Math.PI*2);X.fill();
-  X.fillStyle='rgba(255,255,255,0.7)';X.fillRect(cx2-6,cy-7,5,4);
-  X.fillStyle='rgba(80,130,170,0.3)';X.beginPath();X.arc(cx2-3,cy,4,0,Math.PI*2);X.fill();
-  X.fillStyle='rgba(60,100,140,0.4)';X.fillRect(cx2-5,cy-3,3,2);X.fillRect(cx2+3,cy-3,3,2);
+  // Simplified bubble - fewer draw calls
+  X.fillStyle='rgba(180,220,250,0.35)';X.fillRect(cx2-14,cy-14,28,28);
+  X.fillStyle='rgba(210,240,255,0.45)';X.fillRect(cx2-11,cy-11,22,22);
+  X.fillStyle='rgba(255,255,255,0.6)';X.fillRect(cx2-6,cy-8,5,4);
+  X.fillStyle='rgba(60,100,140,0.35)';X.fillRect(cx2-5,cy-3,3,2);X.fillRect(cx2+3,cy-3,3,2);
+  // Circular outline using 8 rects (cheaper than arc)
+  X.fillStyle='rgba(100,160,200,0.35)';
+  X.fillRect(cx2-15,cy-4,2,8);X.fillRect(cx2+13,cy-4,2,8);X.fillRect(cx2-4,cy-15,8,2);X.fillRect(cx2-4,cy+13,8,2);
+  X.fillRect(cx2-12,cy-10,2,4);X.fillRect(cx2+10,cy-10,2,4);X.fillRect(cx2-12,cy+6,2,4);X.fillRect(cx2+10,cy+6,2,4);
 }
 
 function drawGem(x,y,f){const b=Math.sin(f*.07+x*.05)*3,ry=y+b;X.fillStyle='#1A4466';X.fillRect(x+11,ry,10,2);X.fillRect(x+9,ry+2,14,2);X.fillRect(x+7,ry+4,18,22);X.fillRect(x+9,ry+26,14,2);X.fillRect(x+11,ry+28,10,2);X.fillStyle='#336699';X.fillRect(x+9,ry+2,14,26);X.fillStyle='#4488CC';X.fillRect(x+10,ry+4,12,20);X.fillStyle='#5599DD';X.fillRect(x+12,ry+6,8,14);X.fillStyle='#AAD4FF';X.fillRect(x+12,ry+6,3,6);X.fillStyle='#CCEEFF';X.fillRect(x+12,ry+7,2,3)}
@@ -234,8 +234,8 @@ function drawWall(x,y,w,h,c){X.fillStyle=c;X.fillRect(x,y,w,h);const sc=c==='#C0
 function drawWindow(x,y){X.fillStyle='#6B5030';X.fillRect(x-1,y-1,26,22);X.fillStyle='#88BBDD';X.fillRect(x,y,24,20);X.fillStyle='#8B6830';X.fillRect(x+11,y,2,20);X.fillRect(x,y+9,24,2)}
 function drawBG(cx,rain){
   const g=X.createLinearGradient(0,0,0,500);g.addColorStop(0,'#88CCEE');g.addColorStop(.7,'#AADDFF');g.addColorStop(1,'#BBDDEE');X.fillStyle=g;X.fillRect(0,0,800,600);
-  const sx2=620-cx*.02;X.fillStyle='#FFF8A0';X.beginPath();X.arc(sx2,70,20,0,Math.PI*2);X.fill();X.fillStyle='#FFEE60';X.beginPath();X.arc(sx2,70,16,0,Math.PI*2);X.fill();
-  X.fillStyle='rgba(255,255,255,0.45)';for(let i=0;i<6;i++){const cx2=((i*190+50-cx*.035)%1100+1100)%1100-140,cy=22+i*22;X.beginPath();X.ellipse(cx2+18,cy+7,20,6,0,0,Math.PI*2);X.fill();X.beginPath();X.ellipse(cx2+35,cy,16,8,0,0,Math.PI*2);X.fill();X.beginPath();X.ellipse(cx2+48,cy+5,14,5,0,0,Math.PI*2);X.fill()}
+  const sx2=620-cx*.02;X.fillStyle='#FFF8A0';X.fillRect(sx2-18,70-18,36,36);X.fillStyle='#FFEE60';X.fillRect(sx2-14,70-14,28,28);
+  X.fillStyle='rgba(255,255,255,0.45)';for(let i=0;i<5;i++){const cx2=((i*220+50-cx*.035)%1100+1100)%1100-140,cy=25+i*26;X.fillRect(cx2,cy+2,40,10);X.fillRect(cx2+10,cy-4,30,12);X.fillRect(cx2+35,cy,24,8)}
   if(rain){X.fillStyle='rgba(200,220,240,0.2)';for(let i=0;i<50;i++)X.fillRect(((i*43+fc*3)%850),((i*67+fc*7)%650),1,10)}
 }
 
@@ -472,7 +472,7 @@ function genLv(idx){
 }
 
 let LV=null,P={x:0,y:0,vx:0,vy:0,w:30,h:28,dir:1,gnd:false,fr:0,inv:0,dead:false},cam={x:0,y:0};
-function startLv(i){cl=i;biome=LEVELS[i].bio;LV=genLv(i);P.x=2*T;P.y=14*T;P.vx=0;P.vy=0;P.dir=1;P.gnd=false;P.fr=0;P.inv=0;P.dead=false;keys=0;hp=mhp;pts=[];ftx=[];grenades=[];cam.x=P.x-400;cam.y=0;gt=300;tf=0;
+function startLv(i){cl=i;biome=LEVELS[i].bio;LV=genLv(i);terrainDirty=true;P.x=2*T;P.y=14*T;P.vx=0;P.vy=0;P.dir=1;P.gnd=false;P.fr=0;P.inv=0;P.dead=false;keys=0;hp=mhp;pts=[];ftx=[];grenades=[];cam.x=P.x-400;cam.y=0;gt=300;tf=0;
   if(LV.boss){bossHp=bossMax;bootY=0;bootState='up';bootTimer=120}
   gs='intro';lit=100}
 function startGame(){lives=5;score=0;gems=0;hp=mhp;keys=0;startLv(0)}
@@ -481,7 +481,7 @@ function solidAny(wx,wy){const tx=Math.floor(wx/T),ty=Math.floor(wy/T);if(tx<0||
 function rOvr(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y}
 
 // Break blocks near a point
-function breakNear(tx2){for(let y=0;y<LV.ph;y++){if(LV.grid[y][tx2]===2){LV.grid[y][tx2]=0;spP(tx2*T+16,y*T+16,'#C0984C',4)}}}
+function breakNear(tx2){for(let y=0;y<LV.ph;y++){if(LV.grid[y][tx2]===2){LV.grid[y][tx2]=0;spP(tx2*T+16,y*T+16,'#C0984C',4)}}terrainDirty=true}
 
 function updPlayer(){
   if(P.dead)return;const sp=inp.ShiftLeft||inp.ShiftRight?WS:RS;
