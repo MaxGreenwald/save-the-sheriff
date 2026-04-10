@@ -20,11 +20,13 @@ X.imageSmoothingEnabled=false;
 const T=32,GR=0.55,JF=-11,RS=3.5,WS=1.5;
 
 let gs='title',cl=0,lives=5,score=0,gems=0,keys=0,hp=4,mhp=4,lit=0,snd=true,fc=0,sht=0,shi=0,gt=300,tf=0;
+let bossHp=0,bossMax=3,bootY=0,bootState='up',bootTimer=0;
 const inp={};
 document.addEventListener('keydown',e=>{inp[e.code]=true;if(e.code==='KeyP'){if(gs==='play')gs='pause';else if(gs==='pause')gs='play'}if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code))e.preventDefault()});
 document.addEventListener('keyup',e=>{inp[e.code]=false});
 C.addEventListener('click',onClick);
 
+// Audio
 const AC=new(window.AudioContext||window.webkitAudioContext)();
 function sfx(t){if(!snd)return;try{const o=AC.createOscillator(),g=AC.createGain();o.connect(g);g.connect(AC.destination);const n=AC.currentTime;
 ({jump(){o.type='square';o.frequency.setValueAtTime(280,n);o.frequency.linearRampToValueAtTime(520,n+.1);g.gain.setValueAtTime(.12,n);g.gain.linearRampToValueAtTime(0,n+.14);o.start(n);o.stop(n+.14)},
@@ -35,329 +37,227 @@ key(){o.type='square';o.frequency.setValueAtTime(600,n);o.frequency.setValueAtTi
 clear(){o.type='square';[523,659,784,1047].forEach((f,i)=>o.frequency.setValueAtTime(f,n+i*.12));g.gain.setValueAtTime(.12,n);g.gain.linearRampToValueAtTime(0,n+.6);o.start(n);o.stop(n+.6)},
 die(){o.type='square';o.frequency.setValueAtTime(400,n);o.frequency.linearRampToValueAtTime(100,n+.5);g.gain.setValueAtTime(.15,n);g.gain.linearRampToValueAtTime(0,n+.6);o.start(n);o.stop(n+.6)},
 sel(){o.type='square';o.frequency.setValueAtTime(600,n);o.frequency.setValueAtTime(800,n+.04);g.gain.setValueAtTime(.08,n);g.gain.linearRampToValueAtTime(0,n+.08);o.start(n);o.stop(n+.08)},
-boom(){o.type='sawtooth';o.frequency.setValueAtTime(150,n);o.frequency.linearRampToValueAtTime(30,n+.35);g.gain.setValueAtTime(.2,n);g.gain.linearRampToValueAtTime(0,n+.4);o.start(n);o.stop(n+.4)}
+boom(){o.type='sawtooth';o.frequency.setValueAtTime(150,n);o.frequency.linearRampToValueAtTime(30,n+.35);g.gain.setValueAtTime(.2,n);g.gain.linearRampToValueAtTime(0,n+.4);o.start(n);o.stop(n+.4)},
+splash(){o.type='triangle';o.frequency.setValueAtTime(200,n);o.frequency.linearRampToValueAtTime(80,n+.3);g.gain.setValueAtTime(.15,n);g.gain.linearRampToValueAtTime(0,n+.35);o.start(n);o.stop(n+.35)},
+boss(){o.type='sawtooth';o.frequency.setValueAtTime(80,n);o.frequency.linearRampToValueAtTime(40,n+.4);g.gain.setValueAtTime(.25,n);g.gain.linearRampToValueAtTime(0,n+.5);o.start(n);o.stop(n+.5)}
 })[t]?.()}catch(e){}}
 
-let pts=[],ftx=[];
+let pts=[],ftx=[],grenades=[];
 function spP(x,y,c,n=6){for(let i=0;i<n;i++)pts.push({x,y,vx:(Math.random()-.5)*5,vy:(Math.random()-.7)*4,l:25+Math.random()*15,ml:40,s:2+Math.random()*2,c})}
 function spT(x,y,t,c='#fff'){ftx.push({x,y,t,c,l:50,vy:-1.5})}
 function updPts(){pts=pts.filter(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.15;p.l--;return p.l>0});ftx=ftx.filter(f=>{f.y+=f.vy;f.l--;return f.l>0})}
 
-// ════════════════════════════════════════
-// TERRAIN - Blocks with outlines on exposed edges
-// The KEY visual difference: dark border where terrain meets sky
-// ════════════════════════════════════════
+// ═══════════════════ BIOMES ═══════════════════
 const BIO={
   desert:{b:'#E0BD68',s:'#D6B360',e:'#C8A450',ol:'#A08030'},
-  town:  {b:'#D0A858',s:'#C69E50',e:'#B28A40',ol:'#907020'},
-  grey:  {b:'#C0C0B0',s:'#B0B0A0',e:'#9C9C92',ol:'#808070'},
-  red:   {b:'#D09060',s:'#C68555',e:'#B27040',ol:'#905830'},
-  green: {b:'#78C060',s:'#6CB858',e:'#58A848',ol:'#408830'},
-  cave:  {b:'#D8C060',s:'#D0B858',e:'#C0A848',ol:'#A09030'},
-  stone: {b:'#A8A898',s:'#9C9C8C',e:'#848474',ol:'#686860'},
-  plains:{b:'#D8D0B0',s:'#D0C8A8',e:'#C0B898',ol:'#A0A080'}
+  town:{b:'#D0A858',s:'#C69E50',e:'#B28A40',ol:'#907020'},
+  grey:{b:'#C0C0B0',s:'#B0B0A0',e:'#9C9C92',ol:'#808070'},
+  red:{b:'#D09060',s:'#C68555',e:'#B27040',ol:'#905830'},
+  green:{b:'#78C060',s:'#6CB858',e:'#58A848',ol:'#408830'},
+  cave:{b:'#D8C060',s:'#D0B858',e:'#C0A848',ol:'#A09030'},
+  stone:{b:'#A8A898',s:'#9C9C8C',e:'#848474',ol:'#686860'},
+  plains:{b:'#D8D0B0',s:'#D0C8A8',e:'#C0B898',ol:'#A0A080'},
+  water:{b:'#5090C0',s:'#4888B8',e:'#4080B0',ol:'#3070A0'}
 };
 let biome='desert';
 
-// Draw terrain block with horizontal stripes + DARK OUTLINE on exposed edges
-function drawTerrain(grid,pw,ph,camx,camy){
+// Terrain rendering with outlined edges
+function drawTerrain(grid,pw,ph,cx,cy){
   const c=BIO[biome];
-  const sx=Math.max(0,Math.floor(camx/T)-1),ex=Math.min(pw,Math.ceil((camx+800)/T)+1);
-  const sy=Math.max(0,Math.floor(camy/T)-1),ey=Math.min(ph,Math.ceil((camy+600)/T)+1);
-
-  // First pass: fill all terrain tiles with base color + stripes
-  for(let ty=sy;ty<ey;ty++){
-    for(let tx=sx;tx<ex;tx++){
-      if(!grid[ty]||!grid[ty][tx])continue;
-      const px=tx*T,py=ty*T;
-      // Base fill
-      X.fillStyle=c.b;X.fillRect(px,py,T,T);
-      // Horizontal stripes every 5-6px
-      X.fillStyle=c.s;
-      for(let y=py+5;y<py+T;y+=6)X.fillRect(px,y,T,1);
-    }
+  const sx=Math.max(0,Math.floor(cx/T)-1),ex=Math.min(pw,Math.ceil((cx+800)/T)+1);
+  const sy=Math.max(0,Math.floor(cy/T)-1),ey=Math.min(ph,Math.ceil((cy+600)/T)+1);
+  for(let ty=sy;ty<ey;ty++)for(let tx=sx;tx<ex;tx++){
+    if(!grid[ty]||!grid[ty][tx])continue;
+    const px=tx*T,py=ty*T;
+    X.fillStyle=c.b;X.fillRect(px,py,T,T);
+    X.fillStyle=c.s;for(let y=py+5;y<py+T;y+=6)X.fillRect(px,y,T,1);
+    if(biome==='green'){X.strokeStyle='rgba(80,160,60,0.12)';X.lineWidth=1;X.beginPath();X.moveTo(px,py+T);X.lineTo(px+T,py);X.stroke();X.beginPath();X.moveTo(px+T/2,py+T);X.lineTo(px+T,py+T/2);X.stroke()}
   }
-
-  // Second pass: draw dark outlines on exposed edges (where terrain meets air)
-  for(let ty=sy;ty<ey;ty++){
-    for(let tx=sx;tx<ex;tx++){
-      if(!grid[ty]||!grid[ty][tx])continue;
-      const px=tx*T,py=ty*T;
-      const above=ty>0&&grid[ty-1]?grid[ty-1][tx]:0;
-      const below=ty<ph-1&&grid[ty+1]?grid[ty+1][tx]:0;
-      const left=tx>0?grid[ty][tx-1]:0;
-      const right=tx<pw-1?grid[ty][tx+1]:0;
-
-      X.fillStyle=c.ol;
-      // Top edge outline (most important - where terrain meets sky)
-      if(!above){X.fillRect(px,py,T,2);
-        // Slightly darker top-edge accent
-        X.fillStyle=c.e;X.fillRect(px,py+2,T,1);X.fillStyle=c.ol;}
-      // Left edge
-      if(!left)X.fillRect(px,py,2,T);
-      // Right edge
-      if(!right)X.fillRect(px+T-2,py,2,T);
-      // Bottom edge
-      if(!below)X.fillRect(px,py+T-2,T,2);
-
-      // Green biome gets diagonal hatching
-      if(biome==='green'){
-        X.strokeStyle='rgba(80,160,60,0.12)';X.lineWidth=1;
-        X.beginPath();X.moveTo(px,py+T);X.lineTo(px+T,py);X.stroke();
-        X.beginPath();X.moveTo(px+T/2,py+T);X.lineTo(px+T,py+T/2);X.stroke();
-        X.beginPath();X.moveTo(px,py+T/2);X.lineTo(px+T/2,py);X.stroke();
-      }
-    }
+  // Outline pass
+  for(let ty=sy;ty<ey;ty++)for(let tx=sx;tx<ex;tx++){
+    if(!grid[ty]||!grid[ty][tx])continue;
+    const px=tx*T,py=ty*T;
+    const above=ty>0&&grid[ty-1]?grid[ty-1][tx]:0,below=ty<ph-1&&grid[ty+1]?grid[ty+1][tx]:0;
+    const left=tx>0?grid[ty][tx-1]:0,right=tx<pw-1?grid[ty][tx+1]:0;
+    X.fillStyle=c.ol;
+    if(!above){X.fillRect(px,py,T,2);X.fillStyle=c.e;X.fillRect(px,py+2,T,1);X.fillStyle=c.ol}
+    if(!left)X.fillRect(px,py,2,T);if(!right)X.fillRect(px+T-2,py,2,T);if(!below)X.fillRect(px,py+T-2,T,2);
   }
 }
 
-// Wooden crate (X pattern, from the video)
-function drawCrate(x,y){
-  X.fillStyle='#C8B078';X.fillRect(x+1,y+1,T-2,T-2);
-  X.fillStyle='#B8A068';X.fillRect(x,y,T,2);X.fillRect(x,y+T-2,T,2);X.fillRect(x,y,2,T);X.fillRect(x+T-2,y,2,T);
-  // X pattern
-  X.fillStyle='#A89058';
-  X.fillRect(x+4,y+4,2,2);X.fillRect(x+6,y+6,2,2);X.fillRect(x+8,y+8,2,2);X.fillRect(x+10,y+10,2,2);
-  X.fillRect(x+12,y+12,2,2);X.fillRect(x+14,y+14,2,2);X.fillRect(x+16,y+16,2,2);X.fillRect(x+18,y+18,2,2);
-  X.fillRect(x+20,y+20,2,2);X.fillRect(x+22,y+22,2,2);X.fillRect(x+24,y+24,2,2);
-  X.fillRect(x+24,y+4,2,2);X.fillRect(x+22,y+6,2,2);X.fillRect(x+20,y+8,2,2);X.fillRect(x+18,y+10,2,2);
-  X.fillRect(x+16,y+12,2,2);X.fillRect(x+14,y+14,2,2);X.fillRect(x+12,y+16,2,2);X.fillRect(x+10,y+18,2,2);
-  X.fillRect(x+8,y+20,2,2);X.fillRect(x+6,y+22,2,2);X.fillRect(x+4,y+24,2,2);
-  // Corner brackets
-  X.fillStyle='#907840';X.fillRect(x+2,y+2,6,2);X.fillRect(x+2,y+2,2,6);
-  X.fillRect(x+T-8,y+2,6,2);X.fillRect(x+T-4,y+2,2,6);
-  X.fillRect(x+2,y+T-4,6,2);X.fillRect(x+2,y+T-8,2,6);
-  X.fillRect(x+T-8,y+T-4,6,2);X.fillRect(x+T-4,y+T-8,2,6);
-}
-
-// Thin bridge platform
-function drawBridge(x,y,w){
-  X.fillStyle='#A08050';X.fillRect(x,y,w,4);
-  X.fillStyle='#B89060';X.fillRect(x,y+1,w,2);
-  X.fillStyle='#806030';X.fillRect(x,y,w,1);X.fillRect(x,y+3,w,1);
-}
-
-// Building wall background
-function drawWall(x,y,w,h,color='#D0A858'){
-  X.fillStyle=color;X.fillRect(x,y,w,h);
-  const sc=color==='#C0C0B0'?'#B0B0A0':color==='#C08060'?'#A87050':'#C09848';
-  X.fillStyle=sc;for(let ly=y+4;ly<y+h;ly+=5)X.fillRect(x,ly,w,1);
-}
-function drawWindow(x,y,w=24,h=20){
-  X.fillStyle='#6B5030';X.fillRect(x-1,y-1,w+2,h+2);
-  X.fillStyle='#88BBDD';X.fillRect(x,y,w,h);
-  X.fillStyle='#70AACC';X.fillRect(x+2,y+2,w/2-3,h/2-3);X.fillRect(x+w/2+1,y+2,w/2-3,h/2-3);
-  X.fillRect(x+2,y+h/2+1,w/2-3,h/2-3);X.fillRect(x+w/2+1,y+h/2+1,w/2-3,h/2-3);
-  X.fillStyle='#8B6830';X.fillRect(x+w/2-1,y,2,h);X.fillRect(x,y+h/2-1,w,2);
-}
-function drawSmallDoor(x,y){X.fillStyle='#5D4037';X.fillRect(x,y,22,30);X.fillStyle='#8B7355';X.fillRect(x+2,y+2,18,26);X.fillStyle='#FFD700';X.fillRect(x+15,y+14,2,2)}
-
-// ════════════════════════════════════════
-// SPRITES - Matching the video exactly
-// ════════════════════════════════════════
-
+// ═══════════════════ SPRITES ═══════════════════
 function drawPig(x,y,dir,frame,grnd){
   const bob=grnd&&Math.abs(P.vx)>.3?Math.sin(frame*.35):0;const ry=Math.round(y+bob);
   X.save();if(dir<0){X.translate(x+16,0);X.scale(-1,1);X.translate(-x-16,0)}
   const ol='#604020',bd='#E0C898',lt='#E8D0A8',dk='#C8A878';
   const la=grnd&&Math.abs(P.vx)>.3?Math.sin(frame*.5)*2:0;
-  // Body
-  X.fillStyle=ol;X.fillRect(x+3,ry+10,23,14);
-  X.fillStyle=bd;X.fillRect(x+4,ry+11,21,12);
-  X.fillStyle=lt;X.fillRect(x+5,ry+12,17,5);
-  X.fillStyle=dk;X.fillRect(x+5,ry+19,17,3);
-  // Head
-  X.fillStyle=ol;X.fillRect(x+17,ry+4,13,13);
-  X.fillStyle=bd;X.fillRect(x+18,ry+5,11,11);
-  X.fillStyle=lt;X.fillRect(x+19,ry+6,8,4);
-  // Ears
-  X.fillStyle=ol;X.fillRect(x+19,ry+1,4,4);X.fillRect(x+25,ry+1,4,4);
-  X.fillStyle=dk;X.fillRect(x+20,ry+2,2,2);X.fillRect(x+26,ry+2,2,2);
-  // Eye
-  X.fillStyle='#000';X.fillRect(x+24,ry+8,2,2);
-  // Snout
-  X.fillStyle='#D8B888';X.fillRect(x+27,ry+10,3,3);X.fillStyle=ol;X.fillRect(x+28,ry+11,1,1);
-  // Legs
-  X.fillStyle=ol;
-  X.fillRect(x+6,ry+23,4,5);X.fillRect(x+12+la,ry+23,4,5);X.fillRect(x+18,ry+23,4,5);X.fillRect(x+23-la,ry+23,4,5);
+  X.fillStyle=ol;X.fillRect(x+3,ry+10,23,14);X.fillStyle=bd;X.fillRect(x+4,ry+11,21,12);X.fillStyle=lt;X.fillRect(x+5,ry+12,17,5);X.fillStyle=dk;X.fillRect(x+5,ry+19,17,3);
+  X.fillStyle=ol;X.fillRect(x+17,ry+4,13,13);X.fillStyle=bd;X.fillRect(x+18,ry+5,11,11);X.fillStyle=lt;X.fillRect(x+19,ry+6,8,4);
+  X.fillStyle=ol;X.fillRect(x+19,ry+1,4,4);X.fillRect(x+25,ry+1,4,4);X.fillStyle=dk;X.fillRect(x+20,ry+2,2,2);X.fillRect(x+26,ry+2,2,2);
+  X.fillStyle='#000';X.fillRect(x+24,ry+8,2,2);X.fillStyle='#D8B888';X.fillRect(x+27,ry+10,3,3);X.fillStyle=ol;X.fillRect(x+28,ry+11,1,1);
+  X.fillStyle=ol;X.fillRect(x+6,ry+23,4,5);X.fillRect(x+12+la,ry+23,4,5);X.fillRect(x+18,ry+23,4,5);X.fillRect(x+23-la,ry+23,4,5);
   X.fillStyle='#402010';X.fillRect(x+6,ry+27,4,1);X.fillRect(x+12+la,ry+27,4,1);X.fillRect(x+18,ry+27,4,1);X.fillRect(x+23-la,ry+27,4,1);
-  // Tail
   X.fillStyle=ol;X.fillRect(x+1,ry+12,3,1);X.fillRect(x,ry+11,2,1);X.fillRect(x+1,ry+10,3,1);
   X.restore();
 }
 
-function drawFrog(x,y,frame,dir){
-  const bob=Math.sin(frame*.06);const ry=Math.round(y+bob);
-  X.save();if(dir<0){X.translate(x+16,0);X.scale(-1,1);X.translate(-x-16,0)}
-  // Body with outline
-  X.fillStyle='#2D6D20';X.fillRect(x+3,ry+11,26,16);
-  X.fillStyle='#4A9E3A';X.fillRect(x+4,ry+12,24,14);
-  X.fillStyle='#5AB84A';X.fillRect(x+6,ry+14,20,8);
-  // Head
+function drawFrog(x,y,f,d){
+  const b=Math.sin(f*.06),ry=Math.round(y+b);X.save();if(d<0){X.translate(x+16,0);X.scale(-1,1);X.translate(-x-16,0)}
+  X.fillStyle='#2D6D20';X.fillRect(x+3,ry+11,26,16);X.fillStyle='#4A9E3A';X.fillRect(x+4,ry+12,24,14);X.fillStyle='#5AB84A';X.fillRect(x+6,ry+14,20,8);
   X.fillStyle='#4A9E3A';X.fillRect(x+8,ry+6,18,10);
-  // Big white eyes with outline
-  X.fillStyle='#2D6D20';X.fillRect(x+9,ry+1,8,8);X.fillRect(x+18,ry+1,8,8);
-  X.fillStyle='#fff';X.fillRect(x+10,ry+2,6,6);X.fillRect(x+19,ry+2,6,6);
+  X.fillStyle='#2D6D20';X.fillRect(x+9,ry+1,8,8);X.fillRect(x+18,ry+1,8,8);X.fillStyle='#fff';X.fillRect(x+10,ry+2,6,6);X.fillRect(x+19,ry+2,6,6);
   X.fillStyle='#000';X.fillRect(x+13,ry+4,2,3);X.fillRect(x+22,ry+4,2,3);
-  // Mouth line
-  X.fillStyle='#2D6D20';X.fillRect(x+12,ry+14,10,1);
-  // Legs
-  const la=Math.sin(frame*.08)*1.5;X.fillStyle='#3E8E30';
-  X.fillRect(x+1,ry+22+la,9,6);X.fillRect(x+22,ry+22-la,9,6);
-  X.fillStyle='#2D6D20';X.fillRect(x,ry+26+la,6,2);X.fillRect(x+26,ry+26-la,6,2);
+  const la=Math.sin(f*.08)*1.5;X.fillStyle='#3E8E30';X.fillRect(x+1,ry+22+la,9,6);X.fillRect(x+22,ry+22-la,9,6);
   X.restore();
 }
 
-function drawSnake(x,y,frame,dir){
-  X.save();if(dir<0){X.translate(x+28,0);X.scale(-1,1);X.translate(-x-28,0)}
-  // Thicker snake body with outline
-  for(let i=0;i<10;i++){
-    const sy=Math.sin(frame*.07+i*.6)*4;
-    X.fillStyle='#1B5E20';X.fillRect(x+i*5-1,y+11+sy,8,13);
-    X.fillStyle=i%2?'#2D862D':'#3E9E3E';X.fillRect(x+i*5,y+12+sy,6,11);
-    X.fillStyle='#7AC87A';X.fillRect(x+i*5+1,y+19+sy,4,3);
-  }
+function drawSnake(x,y,f,d){
+  X.save();if(d<0){X.translate(x+28,0);X.scale(-1,1);X.translate(-x-28,0)}
+  for(let i=0;i<10;i++){const sy=Math.sin(f*.07+i*.6)*4;X.fillStyle='#1B5E20';X.fillRect(x+i*5-1,y+11+sy,8,13);X.fillStyle=i%2?'#2D862D':'#3E9E3E';X.fillRect(x+i*5,y+12+sy,6,11);X.fillStyle='#7AC87A';X.fillRect(x+i*5+1,y+19+sy,4,3)}
+  X.fillStyle='#1B5E20';X.fillRect(x+47,y+5,16,20);X.fillStyle='#3E9E3E';X.fillRect(x+48,y+6,14,18);X.fillStyle='#FFE040';X.fillRect(x+52,y+8,5,5);X.fillStyle='#000';X.fillRect(x+54,y+10,3,3);
+  if(Math.sin(f*.1)>.2){X.fillStyle='#E53935';X.fillRect(x+62,y+16,6,2);X.fillRect(x+66,y+14,2,2);X.fillRect(x+66,y+18,2,2)}
+  X.restore();
+}
+
+// NEW: Criminal/Bandit enemy - walks, throws grenades
+function drawBandit(x,y,f,d){
+  const b=Math.sin(f*.06);const ry=Math.round(y+b);
+  X.save();if(d<0){X.translate(x+16,0);X.scale(-1,1);X.translate(-x-16,0)}
+  // Body (dark vest)
+  X.fillStyle='#2A2A2A';X.fillRect(x+6,ry+8,20,16);X.fillStyle='#3A3A3A';X.fillRect(x+8,ry+10,16,12);
   // Head
-  X.fillStyle='#1B5E20';X.fillRect(x+47,y+5,16,20);
-  X.fillStyle='#3E9E3E';X.fillRect(x+48,y+6,14,18);
-  X.fillStyle='#FFE040';X.fillRect(x+52,y+8,5,5);X.fillStyle='#000';X.fillRect(x+54,y+10,3,3);
-  if(Math.sin(frame*.1)>.2){X.fillStyle='#E53935';X.fillRect(x+62,y+16,6,2);X.fillRect(x+66,y+14,2,2);X.fillRect(x+66,y+18,2,2)}
+  X.fillStyle='#D4A060';X.fillRect(x+8,ry+0,16,12);X.fillStyle='#C09050';X.fillRect(x+10,ry+2,12,8);
+  // Hat (dark brown cowboy)
+  X.fillStyle='#3A2810';X.fillRect(x+4,ry-2,24,4);X.fillStyle='#4A3818';X.fillRect(x+8,ry-6,16,5);
+  // Eyes (mean)
+  X.fillStyle='#000';X.fillRect(x+12,ry+4,2,2);X.fillRect(x+18,ry+4,2,2);
+  // Bandana (red)
+  X.fillStyle='#AA2020';X.fillRect(x+10,ry+7,12,3);
+  // Legs
+  const la=Math.sin(f*.1)*2;
+  X.fillStyle='#4A3818';X.fillRect(x+8+la,ry+24,6,5);X.fillRect(x+18-la,ry+24,6,5);
+  // Arm holding grenade
+  X.fillStyle='#D4A060';X.fillRect(x+22,ry+10,6,4);
+  // Grenade in hand
+  X.fillStyle='#333';X.beginPath();X.arc(x+28,ry+12,3,0,Math.PI*2);X.fill();
   X.restore();
 }
 
-// Bubble - MUCH bigger, with swirl/face pattern like the original
-function drawBubble(x,y,frame){
-  const bob=Math.sin(frame*.03+x*.08)*8,ry=y+bob;
-  const cx2=x+16,cy=ry+16;
-  // Outer circle
+// NEW: Rolling boulder
+function drawBoulder(x,y,r){
+  X.fillStyle='#888';X.beginPath();X.arc(x,y,r,0,Math.PI*2);X.fill();
+  X.fillStyle='#AAA';X.beginPath();X.arc(x-r*.2,y-r*.2,r*.6,0,Math.PI*2);X.fill();
+  X.fillStyle='#CCC';X.beginPath();X.arc(x-r*.3,y-r*.3,r*.25,0,Math.PI*2);X.fill();
+  X.strokeStyle='#666';X.lineWidth=2;X.beginPath();X.arc(x,y,r,0,Math.PI*2);X.stroke();
+}
+
+// NEW: Bird enemy (flies in sine wave)
+function drawBird(x,y,f){
+  X.fillStyle='#3A8030';X.fillRect(x+4,y+6,14,8);// body
+  X.fillStyle='#4A9E3A';X.fillRect(x+14,y+4,8,6);// head
+  X.fillStyle='#000';X.fillRect(x+18,y+6,2,2);// eye
+  X.fillStyle='#FF8800';X.fillRect(x+22,y+8,4,2);// beak
+  // Wings flapping
+  const wing=Math.sin(f*.2)*4;
+  X.fillStyle='#3A8030';X.fillRect(x+6,y+2+wing,10,4);X.fillRect(x+6,y+14-wing,10,4);
+}
+
+// Grenade projectile
+function drawGrenade(x,y){
+  X.fillStyle='#333';X.beginPath();X.arc(x,y,4,0,Math.PI*2);X.fill();
+  X.fillStyle='#555';X.beginPath();X.arc(x-1,y-1,2,0,Math.PI*2);X.fill();
+  // Fuse spark
+  if(fc%4<2){X.fillStyle='#FFD700';X.fillRect(x-1,y-6,2,3)}
+}
+
+// Boss machine - steel boot
+function drawBoss(x,y,bootOff){
+  // Platform where villain stands
+  X.fillStyle='#666';X.fillRect(x,y,80,8);X.fillStyle='#888';X.fillRect(x+2,y+2,76,4);
+  // Villain on platform
+  X.fillStyle='#D4A060';X.fillRect(x+30,y-20,12,12);// head
+  X.fillStyle='#3A2810';X.fillRect(x+26,y-24,20,5);X.fillRect(x+30,y-28,12,5);// hat
+  X.fillStyle='#000';X.fillRect(x+33,y-16,2,2);X.fillRect(x+37,y-16,2,2);// eyes
+  X.fillStyle='#2A2A2A';X.fillRect(x+28,y-8,16,8);// body
+  // Machine arm
+  X.fillStyle='#777';X.fillRect(x+36,y+8,8,20+bootOff);
+  // Steel boot
+  X.fillStyle='#555';X.fillRect(x+20,y+28+bootOff,40,24);
+  X.fillStyle='#666';X.fillRect(x+22,y+30+bootOff,36,20);
+  X.fillStyle='#444';X.fillRect(x+18,y+48+bootOff,44,8);
+  // Boot sole (danger zone)
+  X.fillStyle='#333';X.fillRect(x+16,y+54+bootOff,48,4);
+  // HP bar
+  X.fillStyle='#333';X.fillRect(x+10,y-34,60,6);
+  X.fillStyle='#E53935';X.fillRect(x+12,y-32,56*(bossHp/bossMax),3);
+}
+
+// Water surface
+function drawWater(waterY,cx){
+  // Water body
+  X.fillStyle='rgba(40,100,180,0.7)';X.fillRect(0,waterY,800,600-waterY);
+  // Animated waves
+  X.fillStyle='rgba(60,140,220,0.5)';
+  for(let x2=0;x2<820;x2+=20){
+    const wy=waterY+Math.sin((x2+cx)*.02+fc*.05)*4;
+    X.fillRect(x2,wy,20,600-wy);
+  }
+  // Wave caps (white)
+  X.fillStyle='rgba(255,255,255,0.6)';
+  for(let x2=0;x2<820;x2+=30){
+    const wy=waterY+Math.sin((x2+cx)*.02+fc*.05)*4-2;
+    X.fillRect(x2+5,wy,12,3);
+  }
+}
+
+function drawBubble(x,y,f){
+  const b=Math.sin(f*.03+x*.08)*8,ry=y+b,cx2=x+16,cy=ry+16;
   X.strokeStyle='rgba(100,160,200,0.4)';X.lineWidth=2;X.beginPath();X.arc(cx2,cy,15,0,Math.PI*2);X.stroke();
-  // Fill
   X.fillStyle='rgba(180,220,250,0.35)';X.beginPath();X.arc(cx2,cy,14,0,Math.PI*2);X.fill();
   X.fillStyle='rgba(210,240,255,0.4)';X.beginPath();X.arc(cx2,cy,11,0,Math.PI*2);X.fill();
-  // Shine highlight
   X.fillStyle='rgba(255,255,255,0.7)';X.fillRect(cx2-6,cy-7,5,4);
-  // Swirl face pattern (yin-yang style from video)
-  X.fillStyle='rgba(80,130,170,0.3)';
-  X.beginPath();X.arc(cx2-3,cy,4,0,Math.PI*2);X.fill();
-  X.fillStyle='rgba(200,230,255,0.5)';
-  X.beginPath();X.arc(cx2+3,cy,4,0,Math.PI*2);X.fill();
-  // Eyes
+  X.fillStyle='rgba(80,130,170,0.3)';X.beginPath();X.arc(cx2-3,cy,4,0,Math.PI*2);X.fill();
   X.fillStyle='rgba(60,100,140,0.4)';X.fillRect(cx2-5,cy-3,3,2);X.fillRect(cx2+3,cy-3,3,2);
 }
 
-// Blue gem crystal
-function drawGem(x,y,frame){
-  const bob=Math.sin(frame*.07+x*.05)*3,ry=y+bob;
-  // Outline
-  X.fillStyle='#1A4466';
-  X.fillRect(x+11,ry,10,2);X.fillRect(x+9,ry+2,14,2);X.fillRect(x+7,ry+4,18,22);X.fillRect(x+9,ry+26,14,2);X.fillRect(x+11,ry+28,10,2);
-  // Fill
-  X.fillStyle='#336699';X.fillRect(x+9,ry+2,14,26);
-  X.fillStyle='#4488CC';X.fillRect(x+10,ry+4,12,20);
-  X.fillStyle='#5599DD';X.fillRect(x+12,ry+6,8,14);
-  // Shine
-  X.fillStyle='#AAD4FF';X.fillRect(x+12,ry+6,3,6);
-  X.fillStyle='#CCEEFF';X.fillRect(x+12,ry+7,2,3);
-}
-
-function drawKeyItem(x,y,frame){
-  const bob=Math.sin(frame*.06)*3,ry=y+bob;
-  X.fillStyle='rgba(255,215,0,.12)';X.beginPath();X.arc(x+16,ry+14,16,0,Math.PI*2);X.fill();
-  X.fillStyle='#B8860B';X.fillRect(x+5,ry+3,12,12);X.fillRect(x+13,ry+9,14,5);
-  X.fillStyle='#FFD700';X.fillRect(x+6,ry+4,10,10);X.fillStyle='#FFC107';X.fillRect(x+8,ry+6,6,6);
-  X.fillStyle='#B8860B';X.fillRect(x+10,ry+8,3,3);
-  X.fillStyle='#FFD700';X.fillRect(x+14,ry+10,12,3);X.fillStyle='#FFC107';X.fillRect(x+22,ry+13,3,3);X.fillRect(x+18,ry+13,3,3);
-}
-
-function drawHeart(x,y,f=true){
-  X.fillStyle=f?'#E53935':'rgba(80,50,40,0.4)';
-  X.fillRect(x+2,y+2,5,3);X.fillRect(x+9,y+2,5,3);X.fillRect(x,y+4,16,5);X.fillRect(x+2,y+9,12,3);X.fillRect(x+4,y+12,8,2);X.fillRect(x+6,y+14,4,1);
-  if(f){X.fillStyle='#EF6B6B';X.fillRect(x+3,y+3,3,2);X.fillRect(x+10,y+3,3,2)}
-}
-
-function drawDoorExit(x,y,locked){
-  X.fillStyle='#3E2A1A';X.fillRect(x,y-50,32,52);
-  X.fillStyle=locked?'#8B7355':'#5BAE4A';X.fillRect(x+3,y-47,26,47);
-  X.fillStyle=locked?'#7A6345':'#4D9A3E';X.fillRect(x+5,y-43,22,18);X.fillRect(x+5,y-20,22,14);
-  X.fillStyle='#FFD700';X.fillRect(x+22,y-25,3,3);
-  if(locked){X.fillStyle='#FFD700';X.fillRect(x+12,y-34,8,8);X.fillStyle='#3E2A1A';X.fillRect(x+14,y-30,4,4)}
-}
-
-// Decorations - more detailed to match video
-function drawCactus(x,y){
-  // Outline first
-  X.fillStyle='#1B5E20';X.fillRect(x+11,y-54,12,56);
-  X.fillStyle='#3E9E3E';X.fillRect(x+12,y-53,10,54);X.fillStyle='#4DB84D';X.fillRect(x+14,y-51,6,50);
-  X.fillStyle='#5FC75F';X.fillRect(x+15,y-49,3,46);
-  // Spines
-  X.fillStyle='#1B5E20';for(let i=0;i<6;i++){X.fillRect(x+9,y-48+i*8,3,1);X.fillRect(x+22,y-44+i*8,3,1)}
-  // Left arm
-  X.fillStyle='#1B5E20';X.fillRect(x+1,y-40,13,9);X.fillRect(x+1,y-48,9,12);
-  X.fillStyle='#3E9E3E';X.fillRect(x+2,y-39,11,7);X.fillRect(x+2,y-47,7,10);
-  X.fillStyle='#4DB84D';X.fillRect(x+4,y-45,3,12);
-  // Right arm
-  X.fillStyle='#1B5E20';X.fillRect(x+19,y-32,13,9);X.fillRect(x+25,y-42,9,14);
-  X.fillStyle='#3E9E3E';X.fillRect(x+20,y-31,11,7);X.fillRect(x+26,y-41,7,12);
-  X.fillStyle='#4DB84D';X.fillRect(x+28,y-39,3,14);
-}
-
-function drawBush(x,y){
-  // Rounder, fluffier bush matching video
-  X.fillStyle='#2D862D';X.fillRect(x,y-16,32,18);X.fillRect(x+4,y-22,24,8);X.fillRect(x+8,y-26,16,6);
-  X.fillStyle='#4DB84D';X.fillRect(x+1,y-15,30,16);X.fillRect(x+5,y-21,22,8);X.fillRect(x+9,y-25,14,6);
-  X.fillStyle='#5FC75F';X.fillRect(x+3,y-18,14,12);X.fillRect(x+7,y-23,10,6);
-  X.fillStyle='#3E9E3E';X.fillRect(x+15,y-13,14,12);X.fillRect(x+12,y-19,8,5);
-  // Light spots
-  X.fillStyle='#6BD86B';X.fillRect(x+8,y-20,4,3);X.fillRect(x+20,y-14,4,3);
-}
-
-function drawRock(x,y){
-  X.fillStyle='#787868';X.fillRect(x+3,y-16,26,18);
-  X.fillStyle='#A89878';X.fillRect(x+4,y-15,24,16);
-  X.fillStyle='#B8A888';X.fillRect(x+6,y-17,20,12);
-  X.fillStyle='#988868';X.fillRect(x+8,y-5,16,5);
-  X.fillStyle='#C8B898';X.fillRect(x+10,y-14,7,5);
-  X.fillStyle='#D8C8A8';X.fillRect(x+11,y-13,4,3);
-}
-
-function drawPlant(x,y){
-  X.fillStyle='#2D862D';X.fillRect(x+13,y-10,3,10);X.fillRect(x+17,y-12,3,12);X.fillRect(x+10,y-8,3,8);
-  X.fillStyle='#4DB84D';X.fillRect(x+14,y-9,2,8);X.fillRect(x+18,y-11,2,10);X.fillRect(x+11,y-7,2,6);
-}
-
-// Fence posts at terrain edges
-function drawFence(x,y){
-  X.fillStyle='#D0D0D0';X.fillRect(x+14,y-18,4,20);
-  X.fillStyle='#E0E0E0';X.fillRect(x+15,y-16,2,16);
-  X.fillStyle='#B0B0B0';X.fillRect(x+14,y-18,4,2);
-}
-
-// Background
+function drawGem(x,y,f){const b=Math.sin(f*.07+x*.05)*3,ry=y+b;X.fillStyle='#1A4466';X.fillRect(x+11,ry,10,2);X.fillRect(x+9,ry+2,14,2);X.fillRect(x+7,ry+4,18,22);X.fillRect(x+9,ry+26,14,2);X.fillRect(x+11,ry+28,10,2);X.fillStyle='#336699';X.fillRect(x+9,ry+2,14,26);X.fillStyle='#4488CC';X.fillRect(x+10,ry+4,12,20);X.fillStyle='#5599DD';X.fillRect(x+12,ry+6,8,14);X.fillStyle='#AAD4FF';X.fillRect(x+12,ry+6,3,6);X.fillStyle='#CCEEFF';X.fillRect(x+12,ry+7,2,3)}
+function drawKeyItem(x,y,f){const b=Math.sin(f*.06)*3,ry=y+b;X.fillStyle='rgba(255,215,0,.12)';X.beginPath();X.arc(x+16,ry+14,16,0,Math.PI*2);X.fill();X.fillStyle='#B8860B';X.fillRect(x+5,ry+3,12,12);X.fillRect(x+13,ry+9,14,5);X.fillStyle='#FFD700';X.fillRect(x+6,ry+4,10,10);X.fillStyle='#FFC107';X.fillRect(x+8,ry+6,6,6);X.fillStyle='#B8860B';X.fillRect(x+10,ry+8,3,3);X.fillStyle='#FFD700';X.fillRect(x+14,ry+10,12,3);X.fillStyle='#FFC107';X.fillRect(x+22,ry+13,3,3);X.fillRect(x+18,ry+13,3,3)}
+function drawHeart(x,y,f2=true){X.fillStyle=f2?'#E53935':'rgba(80,50,40,0.4)';X.fillRect(x+2,y+2,5,3);X.fillRect(x+9,y+2,5,3);X.fillRect(x,y+4,16,5);X.fillRect(x+2,y+9,12,3);X.fillRect(x+4,y+12,8,2);X.fillRect(x+6,y+14,4,1);if(f2){X.fillStyle='#EF6B6B';X.fillRect(x+3,y+3,3,2);X.fillRect(x+10,y+3,3,2)}}
+function drawDoorExit(x,y,locked){X.fillStyle='#3E2A1A';X.fillRect(x,y-50,32,52);X.fillStyle=locked?'#8B7355':'#5BAE4A';X.fillRect(x+3,y-47,26,47);X.fillStyle=locked?'#7A6345':'#4D9A3E';X.fillRect(x+5,y-43,22,18);X.fillRect(x+5,y-20,22,14);X.fillStyle='#FFD700';X.fillRect(x+22,y-25,3,3)}
+function drawCrate(x,y){X.fillStyle='#C8B078';X.fillRect(x+1,y+1,T-2,T-2);X.fillStyle='#A89058';X.fillRect(x,y,T,2);X.fillRect(x,y+T-2,T,2);X.fillRect(x,y,2,T);X.fillRect(x+T-2,y,2,T);for(let i=0;i<12;i++){X.fillRect(x+4+i*2,y+4+i*2,2,2);X.fillRect(x+24-i*2,y+4+i*2,2,2)}}
+function drawBridge(x,y,w){X.fillStyle='#A08050';X.fillRect(x,y,w,4);X.fillStyle='#806030';X.fillRect(x,y,w,1);X.fillRect(x,y+3,w,1)}
+function drawCactus(x,y){X.fillStyle='#1B5E20';X.fillRect(x+11,y-54,12,56);X.fillStyle='#3E9E3E';X.fillRect(x+12,y-53,10,54);X.fillStyle='#4DB84D';X.fillRect(x+14,y-51,6,50);X.fillStyle='#5FC75F';X.fillRect(x+15,y-49,3,46);X.fillStyle='#1B5E20';X.fillRect(x+1,y-40,13,9);X.fillRect(x+1,y-48,9,12);X.fillRect(x+19,y-32,13,9);X.fillRect(x+25,y-42,9,14);X.fillStyle='#3E9E3E';X.fillRect(x+2,y-39,11,7);X.fillRect(x+2,y-47,7,10);X.fillRect(x+20,y-31,11,7);X.fillRect(x+26,y-41,7,12);X.fillStyle='#4DB84D';X.fillRect(x+4,y-45,3,12);X.fillRect(x+28,y-39,3,14)}
+function drawBush(x,y){X.fillStyle='#2D862D';X.fillRect(x,y-16,32,18);X.fillRect(x+4,y-22,24,8);X.fillRect(x+8,y-26,16,6);X.fillStyle='#4DB84D';X.fillRect(x+1,y-15,30,16);X.fillRect(x+5,y-21,22,8);X.fillRect(x+9,y-25,14,6);X.fillStyle='#5FC75F';X.fillRect(x+3,y-18,14,12);X.fillRect(x+7,y-23,10,6);X.fillStyle='#3E9E3E';X.fillRect(x+15,y-13,14,12)}
+function drawRock(x,y){X.fillStyle='#787868';X.fillRect(x+3,y-16,26,18);X.fillStyle='#A89878';X.fillRect(x+4,y-15,24,16);X.fillStyle='#B8A888';X.fillRect(x+6,y-17,20,12);X.fillStyle='#C8B898';X.fillRect(x+10,y-14,7,5)}
+function drawPlant(x,y){X.fillStyle='#2D862D';X.fillRect(x+13,y-10,3,10);X.fillRect(x+17,y-12,3,12);X.fillRect(x+10,y-8,3,8);X.fillStyle='#4DB84D';X.fillRect(x+14,y-9,2,8);X.fillRect(x+18,y-11,2,10)}
+function drawWall(x,y,w,h,c){X.fillStyle=c;X.fillRect(x,y,w,h);const sc=c==='#C0C0B0'?'#B0B0A0':'#C09848';X.fillStyle=sc;for(let ly=y+4;ly<y+h;ly+=5)X.fillRect(x,ly,w,1)}
+function drawWindow(x,y){X.fillStyle='#6B5030';X.fillRect(x-1,y-1,26,22);X.fillStyle='#88BBDD';X.fillRect(x,y,24,20);X.fillStyle='#8B6830';X.fillRect(x+11,y,2,20);X.fillRect(x,y+9,24,2)}
 function drawBG(cx,rain){
-  const g=X.createLinearGradient(0,0,0,500);g.addColorStop(0,'#88CCEE');g.addColorStop(.7,'#AADDFF');g.addColorStop(1,'#BBDDEE');
-  X.fillStyle=g;X.fillRect(0,0,800,600);
-  const sx=620-cx*.02;X.fillStyle='#FFF8A0';X.beginPath();X.arc(sx,70,20,0,Math.PI*2);X.fill();X.fillStyle='#FFEE60';X.beginPath();X.arc(sx,70,16,0,Math.PI*2);X.fill();
+  const g=X.createLinearGradient(0,0,0,500);g.addColorStop(0,'#88CCEE');g.addColorStop(.7,'#AADDFF');g.addColorStop(1,'#BBDDEE');X.fillStyle=g;X.fillRect(0,0,800,600);
+  const sx2=620-cx*.02;X.fillStyle='#FFF8A0';X.beginPath();X.arc(sx2,70,20,0,Math.PI*2);X.fill();X.fillStyle='#FFEE60';X.beginPath();X.arc(sx2,70,16,0,Math.PI*2);X.fill();
   X.fillStyle='rgba(255,255,255,0.45)';for(let i=0;i<6;i++){const cx2=((i*190+50-cx*.035)%1100+1100)%1100-140,cy=22+i*22;X.beginPath();X.ellipse(cx2+18,cy+7,20,6,0,0,Math.PI*2);X.fill();X.beginPath();X.ellipse(cx2+35,cy,16,8,0,0,Math.PI*2);X.fill();X.beginPath();X.ellipse(cx2+48,cy+5,14,5,0,0,Math.PI*2);X.fill()}
-  if(rain){X.fillStyle='rgba(180,200,220,0.18)';for(let i=0;i<50;i++)X.fillRect(((i*43+fc*3)%850),((i*67+fc*7)%650),1,10)}
+  if(rain){X.fillStyle='rgba(200,220,240,0.2)';for(let i=0;i<50;i++)X.fillRect(((i*43+fc*3)%850),((i*67+fc*7)%650),1,10)}
 }
 
-// ════════════════════════════════════════
-// LEVEL DEFINITIONS
-// ════════════════════════════════════════
+// ═══════════════════ LEVEL DATA ═══════════════════
 const LEVELS=[
-  {name:"Desert Trail",bio:'desert',rain:false},{name:"Western Town",bio:'town',rain:false},
-  {name:"Grey Town",bio:'grey',rain:false},{name:"Desert Canyon",bio:'desert',rain:false},
-  {name:"Red Rock",bio:'red',rain:false},{name:"Open Plains",bio:'plains',rain:false},
-  {name:"The Ranch",bio:'town',rain:false},{name:"Green Hills",bio:'green',rain:true},
-  {name:"Bubble Valley",bio:'green',rain:false},{name:"Boulder Caves",bio:'cave',rain:false},
-  {name:"Golden Maze",bio:'cave',rain:false},{name:"Final Rescue",bio:'stone',rain:true}
+  {name:"Desert Trail",bio:'desert',rain:false,waterY:0},
+  {name:"Western Town",bio:'town',rain:false,waterY:0},
+  {name:"Grey Town",bio:'grey',rain:false,waterY:0},
+  {name:"Desert Canyon",bio:'desert',rain:false,waterY:0},
+  {name:"Red Rock",bio:'red',rain:false,waterY:0},
+  {name:"Red Canyon",bio:'red',rain:false,waterY:0},
+  {name:"The Ranch",bio:'town',rain:false,waterY:0},
+  {name:"Green Hills",bio:'green',rain:true,waterY:0},
+  {name:"Water World",bio:'green',rain:false,waterY:15},// water at tile row 15
+  {name:"Boulder Caves",bio:'cave',rain:false,waterY:0},
+  {name:"Golden Maze",bio:'cave',rain:false,waterY:0},
+  {name:"Final Rescue",bio:'stone',rain:true,waterY:0,boss:true}
 ];
 
 function genLv(idx){
-  const pw=104+idx*5,ph=22,ents=[],decs=[],crates=[],bridges=[];const gY=16;
-  // Grid: 0=air, 1=solid
+  const pw=104+idx*5,ph=22,ents=[],decs=[],crates=[],bridges=[],boulders=[];const gY=16;
   const grid=Array.from({length:ph},()=>Array(pw).fill(0));
-
   function solid(x,y,w,h){for(let ty=y;ty<y+h&&ty<ph;ty++)for(let tx=x;tx<x+w&&tx<pw;tx++)if(ty>=0&&tx>=0)grid[ty][tx]=1}
   function stUp(sx,sy,n,sw=2){for(let i=0;i<n;i++)solid(sx+i*sw,sy-i,sw,ph-sy+i)}
   function stDn(sx,sy,n,sw=2){for(let i=0;i<n;i++)solid(sx+i*sw,sy+i,sw,ph-sy-i)}
@@ -367,275 +267,242 @@ function genLv(idx){
   function frog(x,y,sx,ex){ents.push({type:'frog',x,y,startX:sx,endX:ex,dir:1,alive:true})}
   function snake(x,y,sx,ex){ents.push({type:'snake',x,y,startX:sx,endX:ex,dir:1,alive:true})}
   function bubble(x,y){ents.push({type:'bubble',x,y,alive:true})}
-  function crate(x,y){crates.push({x:x*T,y:y*T});grid[y][x]=1}
-  function bridge(x,y,w){bridges.push({x:x*T,y:y*T,w:w*T});for(let i=0;i<w;i++)grid[y][x+i]=1}
+  function bandit(x,y,sx,ex){ents.push({type:'bandit',x,y,startX:sx,endX:ex,dir:1,alive:true,throwTimer:120+Math.random()*60})}
+  function bird(x,y,sx,ex){ents.push({type:'bird',x,y,startX:sx,endX:ex,dir:1,alive:true,baseY:y})}
+  function boulder(x,y,vx){boulders.push({x:x*T+16,y:y*T-16,vx:vx||0,vy:0,r:14,grounded:true})}
 
   switch(idx){
-  case 0:// Desert Trail - matching video layout closely
-    flat(0,10,gY); // flat start
-    stUp(10,gY,2); // 2 steps up
-    flat(14,18,gY-2);
-    stUp(18,gY-2,2); // 2 more steps up
-    flat(22,30,gY-4); // high plateau (key here)
-    stDn(30,gY-4,2); stDn(34,gY-2,1);
-    flat(36,48,gY); // flat ground
-    // Bridge over gap connecting blocks
-    bridge(48,gY-1,3);
-    flat(48,50,gY);
-    // Higher block with frog
-    flat(51,57,gY-3); flat(51,57,gY);
-    stDn(57,gY-3,1);
-    flat(59,66,gY-2);
-    stDn(66,gY-2,1);
-    flat(68,80,gY-1);
-    // Crate
-    crate(72,gY-2);
-    stUp(80,gY-1,2);
-    flat(84,94,gY-3); // high section
-    stDn(94,gY-3,3);
-    flat(100,pw,gY);
-    // Right wall so player can't fall off
-    solid(pw-1,0,1,ph);
-
-    // Gems: scattered like video - in lines and floating
-    gLine(2,8,gY);gLine(12,16,gY-3,2);gLine(22,28,gY-4,2);
-    gLine(37,46,gY);gem(49,gY-2);
-    gLine(52,56,gY-4);gLine(60,64,gY-2,2);
-    gLine(69,78,gY-1);gLine(85,92,gY-3);gLine(101,pw-5,gY);
-    // Bubbles (present even in level 1!)
+  case 0:// Level 1: Desert Trail
+    flat(0,10,gY);stUp(10,gY,2);flat(14,18,gY-2);stUp(18,gY-2,2);flat(22,30,gY-4);stDn(30,gY-4,2);stDn(34,gY-2,1);flat(36,48,gY);
+    bridges.push({x:48*T,y:(gY-1)*T,w:3*T});solid(48,gY-1,3,1);
+    flat(51,57,gY-3);flat(51,57,gY);stDn(57,gY-3,1);flat(59,66,gY-2);stDn(66,gY-2,1);flat(68,80,gY-1);
+    crates.push({x:72*T,y:(gY-2)*T});solid(72,gY-2,1,1);
+    stUp(80,gY-1,2);flat(84,94,gY-3);stDn(94,gY-3,3);flat(100,pw,gY);
+    gLine(2,8,gY);gLine(14,16,gY-3);gLine(22,28,gY-4,2);gLine(37,46,gY);gem(49,gY-2);gLine(52,56,gY-4);gLine(60,64,gY-2);gLine(69,78,gY-1);gLine(85,92,gY-3);gLine(101,pw-5,gY);
     bubble(42,gY-3);bubble(54,gY-6);
     ents.push({type:'key',x:26,y:gY-5,collected:false});
     frog(24,gY-5,22,29);frog(44,gY-1,38,48);frog(53,gY-4,51,56);frog(88,gY-4,85,93);
     snake(62,gY-3,60,66);snake(74,gY-2,69,79);
-    ents.push({type:'heart',x:49,y:gY-2,collected:false});
-    ents.push({type:'door',x:pw-3,y:gY});
+    ents.push({type:'heart',x:49,y:gY-2,collected:false});ents.push({type:'door',x:pw-4,y:gY});
     decs.push({type:'cactus',x:8*T,y:gY*T},{type:'cactus',x:46*T,y:gY*T},{type:'cactus',x:78*T,y:(gY-1)*T});
-    decs.push({type:'bush',x:2*T,y:gY*T},{type:'bush',x:36*T,y:gY*T},{type:'bush',x:52*T,y:(gY-3)*T},{type:'bush',x:84*T,y:(gY-3)*T},{type:'bush',x:100*T,y:gY*T});
-    decs.push({type:'rock',x:6*T,y:gY*T},{type:'rock',x:40*T,y:gY*T},{type:'rock',x:70*T,y:(gY-1)*T},{type:'rock',x:92*T,y:(gY-3)*T});
-    decs.push({type:'plant',x:14*T,y:(gY-2)*T},{type:'plant',x:58*T,y:(gY-2)*T},{type:'plant',x:82*T,y:(gY-1)*T});
-    decs.push({type:'fence',x:10*T,y:gY*T},{type:'fence',x:48*T,y:gY*T});
+    decs.push({type:'bush',x:2*T,y:gY*T},{type:'bush',x:36*T,y:gY*T},{type:'bush',x:52*T,y:(gY-3)*T},{type:'bush',x:84*T,y:(gY-3)*T},{type:'bush',x:98*T,y:gY*T});
+    decs.push({type:'rock',x:6*T,y:gY*T},{type:'rock',x:40*T,y:gY*T},{type:'rock',x:70*T,y:(gY-1)*T});
     break;
-  case 1:// Western Town
-    flat(0,14,gY);flat(14,30,gY);
-    // Stair steps up to first porch (so pig can reach it)
-    solid(14,gY-3,2,3);// step at y=13
-    solid(16,gY-6,14,1);// porch at y=10
-    // Stair steps from porch up to upper floor
-    solid(28,gY-8,3,2);// step at y=8 connecting porch to upper
-    stUp(30,gY,2);flat(34,50,gY-2);
-    solid(36,gY-5,12,1);// upper floor at y=11 (reachable from gY-2=14 via jump)
-    solid(36,gY-8,12,1);// top floor at y=8 (reachable from y=11 via jump)
-    stDn(50,gY-2,2);flat(54,70,gY);
-    solid(54,gY-3,2,3);// step up to porch 2
-    solid(56,gY-5,12,1);// porch 2 at y=11
-    flat(70,90,gY);stUp(82,gY,2);flat(86,pw,gY-2);
-    gLine(2,12,gY);gLine(17,28,gY-6,2);gLine(36,48,gY-2);gem(37,gY-9);gem(39,gY-9);gem(41,gY-9);gem(43,gY-9);gLine(56,66,gY);gLine(57,66,gY-5,2);gLine(72,80,gY);gLine(88,pw-6,gY-2);
-    ents.push({type:'key',x:40,y:gY-9,collected:false});frog(22,gY-7,18,28);frog(42,gY-3,36,48);frog(62,gY-1,56,68);frog(76,gY-1,72,80);snake(64,gY-1,56,68);
-    bubble(48,gY-5);bubble(60,gY-3);
+  case 1:// Level 2: Western Town
+    flat(0,14,gY);solid(14,gY-3,2,3);solid(16,gY-6,14,1);flat(14,30,gY);solid(28,gY-8,3,2);stUp(30,gY,2);flat(34,50,gY-2);solid(36,gY-5,12,1);solid(36,gY-8,12,1);stDn(50,gY-2,2);flat(54,70,gY);solid(54,gY-3,2,3);solid(56,gY-5,12,1);flat(70,90,gY);stUp(82,gY,2);flat(86,pw,gY-2);
+    gLine(2,12,gY);gLine(17,28,gY-6,2);gem(37,gY-9);gem(39,gY-9);gem(41,gY-9);gem(43,gY-9);gLine(36,48,gY-2);gLine(57,66,gY-5,2);gLine(72,80,gY);gLine(88,pw-5,gY-2);
+    ents.push({type:'key',x:40,y:gY-9,collected:false});frog(22,gY-7,18,28);frog(42,gY-3,36,48);frog(62,gY-1,56,68);snake(64,gY-1,56,68);
     ents.push({type:'heart',x:25,y:gY-7,collected:false});ents.push({type:'door',x:pw-4,y:gY-2});
-    crate(20,gY-1);crate(58,gY-1);
     decs.push({type:'wall',x:16*T,y:(gY-5)*T,w:14*T,h:5*T,color:'#D0A858'},{type:'wall',x:36*T,y:(gY-7)*T,w:12*T,h:5*T,color:'#D0A858'},{type:'wall',x:56*T,y:(gY-4)*T,w:12*T,h:4*T,color:'#D0A858'});
     decs.push({type:'win',x:20*T,y:(gY-4)*T},{type:'win',x:25*T,y:(gY-4)*T},{type:'win',x:39*T,y:(gY-6)*T},{type:'win',x:44*T,y:(gY-6)*T});
-    decs.push({type:'sdoor',x:22*T,y:gY*T-30},{type:'sdoor',x:60*T,y:gY*T-30});
-    decs.push({type:'rock',x:6*T,y:gY*T},{type:'bush',x:52*T,y:gY*T},{type:'plant',x:32*T,y:(gY-2)*T});
-    break;
-  case 2:flat(0,10,gY);solid(10,gY-5,10,1);flat(10,24,gY);stUp(24,gY,3);flat(30,40,gY-3);
-    solid(30,gY-6,4,3);// step from gY-3 to gY-6 (3 tile jump OK)
-    solid(32,gY-8,8,1);// top floor (2 tile jump from gY-6 OK)
-    stDn(40,gY-3,2);flat(44,56,gY-1);
-    solid(44,gY-4,2,3);// step up to porch 2
-    solid(46,gY-6,10,1);// porch 2
-    flat(56,70,gY);stUp(62,gY,2);flat(66,80,gY-2);stDn(76,gY-2,2);flat(80,pw,gY);
-    gLine(2,8,gY);gLine(11,19,gY-5,2);gLine(26,28,gY-2);gLine(32,38,gY-3);gem(33,gY-9);gem(35,gY-9);gem(37,gY-9);gLine(46,54,gY-1);gLine(47,55,gY-6,2);gLine(58,60,gY);gLine(68,78,gY-2);gLine(82,pw-6,gY);
-    ents.push({type:'key',x:35,y:gY-9,collected:false});frog(15,gY-6,11,19);frog(36,gY-4,31,39);frog(50,gY-2,45,55);frog(72,gY-3,68,78);bubble(20,gY-3);bubble(56,gY-3);
+    decs.push({type:'rock',x:6*T,y:gY*T},{type:'bush',x:52*T,y:gY*T});break;
+  case 2:// Level 3: Grey Town + bandits
+    flat(0,10,gY);solid(10,gY-5,10,1);flat(10,24,gY);stUp(24,gY,3);flat(30,40,gY-3);solid(30,gY-6,4,3);solid(32,gY-8,8,1);stDn(40,gY-3,2);flat(44,56,gY-1);solid(44,gY-4,2,3);solid(46,gY-6,10,1);flat(56,70,gY);stUp(62,gY,2);flat(66,80,gY-2);stDn(76,gY-2,2);flat(80,pw,gY);
+    gLine(2,8,gY);gLine(11,19,gY-5,2);gem(33,gY-9);gem(35,gY-9);gem(37,gY-9);gLine(32,38,gY-3);gLine(47,55,gY-6,2);gLine(58,60,gY);gLine(68,78,gY-2);gLine(82,pw-5,gY);
+    ents.push({type:'key',x:35,y:gY-9,collected:false});frog(15,gY-6,11,19);frog(36,gY-4,31,39);frog(50,gY-2,45,55);
+    bandit(72,gY-3,68,78);// NEW: bandit enemy!
     ents.push({type:'heart',x:48,y:gY-7,collected:false});ents.push({type:'door',x:pw-4,y:gY});
     decs.push({type:'wall',x:10*T,y:(gY-4)*T,w:10*T,h:4*T,color:'#C0C0B0'},{type:'wall',x:32*T,y:(gY-7)*T,w:8*T,h:4*T,color:'#C0C0B0'},{type:'wall',x:46*T,y:(gY-5)*T,w:10*T,h:4*T,color:'#C0C0B0'});
-    decs.push({type:'win',x:13*T,y:(gY-3)*T},{type:'win',x:17*T,y:(gY-3)*T},{type:'sdoor',x:15*T,y:gY*T-30});decs.push({type:'rock',x:4*T,y:gY*T},{type:'bush',x:56*T,y:gY*T});break;
-  case 3:flat(0,10,gY);stUp(10,gY,4);flat(18,26,gY-4);stDn(26,gY-4,3);flat(32,38,gY-1);stDn(38,gY-1,2);flat(42,50,gY);stUp(50,gY,5);flat(60,68,gY-5);stDn(68,gY-5,4);flat(76,86,gY-1);stUp(86,gY-1,2);flat(90,pw,gY-3);
-    gLine(2,8,gY);gLine(12,16,gY-2,2);gLine(20,24,gY-4);gLine(28,30,gY-2);gLine(34,36,gY-1);gLine(44,48,gY);gLine(52,58,gY-2,2);gLine(62,66,gY-5);gLine(70,74,gY-3);gLine(78,84,gY-1);gLine(92,pw-6,gY-3);
-    ents.push({type:'key',x:64,y:gY-6,collected:false});frog(22,gY-5,19,25);frog(46,gY-1,43,49);frog(64,gY-6,61,67);frog(80,gY-2,77,85);snake(34,gY-2,32,38);snake(78,gY-2,76,84);bubble(36,gY-4);bubble(58,gY-7);
-    ents.push({type:'heart',x:48,y:gY-1,collected:false});ents.push({type:'door',x:pw-4,y:gY-3});
-    decs.push({type:'cactus',x:6*T,y:gY*T},{type:'cactus',x:40*T,y:gY*T},{type:'cactus',x:75*T,y:(gY-1)*T});decs.push({type:'rock',x:30*T,y:(gY-1)*T},{type:'rock',x:88*T,y:(gY-3)*T});decs.push({type:'bush',x:2*T,y:gY*T},{type:'bush',x:60*T,y:(gY-5)*T});break;
-  case 4:flat(0,8,gY);stUp(8,gY,3);flat(14,22,gY-3);stUp(22,gY-3,2);flat(26,34,gY-5);stDn(34,gY-5,3);flat(40,48,gY-2);stDn(48,gY-2,2);flat(52,60,gY);stUp(60,gY,4);flat(68,76,gY-4);stDn(76,gY-4,2);flat(80,90,gY-2);stDn(90,gY-2,1);flat(92,pw,gY-1);
-    gLine(2,6,gY);gLine(10,12,gY-2);gLine(16,20,gY-3);gLine(24,26,gY-4);gLine(28,32,gY-5);gLine(36,38,gY-4);gLine(42,46,gY-2);gLine(54,58,gY);gLine(62,66,gY-2,2);gLine(70,74,gY-4);gLine(82,88,gY-2);gLine(94,pw-6,gY-1);
-    ents.push({type:'key',x:30,y:gY-6,collected:false});frog(18,gY-4,15,21);frog(44,gY-3,41,47);frog(72,gY-5,69,75);frog(85,gY-3,81,89);snake(54,gY-1,52,59);snake(82,gY-3,80,89);bubble(40,gY-5);
-    ents.push({type:'heart',x:46,y:gY-3,collected:false});ents.push({type:'door',x:pw-4,y:gY-1});
-    decs.push({type:'cactus',x:4*T,y:gY*T},{type:'cactus',x:50*T,y:gY*T});decs.push({type:'rock',x:38*T,y:(gY-2)*T},{type:'rock',x:78*T,y:(gY-4)*T});decs.push({type:'bush',x:14*T,y:(gY-3)*T},{type:'bush',x:68*T,y:(gY-4)*T});break;
-  case 5:flat(0,20,gY);solid(20,gY-2,4,2);flat(24,45,gY);solid(45,gY-2,6,2);flat(51,70,gY);solid(62,gY-3,4,3);flat(70,90,gY);solid(80,gY-2,4,2);flat(84,pw,gY);
-    gLine(3,18,gY);gem(21,gY-3);gem(23,gY-3);gLine(26,43,gY);gLine(46,50,gY-2);gLine(53,60,gY);gem(63,gY-4);gem(65,gY-4);gLine(72,78,gY);gem(81,gY-3);gem(83,gY-3);gLine(86,pw-6,gY);
-    ents.push({type:'key',x:47,y:gY-3,collected:false});frog(12,gY-1,5,18);frog(35,gY-1,26,43);frog(57,gY-1,53,65);frog(75,gY-1,72,82);
-    ents.push({type:'heart',x:63,y:gY-4,collected:false});ents.push({type:'door',x:pw-4,y:gY});
-    decs.push({type:'plant',x:8*T,y:gY*T},{type:'plant',x:30*T,y:gY*T},{type:'plant',x:55*T,y:gY*T},{type:'plant',x:88*T,y:gY*T});decs.push({type:'rock',x:18*T,y:gY*T},{type:'rock',x:68*T,y:gY*T});break;
-  case 6:flat(0,12,gY);flat(12,24,gY);
-    solid(12,gY-3,2,3);// step up from ground
-    solid(14,gY-5,4,2);// mid step
-    solid(14,gY-7,10,1);// porch (now reachable: gY->gY-3->gY-5->gY-7, all <=3 tiles)
-    stUp(24,gY,2);flat(28,40,gY-2);
-    solid(28,gY-5,3,3);// step from gY-2 up
-    solid(30,gY-8,8,1);// top floor (gY-5 to gY-8 = 3 tiles jump OK)
-    stDn(40,gY-2,2);flat(44,60,gY);stUp(52,gY,3);flat(58,68,gY-3);stDn(68,gY-3,2);flat(72,84,gY-1);flat(84,pw,gY);
-    gLine(2,10,gY);gLine(15,23,gY-7,2);gLine(26,28,gY-1);gem(31,gY-9);gem(33,gY-9);gem(35,gY-9);gem(37,gY-9);gLine(30,38,gY-2);gLine(46,50,gY);gLine(54,56,gY-1,2);gLine(60,66,gY-3);gLine(74,82,gY-1);gLine(86,pw-6,gY);
-    ents.push({type:'key',x:34,y:gY-9,collected:false});frog(18,gY-8,15,23);frog(36,gY-3,29,39);frog(48,gY-1,45,54);frog(64,gY-4,60,67);frog(78,gY-2,73,83);snake(46,gY-1,44,55);
+    decs.push({type:'win',x:13*T,y:(gY-3)*T},{type:'win',x:17*T,y:(gY-3)*T});decs.push({type:'rock',x:4*T,y:gY*T},{type:'bush',x:56*T,y:gY*T});break;
+  case 3:// Level 4: Desert Canyon - deep gaps
+    flat(0,8,gY);stUp(8,gY,4);flat(16,22,gY-4);
+    // Deep gap - must jump across
+    flat(26,32,gY-3);stDn(32,gY-3,4);
+    flat(40,46,gY+1>ph?gY:gY);stUp(46,gY,5);flat(56,62,gY-5);
+    stDn(62,gY-5,3);flat(68,76,gY-2);stUp(76,gY-2,2);flat(80,pw,gY-4);
+    gLine(2,6,gY);gLine(10,14,gY-2,2);gLine(18,21,gY-4);gLine(27,31,gY-3);gLine(42,44,gY);gLine(48,54,gY-2,2);gLine(58,61,gY-5);gLine(64,66,gY-4);gLine(70,74,gY-2);gLine(82,pw-5,gY-4);
+    ents.push({type:'key',x:59,y:gY-6,collected:false});
+    frog(19,gY-5,17,21);frog(29,gY-4,27,31);frog(58,gY-6,56,61);frog(72,gY-3,69,75);
+    snake(42,gY-1,40,46);snake(70,gY-3,68,75);
+    bandit(85,gY-5,82,pw-5);
+    ents.push({type:'heart',x:50,y:gY-3,collected:false});ents.push({type:'door',x:pw-4,y:gY-4});
+    decs.push({type:'cactus',x:4*T,y:gY*T},{type:'cactus',x:44*T,y:gY*T});decs.push({type:'rock',x:24*T,y:gY*T},{type:'rock',x:66*T,y:(gY-2)*T});decs.push({type:'bush',x:16*T,y:(gY-4)*T},{type:'bush',x:56*T,y:(gY-5)*T});break;
+  case 4:// Level 5: Red Rock - boulders + crates + detonator
+    flat(0,10,gY);stUp(10,gY,3);flat(16,24,gY-3);stUp(24,gY-3,2);flat(28,36,gY-5);
+    // Breakable wall hiding gems
+    solid(36,gY-8,1,3);grid[gY-8][36]=2;grid[gY-7][36]=2;grid[gY-6][36]=2;// 2=breakable
+    stDn(37,gY-5,2);flat(41,50,gY-3);stDn(50,gY-3,2);flat(54,62,gY-1);stUp(62,gY-1,3);flat(68,76,gY-4);stDn(76,gY-4,2);flat(80,pw,gY-2);
+    // Boulders!
+    boulder(20,gY-4,0.5);boulder(45,gY-4,0);
+    // Crates
+    crates.push({x:42*T,y:(gY-4)*T});solid(42,gY-4,1,1);crates.push({x:43*T,y:(gY-4)*T});solid(43,gY-4,1,1);
+    // Detonator near breakable wall
+    ents.push({type:'detonator',x:34,y:gY-6,alive:true,twx:36});
+    gLine(2,8,gY);gLine(12,14,gY-2);gLine(18,22,gY-3);gLine(26,28,gY-4);gLine(30,35,gY-5);gLine(42,48,gY-3);gLine(56,60,gY-1);gLine(64,66,gY-2,2);gLine(70,74,gY-4);gLine(82,pw-5,gY-2);
+    ents.push({type:'key',x:32,y:gY-6,collected:false});
+    frog(20,gY-4,17,23);frog(46,gY-4,42,49);frog(72,gY-5,69,75);
+    snake(56,gY-2,54,61);bandit(85,gY-3,82,pw-5);
+    bubble(38,gY-7);bubble(52,gY-4);
+    ents.push({type:'heart',x:60,y:gY-2,collected:false});ents.push({type:'door',x:pw-4,y:gY-2});
+    decs.push({type:'cactus',x:6*T,y:gY*T},{type:'cactus',x:52*T,y:(gY-1)*T});decs.push({type:'rock',x:40*T,y:(gY-3)*T},{type:'rock',x:78*T,y:(gY-4)*T});break;
+  case 5:// Level 6: Red Canyon - bubble field + bridges
+    flat(0,6,gY);stUp(6,gY,3);flat(12,16,gY-3);
+    // Big gap with bridge
+    bridges.push({x:16*T,y:(gY-4)*T,w:6*T});solid(16,gY-4,6,1);
+    flat(22,28,gY-5);stDn(28,gY-5,3);
+    flat(34,40,gY-2);
+    // Massive bubble field
+    stUp(40,gY-2,2);flat(44,52,gY-4);
+    stDn(52,gY-4,2);flat(56,64,gY-2);
+    bridges.push({x:64*T,y:(gY-3)*T,w:5*T});solid(64,gY-3,5,1);
+    flat(69,76,gY-4);stDn(76,gY-4,2);flat(80,pw,gY-2);
+    boulder(14,gY-4,0.8);boulder(46,gY-5,-0.5);
+    gLine(2,5,gY);gLine(8,10,gY-2);gLine(13,15,gY-3);gLine(17,21,gY-4);gLine(24,27,gY-5);gLine(36,39,gY-2);gLine(46,50,gY-4);gLine(58,62,gY-2);gLine(65,68,gY-3);gLine(71,75,gY-4);gLine(82,pw-5,gY-2);
+    // Cluster of bubbles
+    for(let i=0;i<8;i++)bubble(35+i*3,gY-4-Math.floor(i/2));
+    for(let i=0;i<6;i++)bubble(57+i*2,gY-4-(i%3));
+    ents.push({type:'key',x:48,y:gY-5,collected:false});
+    frog(25,gY-6,23,27);frog(38,gY-3,35,39);frog(73,gY-5,70,75);
+    snake(58,gY-3,56,63);bandit(83,gY-3,81,pw-5);
+    ents.push({type:'heart',x:65,y:gY-4,collected:false});ents.push({type:'door',x:pw-4,y:gY-2});
+    decs.push({type:'rock',x:4*T,y:gY*T},{type:'rock',x:33*T,y:(gY-2)*T},{type:'bush',x:54*T,y:(gY-2)*T});break;
+  case 6:// Level 7: The Ranch - rooftops + birds
+    flat(0,10,gY);flat(10,24,gY);solid(12,gY-3,2,3);solid(14,gY-5,4,2);solid(14,gY-7,10,1);
+    stUp(24,gY,2);flat(28,40,gY-2);solid(28,gY-5,3,3);solid(30,gY-8,8,1);stDn(40,gY-2,2);
+    flat(44,60,gY);stUp(52,gY,3);flat(58,68,gY-3);stDn(68,gY-3,2);flat(72,84,gY-1);flat(84,pw,gY);
+    gLine(2,8,gY);gLine(15,23,gY-7,2);gem(31,gY-9);gem(33,gY-9);gem(35,gY-9);gem(37,gY-9);gLine(30,38,gY-2);gLine(46,50,gY);gLine(60,66,gY-3);gLine(74,82,gY-1);gLine(86,pw-5,gY);
+    ents.push({type:'key',x:34,y:gY-9,collected:false});
+    frog(18,gY-8,15,23);frog(36,gY-3,29,39);frog(64,gY-4,60,67);
+    bird(48,gY-4,44,56);bird(76,gY-3,72,84);// NEW: bird enemies!
+    snake(46,gY-1,44,55);bandit(78,gY-2,73,83);
     ents.push({type:'heart',x:62,y:gY-4,collected:false});ents.push({type:'door',x:pw-4,y:gY});
     decs.push({type:'wall',x:14*T,y:(gY-6)*T,w:10*T,h:6*T,color:'#C8A060'},{type:'wall',x:30*T,y:(gY-7)*T,w:8*T,h:5*T,color:'#C8A060'});
-    decs.push({type:'win',x:17*T,y:(gY-5)*T},{type:'win',x:21*T,y:(gY-5)*T},{type:'sdoor',x:19*T,y:gY*T-30});decs.push({type:'rock',x:6*T,y:gY*T},{type:'bush',x:42*T,y:gY*T},{type:'bush',x:70*T,y:(gY-3)*T});break;
-  case 7:// Green Hills - harder: big gaps, more enemies, rain
+    decs.push({type:'win',x:17*T,y:(gY-5)*T},{type:'win',x:21*T,y:(gY-5)*T});decs.push({type:'rock',x:6*T,y:gY*T},{type:'bush',x:42*T,y:gY*T});break;
+  case 7:// Level 8: Green Hills - stone cave start, rain, tower, big gaps
+    // Stone cave start section
     flat(0,8,gY);stUp(8,gY,3);flat(14,20,gY-3);
-    // BIG GAP - must jump across
-    flat(24,30,gY-4);// isolated platform
-    // another gap
+    // Transition to green - BIG GAP
+    flat(24,30,gY-4);
     flat(34,40,gY-2);stUp(40,gY-2,2);flat(44,50,gY-4);
-    // big gap with floating platform
-    solid(53,gY-3,3,1);// tiny floating platform
+    // Tiny floating platform
+    solid(53,gY-3,3,1);
     flat(58,64,gY-5);
-    // tower obstacle
-    solid(64,gY-10,3,5);// tall column to jump over
-    flat(67,74,gY-5);
-    // big drop then climb
-    stDn(74,gY-5,3);flat(80,86,gY-2);
-    // gap
+    // Tower obstacle
+    solid(64,gY-10,3,5);
+    flat(67,74,gY-5);stDn(74,gY-5,3);flat(80,86,gY-2);
     flat(90,96,gY-3);stUp(96,gY-3,2);flat(100,pw,gY-5);
-    gLine(2,6,gY);gLine(10,12,gY-2);gLine(15,19,gY-3,2);gLine(25,29,gY-4);gLine(35,39,gY-2);gem(45,gY-5);gem(47,gY-5);gem(49,gY-5);gem(54,gY-4);gLine(59,63,gY-5);gLine(68,73,gY-5);gLine(82,85,gY-2);gLine(91,95,gY-3);gLine(102,pw-6,gY-5);
+    gLine(2,6,gY);gLine(10,12,gY-2);gLine(15,19,gY-3);gLine(25,29,gY-4);gLine(35,39,gY-2);gem(45,gY-5);gem(47,gY-5);gem(49,gY-5);gem(54,gY-4);gLine(59,63,gY-5);gLine(68,73,gY-5);gLine(82,85,gY-2);gLine(91,95,gY-3);gLine(102,pw-5,gY-5);
     ents.push({type:'key',x:70,y:gY-6,collected:false});
-    frog(17,gY-4,14,19);frog(27,gY-5,24,29);frog(37,gY-3,34,39);frog(47,gY-5,44,49);frog(61,gY-6,58,63);frog(71,gY-6,68,73);frog(83,gY-3,80,85);frog(93,gY-4,90,95);
+    frog(17,gY-4,14,19);frog(27,gY-5,24,29);frog(37,gY-3,34,39);frog(47,gY-5,44,49);frog(71,gY-6,68,73);frog(83,gY-3,80,85);frog(93,gY-4,90,95);
     snake(35,gY-3,34,39);snake(82,gY-3,80,85);
     bubble(22,gY-6);bubble(31,gY-5);bubble(51,gY-6);bubble(56,gY-7);bubble(76,gY-5);bubble(88,gY-4);
+    bandit(61,gY-6,58,63);
     ents.push({type:'heart',x:54,y:gY-4,collected:false});ents.push({type:'door',x:pw-4,y:gY-5});
     decs.push({type:'bush',x:2*T,y:gY*T},{type:'bush',x:24*T,y:(gY-4)*T},{type:'bush',x:58*T,y:(gY-5)*T},{type:'bush',x:90*T,y:(gY-3)*T});
     decs.push({type:'rock',x:6*T,y:gY*T},{type:'rock',x:38*T,y:(gY-2)*T},{type:'rock',x:80*T,y:(gY-2)*T});break;
-  case 8:// Bubble Valley - deadly gaps, bubbles everywhere, isolated platforms
-    flat(0,6,gY);stUp(6,gY,2);flat(10,14,gY-2);
-    // gap
-    solid(17,gY-1,3,1);// tiny platform
-    flat(22,26,gY-3);
-    // big gap
-    solid(29,gY-4,3,1);solid(33,gY-2,3,1);// stepping stones
-    flat(38,42,gY-5);
-    // gap with bridge
-    bridge(42,gY-4,3);
-    flat(45,50,gY-4);
-    // tall tower
-    solid(50,gY-10,3,6);
-    flat(53,58,gY-4);
-    // BIG gap
-    solid(61,gY-3,3,1);solid(65,gY-5,3,1);// floating platforms
-    flat(70,76,gY-6);
-    stDn(76,gY-6,2);flat(80,86,gY-4);
-    // gap
-    flat(90,96,gY-3);stUp(96,gY-3,2);flat(100,pw,gY-5);
-    gLine(2,5,gY);gem(11,gY-3);gem(13,gY-3);gem(18,gY-2);gLine(23,25,gY-3);gem(30,gY-5);gem(34,gY-3);gLine(39,41,gY-5);gem(43,gY-5);gem(44,gY-5);gLine(46,49,gY-4);gLine(54,57,gY-4);gem(62,gY-4);gem(66,gY-6);gLine(71,75,gY-6);gLine(81,85,gY-4);gLine(91,95,gY-3);gLine(102,pw-6,gY-5);
-    ents.push({type:'key',x:73,y:gY-7,collected:false});
-    frog(12,gY-3,10,13);frog(24,gY-4,22,25);frog(40,gY-6,38,41);frog(48,gY-5,45,49);frog(55,gY-5,53,57);frog(74,gY-7,71,75);frog(83,gY-5,80,85);frog(93,gY-4,90,95);
-    snake(22,gY-4,22,25);snake(80,gY-5,80,85);
-    bubble(15,gY-4);bubble(20,gY-5);bubble(27,gY-6);bubble(36,gY-7);bubble(43,gY-7);bubble(52,gY-7);bubble(59,gY-5);bubble(63,gY-6);bubble(68,gY-8);bubble(78,gY-6);bubble(88,gY-5);bubble(98,gY-5);
-    ents.push({type:'heart',x:46,y:gY-5,collected:false});ents.push({type:'heart',x:82,y:gY-5,collected:false});
-    ents.push({type:'door',x:pw-4,y:gY-5});
-    decs.push({type:'bush',x:0,y:gY*T},{type:'bush',x:22*T,y:(gY-3)*T},{type:'bush',x:45*T,y:(gY-4)*T},{type:'bush',x:70*T,y:(gY-6)*T},{type:'bush',x:90*T,y:(gY-3)*T});
-    decs.push({type:'rock',x:38*T,y:(gY-5)*T},{type:'rock',x:80*T,y:(gY-4)*T});break;
-  case 9:// Boulder Caves - tight corridors, walls, many enemies
-    flat(0,8,gY);
-    solid(8,gY-10,3,10);// tall left wall
-    flat(8,16,gY);
-    solid(16,gY-10,3,10);// right wall creates corridor
-    flat(16,22,gY-5);// elevated corridor between walls
-    solid(22,gY-10,3,10);// another wall
-    flat(22,30,gY);
-    // gap
-    solid(33,gY-2,3,1);// stepping stone
-    flat(38,46,gY-3);
-    solid(42,gY-9,3,6);// column obstacle
-    stUp(46,gY-3,2);flat(50,56,gY-5);
-    // big gap
-    solid(59,gY-4,3,1);// floating
-    flat(64,72,gY-3);
-    solid(68,gY-9,3,6);// another column
-    stUp(72,gY-3,3);flat(78,86,gY-6);
-    stDn(86,gY-6,2);flat(90,pw,gY-4);
-    gLine(2,6,gY);gLine(10,14,gY);gLine(17,21,gY-5,2);gLine(24,28,gY);gem(34,gY-3);gLine(39,45,gY-3);gem(51,gY-6);gem(53,gY-6);gem(55,gY-6);gem(60,gY-5);gLine(65,71,gY-3);gLine(79,85,gY-6);gLine(92,pw-6,gY-4);
+  case 8:// Level 9: WATER WORLD - islands in water!
+    // Water level at gY-1 (tile 15). Islands poke above water.
+    flat(0,6,gY-3);// starting island
+    solid(10,gY-3,4,1);// small island
+    solid(16,gY-4,3,2);// slightly taller
+    solid(22,gY-3,5,1);// medium island
+    solid(30,gY-5,4,3);// tall island
+    solid(37,gY-3,3,1);// small
+    solid(42,gY-4,5,2);// medium
+    solid(50,gY-3,3,1);// small
+    solid(56,gY-5,4,3);// tall (key here)
+    solid(63,gY-3,4,1);
+    solid(70,gY-4,3,2);
+    solid(76,gY-3,5,1);
+    flat(84,pw,gY-3);// end island
+    gLine(1,5,gY-3);gem(11,gY-4);gem(13,gY-4);gem(17,gY-5);gLine(23,26,gY-3);gem(31,gY-6);gem(33,gY-6);gem(38,gY-4);gLine(43,46,gY-4);gem(51,gY-4);gLine(57,59,gY-5);gem(64,gY-4);gem(66,gY-4);gem(71,gY-5);gLine(77,80,gY-3);gLine(86,pw-5,gY-3);
+    ents.push({type:'key',x:58,y:gY-6,collected:false});
+    frog(24,gY-4,22,26);frog(44,gY-5,42,46);frog(77,gY-4,76,80);frog(88,gY-4,85,pw-5);
+    bubble(8,gY-6);bubble(20,gY-6);bubble(28,gY-5);bubble(40,gY-6);bubble(48,gY-5);bubble(60,gY-6);bubble(68,gY-5);bubble(74,gY-6);bubble(82,gY-5);
+    ents.push({type:'heart',x:33,y:gY-6,collected:false},{type:'heart',x:71,y:gY-5,collected:false});
+    ents.push({type:'door',x:pw-4,y:gY-3});
+    decs.push({type:'cactus',x:31*T,y:(gY-5)*T},{type:'plant',x:11*T,y:(gY-3)*T},{type:'plant',x:43*T,y:(gY-4)*T},{type:'plant',x:64*T,y:(gY-3)*T});break;
+  case 9:// Level 10: Boulder Caves - stacked boulders, maze corridors
+    flat(0,8,gY);solid(8,gY-10,3,10);flat(8,16,gY);solid(16,gY-10,3,10);flat(16,22,gY-5);solid(22,gY-10,3,10);flat(22,30,gY);
+    solid(33,gY-2,3,1);flat(38,46,gY-3);solid(42,gY-9,3,6);stUp(46,gY-3,2);flat(50,56,gY-5);
+    solid(59,gY-4,3,1);flat(64,72,gY-3);solid(68,gY-9,3,6);stUp(72,gY-3,3);flat(78,86,gY-6);stDn(86,gY-6,2);flat(90,pw,gY-4);
+    // Boulders stacked in piles
+    boulder(14,gY-1,0);boulder(14,gY-2,0);boulder(15,gY-1,0);// pile of 3
+    boulder(40,gY-4,0);boulder(41,gY-4,0);// small pile
+    gLine(2,6,gY);gLine(10,14,gY);gLine(17,21,gY-5,2);gLine(24,28,gY);gem(34,gY-3);gLine(39,45,gY-3);gem(51,gY-6);gem(53,gY-6);gem(55,gY-6);gem(60,gY-5);gLine(65,71,gY-3);gLine(79,85,gY-6);gLine(92,pw-5,gY-4);
     ents.push({type:'key',x:82,y:gY-7,collected:false});
-    frog(12,gY-1,9,15);frog(19,gY-6,17,21);frog(26,gY-1,23,29);frog(40,gY-4,38,45);frog(53,gY-6,50,55);frog(67,gY-4,64,71);frog(82,gY-7,79,85);
-    snake(24,gY-1,22,29);snake(64,gY-4,64,71);snake(90,gY-5,90,pw-5);
-    bubble(31,gY-4);bubble(36,gY-5);bubble(48,gY-6);bubble(57,gY-6);bubble(62,gY-5);bubble(75,gY-7);bubble(88,gY-7);
-    ents.push({type:'heart',x:34,y:gY-3,collected:false});ents.push({type:'heart',x:60,y:gY-5,collected:false});
+    frog(12,gY-1,9,15);frog(19,gY-6,17,21);frog(26,gY-1,23,29);frog(53,gY-6,50,55);frog(67,gY-4,64,71);frog(82,gY-7,79,85);
+    snake(24,gY-1,22,29);snake(64,gY-4,64,71);
+    bandit(92,gY-5,90,pw-5);
+    bubble(31,gY-4);bubble(48,gY-6);bubble(57,gY-6);bubble(75,gY-7);bubble(88,gY-7);
+    ents.push({type:'heart',x:34,y:gY-3,collected:false},{type:'heart',x:60,y:gY-5,collected:false});
     ents.push({type:'door',x:pw-4,y:gY-4});
-    decs.push({type:'rock',x:4*T,y:gY*T},{type:'rock',x:38*T,y:(gY-3)*T},{type:'rock',x:64*T,y:(gY-3)*T});break;
-  case 10:// Golden Maze - tall columns, tight navigation, many enemies
-    flat(0,5,gY);
-    solid(5,gY-12,3,12);// massive column
-    flat(5,12,gY);
-    solid(12,gY-12,3,12);
-    flat(12,18,gY-6);// elevated path between columns
-    solid(18,gY-12,3,12);
-    flat(18,26,gY);
-    // gap
-    solid(29,gY-2,3,1);
-    stUp(34,gY,3);flat(40,46,gY-3);
-    solid(43,gY-10,3,7);// column in path
-    flat(46,52,gY-6);
-    // big gap
-    solid(55,gY-5,3,1);solid(59,gY-3,3,1);// stepping
-    flat(64,72,gY-4);
-    solid(68,gY-12,3,8);// column
-    stDn(72,gY-4,2);flat(76,82,gY-2);
-    // gap
-    solid(85,gY-3,3,1);
-    stUp(90,gY,2);flat(94,pw,gY-2);
-    gLine(2,4,gY);gLine(7,11,gY);gLine(13,17,gY-6,2);gLine(20,24,gY);gem(30,gY-3);gLine(36,38,gY-2);gLine(41,45,gY-3);gem(47,gY-7);gem(49,gY-7);gem(51,gY-7);gem(56,gY-6);gem(60,gY-4);gLine(65,71,gY-4);gLine(77,81,gY-2);gem(86,gY-4);gLine(96,pw-6,gY-2);
+    decs.push({type:'rock',x:4*T,y:gY*T},{type:'rock',x:38*T,y:(gY-3)*T});break;
+  case 10:// Level 11: Golden Maze - pyramids + red walls
+    flat(0,5,gY);solid(5,gY-12,3,12);flat(5,12,gY);solid(12,gY-12,3,12);flat(12,18,gY-6);solid(18,gY-12,3,12);flat(18,26,gY);
+    solid(29,gY-2,3,1);stUp(34,gY,3);flat(40,46,gY-3);solid(43,gY-10,3,7);flat(46,52,gY-6);stDn(52,gY-6,2);flat(56,64,gY-4);solid(60,gY-12,3,8);stDn(64,gY-4,2);flat(68,78,gY-2);stUp(78,gY-2,2);flat(82,pw,gY-4);
+    // Red wall sections (decorative)
+    decs.push({type:'wall',x:5*T,y:(gY-12)*T,w:3*T,h:12*T,color:'#C08060'},{type:'wall',x:12*T,y:(gY-12)*T,w:3*T,h:12*T,color:'#C08060'},{type:'wall',x:18*T,y:(gY-12)*T,w:3*T,h:12*T,color:'#C08060'});
+    gLine(2,4,gY);gLine(7,11,gY);gLine(13,17,gY-6,2);gLine(20,24,gY);gem(30,gY-3);gLine(36,38,gY-2);gLine(41,45,gY-3);gem(47,gY-7);gem(49,gY-7);gem(51,gY-7);gLine(58,62,gY-4);gLine(70,76,gY-2);gLine(84,pw-5,gY-4);
     ents.push({type:'key',x:49,y:gY-7,collected:false});
-    frog(9,gY-1,6,11);frog(15,gY-7,13,17);frog(22,gY-1,19,25);frog(42,gY-4,40,45);frog(49,gY-7,46,51);frog(67,gY-5,64,71);frog(79,gY-3,76,81);
-    snake(20,gY-1,18,25);snake(64,gY-5,64,71);snake(76,gY-3,76,81);
-    bubble(27,gY-4);bubble(33,gY-3);bubble(53,gY-8);bubble(57,gY-7);bubble(62,gY-5);bubble(74,gY-5);bubble(83,gY-4);bubble(88,gY-3);
-    ents.push({type:'heart',x:56,y:gY-6,collected:false});ents.push({type:'door',x:pw-4,y:gY-2});
-    decs.push({type:'rock',x:64*T,y:(gY-4)*T},{type:'plant',x:40*T,y:(gY-3)*T},{type:'plant',x:76*T,y:(gY-2)*T});break;
-  case 11:// Final Rescue - everything hard, many hazards, rain
-    flat(0,6,gY);stUp(6,gY,3);flat(12,18,gY-3);
-    // gap
-    solid(21,gY-2,3,1);// stepping stone
-    stUp(26,gY,2);flat(30,36,gY-2);stUp(36,gY-2,2);flat(40,46,gY-4);
-    // big gap
-    solid(49,gY-3,3,1);solid(53,gY-5,3,1);// floating platforms
-    flat(58,64,gY-6);
-    // tower
-    solid(64,gY-12,3,6);
-    flat(67,74,gY-6);
-    stDn(74,gY-6,2);flat(78,84,gY-4);
-    // big gap
-    solid(87,gY-3,3,1);solid(91,gY-5,3,1);
-    flat(96,102,gY-6);stDn(102,gY-6,2);flat(106,pw,gY-4);
-    gLine(2,5,gY);gLine(8,10,gY-2);gLine(13,17,gY-3);gem(22,gY-3);gLine(31,35,gY-2);gem(37,gY-3);gem(39,gY-3);gLine(41,45,gY-4);gem(50,gY-4);gem(54,gY-6);gLine(59,63,gY-6);gLine(68,73,gY-6);gLine(79,83,gY-4);gem(88,gY-4);gem(92,gY-6);gLine(97,101,gY-6);gLine(108,pw-6,gY-4);
-    ents.push({type:'key',x:70,y:gY-7,collected:false});
-    frog(15,gY-4,12,17);frog(33,gY-3,30,35);frog(43,gY-5,40,45);frog(61,gY-7,58,63);frog(71,gY-7,68,73);frog(81,gY-5,78,83);frog(99,gY-7,96,101);frog(110,gY-5,107,pw-5);
-    snake(30,gY-3,30,35);snake(78,gY-5,78,83);snake(106,gY-5,106,pw-5);
-    bubble(19,gY-4);bubble(24,gY-5);bubble(37,gY-5);bubble(47,gY-5);bubble(51,gY-6);bubble(56,gY-8);bubble(65,gY-8);bubble(76,gY-7);bubble(85,gY-6);bubble(89,gY-5);bubble(94,gY-7);bubble(104,gY-6);
-    ents.push({type:'heart',x:50,y:gY-4,collected:false},{type:'heart',x:88,y:gY-4,collected:false},{type:'heart',x:99,y:gY-7,collected:false});
-    ents.push({type:'door',x:pw-4,y:gY-4});
-    decs.push({type:'rock',x:4*T,y:gY*T},{type:'rock',x:58*T,y:(gY-6)*T},{type:'rock',x:96*T,y:(gY-6)*T});
-    decs.push({type:'bush',x:12*T,y:(gY-3)*T},{type:'bush',x:40*T,y:(gY-4)*T},{type:'bush',x:67*T,y:(gY-6)*T},{type:'bush',x:106*T,y:(gY-4)*T});break;
+    frog(9,gY-1,6,11);frog(15,gY-7,13,17);frog(22,gY-1,19,25);frog(42,gY-4,40,45);frog(49,gY-7,46,51);frog(72,gY-3,69,77);
+    snake(20,gY-1,18,25);snake(70,gY-3,68,77);
+    bandit(58,gY-5,56,63);bandit(84,gY-5,82,pw-5);
+    bubble(27,gY-4);bubble(53,gY-8);bubble(62,gY-5);bubble(74,gY-5);
+    ents.push({type:'heart',x:30,y:gY-3,collected:false});ents.push({type:'door',x:pw-4,y:gY-4});
+    decs.push({type:'plant',x:40*T,y:(gY-3)*T},{type:'plant',x:68*T,y:(gY-2)*T});break;
+  case 11:// Level 12: FINAL BOSS
+    flat(0,8,gY);stUp(8,gY,3);flat(14,20,gY-3);stUp(20,gY-3,2);flat(24,34,gY-5);
+    stDn(34,gY-5,2);flat(38,48,gY-3);
+    // Boss arena
+    flat(50,80,gY);
+    solid(80,gY-8,2,8);// right wall of arena
+    // After boss: path to sheriff
+    flat(82,pw,gY);
+    gLine(2,6,gY);gLine(10,12,gY-2);gLine(15,19,gY-3);gLine(22,24,gY-4);gLine(26,32,gY-5);gLine(36,38,gY-4);gLine(40,46,gY-3);
+    // Arena gems
+    gLine(52,60,gY);gLine(65,75,gY);
+    ents.push({type:'key',x:30,y:gY-6,collected:false});
+    frog(16,gY-4,14,19);frog(28,gY-6,25,33);frog(42,gY-4,39,47);
+    snake(40,gY-4,38,47);
+    bandit(44,gY-4,39,47);
+    bubble(22,gY-7);bubble(36,gY-6);
+    ents.push({type:'heart',x:46,y:gY-4,collected:false},{type:'heart',x:62,y:gY-1,collected:false},{type:'heart',x:70,y:gY-1,collected:false});
+    // Boss entity
+    ents.push({type:'boss',x:60,y:gY-4,alive:true});
+    ents.push({type:'door',x:pw-4,y:gY});
+    decs.push({type:'bush',x:2*T,y:gY*T},{type:'bush',x:50*T,y:gY*T},{type:'bush',x:75*T,y:gY*T},{type:'bush',x:82*T,y:gY*T});
+    decs.push({type:'rock',x:6*T,y:gY*T},{type:'rock',x:38*T,y:(gY-3)*T});break;
   }
 
-  // Right wall on every level so player can't fall off the edge
-  for(let y=0;y<ph;y++){if(pw-1>=0)grid[y][pw-1]=1}
+  // Right wall
+  for(let y=0;y<ph;y++)if(pw-1>=0)grid[y][pw-1]=1;
 
-  return {grid,pw,ph,ents,decs,crates,bridges,kn:1,rain:LEVELS[idx].rain};
+  return {grid,pw,ph,ents,decs,crates,bridges,boulders,kn:1,rain:LEVELS[idx].rain,waterY:LEVELS[idx].waterY,boss:LEVELS[idx].boss};
 }
 
 let LV=null,P={x:0,y:0,vx:0,vy:0,w:30,h:28,dir:1,gnd:false,fr:0,inv:0,dead:false},cam={x:0,y:0};
-function startLv(i){cl=i;biome=LEVELS[i].bio;LV=genLv(i);P.x=2*T;P.y=14*T;P.vx=0;P.vy=0;P.dir=1;P.gnd=false;P.fr=0;P.inv=0;P.dead=false;keys=0;hp=mhp;pts=[];ftx=[];cam.x=P.x-400;cam.y=0;gt=300;tf=0;gs='intro';lit=100}
+function startLv(i){cl=i;biome=LEVELS[i].bio;LV=genLv(i);P.x=2*T;P.y=14*T;P.vx=0;P.vy=0;P.dir=1;P.gnd=false;P.fr=0;P.inv=0;P.dead=false;keys=0;hp=mhp;pts=[];ftx=[];grenades=[];cam.x=P.x-400;cam.y=0;gt=300;tf=0;
+  if(LV.boss){bossHp=bossMax;bootY=0;bootState='up';bootTimer=120}
+  gs='intro';lit=100}
 function startGame(){lives=5;score=0;gems=0;hp=mhp;keys=0;startLv(0)}
-function solid2(wx,wy){const tx=Math.floor(wx/T),ty=Math.floor(wy/T);if(tx<0||tx>=LV.pw||ty<0||ty>=LV.ph)return 0;return LV.grid[ty][tx]>0}
+function solid2(wx,wy){const tx=Math.floor(wx/T),ty=Math.floor(wy/T);if(tx<0||tx>=LV.pw||ty<0||ty>=LV.ph)return 0;const v=LV.grid[ty][tx];return v>0&&v!==2?1:0}// breakable(2) is solid too
+function solidAny(wx,wy){const tx=Math.floor(wx/T),ty=Math.floor(wy/T);if(tx<0||tx>=LV.pw||ty<0||ty>=LV.ph)return 0;return LV.grid[ty][tx]>0?1:0}
 function rOvr(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y}
+
+// Break blocks near a point
+function breakNear(tx2){for(let y=0;y<LV.ph;y++){if(LV.grid[y][tx2]===2){LV.grid[y][tx2]=0;spP(tx2*T+16,y*T+16,'#C0984C',4)}}}
 
 function updPlayer(){
   if(P.dead)return;const sp=inp.ShiftLeft||inp.ShiftRight?WS:RS;
   if(inp.ArrowLeft){P.vx=-sp;P.dir=-1;P.fr++}else if(inp.ArrowRight){P.vx=sp;P.dir=1;P.fr++}else{P.vx*=.7;if(Math.abs(P.vx)<.1)P.vx=0}
   if((inp.ArrowUp||inp.Space)&&P.gnd){P.vy=JF;P.gnd=false;sfx('jump')}
   P.vy+=GR;if(P.vy>12)P.vy=12;const m=4,nx=P.x+P.vx;
-  if(P.vx<0){if(solid2(nx+m,P.y+4)||solid2(nx+m,P.y+P.h-4)){P.x=Math.floor((nx+m)/T)*T+T-m;P.vx=0}else P.x=nx}
-  else if(P.vx>0){if(solid2(nx+P.w-m,P.y+4)||solid2(nx+P.w-m,P.y+P.h-4)){P.x=Math.floor((nx+P.w-m)/T)*T-P.w+m;P.vx=0}else P.x=nx}
+  if(P.vx<0){if(solidAny(nx+m,P.y+4)||solidAny(nx+m,P.y+P.h-4)){P.x=Math.floor((nx+m)/T)*T+T-m;P.vx=0}else P.x=nx}
+  else if(P.vx>0){if(solidAny(nx+P.w-m,P.y+4)||solidAny(nx+P.w-m,P.y+P.h-4)){P.x=Math.floor((nx+P.w-m)/T)*T-P.w+m;P.vx=0}else P.x=nx}
   const ny=P.y+P.vy;P.gnd=false;
-  if(P.vy>0){if(solid2(P.x+m,ny+P.h)||solid2(P.x+P.w-m,ny+P.h)){P.y=Math.floor((ny+P.h)/T)*T-P.h;P.vy=0;P.gnd=true}else P.y=ny}
-  else if(P.vy<0){if(solid2(P.x+m,ny)||solid2(P.x+P.w-m,ny)){P.y=Math.floor(ny/T)*T+T;P.vy=0}else P.y=ny}
-  if(P.y>LV.ph*T+64)pDie();if(P.inv>0)P.inv--;tf++;if(tf>=60){tf=0;gt--;if(gt<=0)pDie()}
+  if(P.vy>0){if(solidAny(P.x+m,ny+P.h)||solidAny(P.x+P.w-m,ny+P.h)){P.y=Math.floor((ny+P.h)/T)*T-P.h;P.vy=0;P.gnd=true}else P.y=ny}
+  else if(P.vy<0){if(solidAny(P.x+m,ny)||solidAny(P.x+P.w-m,ny)){P.y=Math.floor(ny/T)*T+T;P.vy=0}else P.y=ny}
+  // Fall into pit or water
+  if(LV.waterY&&P.y+P.h>LV.waterY*T){sfx('splash');pDie()}
+  else if(P.y>LV.ph*T+64)pDie();
+  if(P.inv>0)P.inv--;
+  tf++;if(tf>=60){tf=0;gt--;if(gt<=0)pDie()}
+  // Boss boot collision
+  if(LV.boss&&bossHp>0&&bootState==='down'){
+    const bx=60*T,by=16*T+bootY-4;
+    if(rOvr({x:P.x+4,y:P.y,w:P.w-8,h:P.h},{x:bx+16,y:by+54,w:48,h:8}))pHit();
+  }
 }
 function pHit(){if(P.inv>0)return;hp--;P.inv=90;sht=12;shi=4;sfx('hurt');if(hp<=0)pDie()}
 function pDie(){P.dead=true;lives--;sfx('die');setTimeout(()=>{if(lives<=0)gs='over';else startLv(cl)},1500)}
@@ -643,41 +510,109 @@ function pDie(){P.dead=true;lives--;sfx('die');setTimeout(()=>{if(lives<=0)gs='o
 function updEnts(){
   const pr={x:P.x+4,y:P.y,w:P.w-8,h:P.h};
   LV.ents.forEach(e=>{
-    if(e.alive&&(e.type==='frog'||e.type==='snake')){
-      const sp=e.type==='snake'?1.5:.8;e.x+=e.dir*sp/T;if(e.x<=e.startX){e.x=e.startX;e.dir=1}if(e.x>=e.endX){e.x=e.endX;e.dir=-1}
-      if(!P.dead&&P.inv<=0){const ew=e.type==='snake'?60:T,er={x:e.x*T,y:e.y*T,w:ew,h:T};
-        if(rOvr(pr,er)){if(P.vy>0&&P.y+P.h<er.y+er.h*.6){P.vy=JF*.6;sfx('stomp');e.alive=false;spP(e.x*T+16,e.y*T,'#FF6B6B',6);score+=100;spT(e.x*T,e.y*T-16,'+100','#FFD700')}else pHit()}}
+    if(e.alive&&(e.type==='frog'||e.type==='snake'||e.type==='bandit'||e.type==='bird')){
+      const sp=e.type==='snake'?1.5:e.type==='bird'?1.2:.8;
+      e.x+=e.dir*sp/T;if(e.x<=e.startX){e.x=e.startX;e.dir=1}if(e.x>=e.endX){e.x=e.endX;e.dir=-1}
+      // Bird flies in sine wave
+      if(e.type==='bird')e.y=e.baseY+Math.sin(fc*.04)*2;
+      // Bandit throws grenades
+      if(e.type==='bandit'){
+        e.throwTimer--;
+        if(e.throwTimer<=0&&!P.dead){
+          e.throwTimer=100+Math.random()*80;
+          const dx=P.x-e.x*T,dist=Math.abs(dx);
+          if(dist<300){grenades.push({x:e.x*T+16,y:e.y*T+8,vx:dx*.015,vy:-5,life:120})}
+        }
+      }
+      if(!P.dead&&P.inv<=0){
+        const ew=e.type==='snake'?60:e.type==='bird'?24:T;
+        const er={x:e.x*T,y:e.y*T,w:ew,h:T};
+        if(rOvr(pr,er)){
+          if(P.vy>0&&P.y+P.h<er.y+er.h*.6){
+            P.vy=JF*.6;sfx('stomp');e.alive=false;spP(e.x*T+16,e.y*T,'#FF6B6B',6);score+=100;spT(e.x*T,e.y*T-16,'+100','#FFD700');
+          }else pHit();
+        }
+      }
     }
     if(e.type==='bubble'&&e.alive&&!P.dead&&P.inv<=0){const bx=e.x*T,by=e.y*T+Math.sin(fc*.03+e.x*.08)*8;if(rOvr(pr,{x:bx+2,y:by+2,w:28,h:28}))pHit()}
+    // Detonator
+    if(e.type==='detonator'&&e.alive&&rOvr(pr,{x:e.x*T,y:e.y*T,w:T,h:T})){
+      if(P.vy>0&&P.y+P.h<e.y*T+T*.6){P.vy=JF*.6;sfx('boom');e.alive=false;spP(e.x*T+16,e.y*T,'#FF8800',12);score+=200;spT(e.x*T,e.y*T-20,'BOOM!','#FF6B00');if(e.twx!==undefined)breakNear(e.twx)}
+    }
+    // Boss
+    if(e.type==='boss'&&e.alive&&bossHp>0){
+      // Boss boot logic
+      bootTimer--;
+      if(bootState==='up'&&bootTimer<=0){bootState='down';bootTimer=40;sfx('boss')}
+      else if(bootState==='down'){bootY=Math.min(bootY+4,60);if(bootTimer<=0){bootState='hold';bootTimer=30}}
+      else if(bootState==='hold'&&bootTimer<=0){bootState='up';bootTimer=80+Math.random()*40}
+      else if(bootState==='up')bootY=Math.max(bootY-2,0);
+      // Stomp the villain (on the platform at e.y)
+      const villainR={x:e.x*T+28,y:e.y*T-28,w:16,h:20};
+      if(!P.dead&&P.inv<=0&&rOvr(pr,villainR)){
+        if(P.vy>0&&P.y+P.h<villainR.y+10){
+          P.vy=JF*.7;sfx('stomp');bossHp--;sht=15;shi=6;
+          spP(e.x*T+36,e.y*T-20,'#FFD700',10);
+          if(bossHp<=0){e.alive=false;score+=1000;spT(e.x*T+20,e.y*T-40,'BOSS DOWN!','#FFD700');sfx('clear')}
+          else spT(e.x*T+20,e.y*T-40,bossHp+' HITS LEFT','#FF6B6B');
+        }else pHit();
+      }
+    }
+    // Collectibles
     if(e.collected)return;const er={x:e.x*T,y:e.y*T,w:T,h:T};
     if(e.type==='gem'&&rOvr(pr,er)){e.collected=true;gems++;score+=100;spP(e.x*T+16,e.y*T+16,'#4488CC',5);spT(e.x*T,e.y*T-10,'+100','#5599DD');sfx('gem')}
     if(e.type==='key'&&rOvr(pr,er)){e.collected=true;keys++;spP(e.x*T+16,e.y*T+16,'#FFD700',8);spT(e.x*T,e.y*T-10,'KEY!','#FFD700');sfx('key')}
     if(e.type==='heart'&&rOvr(pr,er)){e.collected=true;if(hp<mhp)hp++;spP(e.x*T+16,e.y*T+16,'#E53935',5);sfx('gem')}
-    if(e.type==='door'){const dr={x:e.x*T-4,y:e.y*T-54,w:40,h:58};if(rOvr(pr,dr)){if(keys>=LV.kn){sfx('clear');gs='complete';if(cl<11)setTimeout(()=>startLv(cl+1),1200);else setTimeout(()=>{gs='win'},1200)}else if(fc%60===0)spT(e.x*T-12,e.y*T-60,'Need key!','#FF6B6B')}}
+    if(e.type==='door'){const dr={x:e.x*T-4,y:e.y*T-54,w:40,h:58};
+      if(rOvr(pr,dr)){
+        // Boss level: must defeat boss first
+        if(LV.boss&&bossHp>0){if(fc%60===0)spT(e.x*T-12,e.y*T-60,'Defeat boss!','#FF6B6B');return}
+        if(keys>=LV.kn){sfx('clear');gs='complete';if(cl<11)setTimeout(()=>startLv(cl+1),1200);else setTimeout(()=>{gs='win'},1200)}
+        else if(fc%60===0)spT(e.x*T-12,e.y*T-60,'Need key!','#FF6B6B')}}
+  });
+  // Grenades
+  grenades=grenades.filter(g2=>{g2.x+=g2.vx;g2.y+=g2.vy;g2.vy+=.2;g2.life--;
+    if(solidAny(g2.x,g2.y)||g2.y>LV.ph*T){spP(g2.x,g2.y,'#FF8800',6);sfx('boom');
+      if(!P.dead&&P.inv<=0&&Math.abs(g2.x-P.x-15)<40&&Math.abs(g2.y-P.y-14)<40)pHit();return false}
+    if(!P.dead&&P.inv<=0&&Math.abs(g2.x-P.x-15)<20&&Math.abs(g2.y-P.y-14)<20){pHit();spP(g2.x,g2.y,'#FF8800',6);sfx('boom');return false}
+    return g2.life>0});
+  // Boulders
+  LV.boulders.forEach(b=>{
+    if(b.vx!==0){b.x+=b.vx;b.vy+=.3;b.y+=b.vy;
+      if(solidAny(b.x,b.y+b.r+2)){b.y=Math.floor((b.y+b.r+2)/T)*T-b.r-2;b.vy=0;b.grounded=true}else b.grounded=false}
+    if(!P.dead&&P.inv<=0){const dx=b.x-P.x-15,dy=b.y-P.y-14,dist=Math.sqrt(dx*dx+dy*dy);if(dist<b.r+12)pHit()}
   });
 }
 
 function updCam(){const tx=P.x-350,ty=Math.min(P.y-250,0);cam.x+=(tx-cam.x)*.08;cam.y+=(ty-cam.y)*.08;cam.x=Math.max(0,Math.min(cam.x,LV.pw*T-800));cam.y=Math.max(-(LV.ph*T-600),Math.min(cam.y,0))}
 
+// ═══════════════════ RENDER ═══════════════════
 function renderPlay(){
   X.save();if(sht>0){X.translate((Math.random()-.5)*shi,(Math.random()-.5)*shi);sht--}
   drawBG(cam.x,LV.rain);X.save();X.translate(-Math.floor(cam.x),-Math.floor(cam.y));
-  // Decs behind terrain
   LV.decs.forEach(d=>{if(d.x<cam.x-100||d.x>cam.x+900)return;
-    if(d.type==='wall')drawWall(d.x,d.y,d.w,d.h,d.color);if(d.type==='win')drawWindow(d.x,d.y);if(d.type==='sdoor')drawSmallDoor(d.x,d.y);
-    if(d.type==='cactus')drawCactus(d.x,d.y);if(d.type==='bush')drawBush(d.x,d.y);if(d.type==='rock')drawRock(d.x,d.y);if(d.type==='plant')drawPlant(d.x,d.y);if(d.type==='fence')drawFence(d.x,d.y)});
-  // TERRAIN with outlined edges
+    if(d.type==='wall')drawWall(d.x,d.y,d.w,d.h,d.color);if(d.type==='win')drawWindow(d.x,d.y);
+    if(d.type==='cactus')drawCactus(d.x,d.y);if(d.type==='bush')drawBush(d.x,d.y);if(d.type==='rock')drawRock(d.x,d.y);if(d.type==='plant')drawPlant(d.x,d.y)});
   drawTerrain(LV.grid,LV.pw,LV.ph,cam.x,cam.y);
-  // Crates on top of terrain
   LV.crates.forEach(c=>{if(c.x>cam.x-40&&c.x<cam.x+840)drawCrate(c.x,c.y)});
-  // Bridges
   LV.bridges.forEach(b=>{if(b.x+b.w>cam.x-40&&b.x<cam.x+840)drawBridge(b.x,b.y,b.w)});
+  // Boulders
+  LV.boulders.forEach(b=>{if(b.x>cam.x-40&&b.x<cam.x+840)drawBoulder(b.x,b.y,b.r)});
   // Entities
   LV.ents.forEach(e=>{const ex=e.x*T,ey=e.y*T;if(ex<cam.x-80||ex>cam.x+880)return;
     if(e.type==='gem'&&!e.collected)drawGem(ex,ey,fc);if(e.type==='key'&&!e.collected)drawKeyItem(ex,ey,fc);
     if(e.type==='heart'&&!e.collected)drawHeart(ex+8,ey+8+Math.sin(fc*.06)*2,true);
     if(e.type==='door')drawDoorExit(ex,ey,keys<LV.kn);if(e.type==='frog'&&e.alive)drawFrog(ex,ey,fc,e.dir);
-    if(e.type==='snake'&&e.alive)drawSnake(ex,ey,fc,e.dir);if(e.type==='bubble'&&e.alive)drawBubble(ex,ey,fc)});
+    if(e.type==='snake'&&e.alive)drawSnake(ex,ey,fc,e.dir);if(e.type==='bubble'&&e.alive)drawBubble(ex,ey,fc);
+    if(e.type==='bandit'&&e.alive)drawBandit(ex,ey,fc,e.dir);
+    if(e.type==='bird'&&e.alive)drawBird(ex,ey,fc);
+    if(e.type==='detonator'&&e.alive){drawCrate(ex,ey);X.fillStyle='#FFD700';X.fillRect(ex+12,ey-4,8,6);X.fillStyle='#FF6B00';X.fillRect(ex+14,ey-2,4,3)}
+    if(e.type==='boss'&&e.alive)drawBoss(ex,ey,bootY);
+  });
+  // Grenades
+  grenades.forEach(g2=>drawGrenade(g2.x,g2.y));
+  // Water
+  if(LV.waterY)drawWater(LV.waterY*T-Math.floor(cam.y),cam.x);
   // Player
   if(!P.dead){if(P.inv<=0||Math.floor(P.inv/4)%2===0)drawPig(P.x,P.y,P.dir,P.fr,P.gnd)}
   else{X.save();X.translate(P.x+16,P.y+14);X.rotate(fc*.2);drawPig(-16,-14,1,0,false);X.restore()}
@@ -692,21 +627,17 @@ function renderPlay(){
   X.fillStyle='#fff';X.fillText('x'+String(gems).padStart(2,'0'),88,17);X.fillText(String(score).padStart(7,'0'),160,17);
   X.fillStyle='#6699AA';X.beginPath();X.arc(310,13,7,0,Math.PI*2);X.fill();X.fillStyle='#fff';X.beginPath();X.arc(310,13,5,0,Math.PI*2);X.fill();X.fillStyle='#000';X.fillRect(309,10,2,4);X.fillRect(309,13,3,1);
   X.fillStyle='#fff';X.fillText(String(gt),325,17);for(let i=0;i<mhp;i++)drawHeart(8+i*18,21,i<hp);
-  X.fillStyle=snd?'#5BAE4A':'#666';X.fillRect(770,7,22,12);X.fillStyle='#fff';X.font='7px "Press Start 2P",monospace';X.fillText(snd?'\u266A':'x',774,16);
-  X.fillStyle='#888';X.fillText('LV'+(cl+1)+'/12',700,16);
-  // Pause icon (II) bottom right like original
-  X.fillStyle='rgba(100,160,200,0.5)';X.fillRect(760,572,8,20);X.fillRect(772,572,8,20);
+  X.fillStyle='#888';X.font='7px "Press Start 2P",monospace';X.fillText('LV'+(cl+1)+'/12',700,16);
   if(gs==='pause'){X.fillStyle='rgba(0,0,0,0.6)';X.fillRect(0,0,800,600);X.fillStyle='#FFD700';X.font='26px "Press Start 2P",monospace';X.textAlign='center';X.fillText('PAUSED',400,280);X.fillStyle='#E8C872';X.font='9px "Press Start 2P",monospace';X.fillText('Press P to resume',400,310);X.textAlign='left'}
   X.restore();
 }
 
+// ═══════════════════ SCREENS ═══════════════════
 function renderTitle(){
   biome='desert';drawBG(fc*.3);
-  // Ground with outlined edges
-  const tg=Array.from({length:22},()=>Array(25).fill(0));for(let y=15;y<22;y++)for(let x=0;x<25;x++)tg[y][x]=1;
-  drawTerrain(tg,25,22,0,0);
+  const tg=Array.from({length:22},()=>Array(25).fill(0));for(let y=15;y<22;y++)for(let x=0;x<25;x++)tg[y][x]=1;drawTerrain(tg,25,22,0,0);
   X.fillStyle='#D0A858';X.fillRect(30,300,140,180);X.fillStyle='#C09848';for(let y=300;y<480;y+=5)X.fillRect(30,y,140,1);
-  X.fillStyle='#8B6914';X.fillRect(20,290,170,12);X.fillStyle='#C4941E';X.fillRect(50,302,8,178);X.fillRect(140,302,8,178);
+  X.fillStyle='#8B6914';X.fillRect(20,290,170,10);X.fillStyle='#C4941E';X.fillRect(50,300,8,180);X.fillRect(140,300,8,180);
   X.fillStyle='#5D4037';X.fillRect(78,380,50,100);X.fillStyle='#8B7355';X.fillRect(82,384,42,92);drawWindow(44,330);drawWindow(128,330);
   drawCactus(580,15*T);drawBush(400,15*T);drawPig(290,448,1,fc,true);drawRock(480,15*T);
   X.textAlign='center';
@@ -714,32 +645,65 @@ function renderTitle(){
   X.fillStyle='#E8C872';X.fillText('SAVE THE',400,79);X.fillText('SHERIFF',400,112);
   X.fillStyle='#FFD700';X.fillText('SAVE THE',399,78);X.fillText('SHERIFF',399,111);
   [{t:'NEW GAME',y:165},{t:'HOW TO PLAY',y:205}].forEach(b=>{const h=mY>=b.y-13&&mY<=b.y+13&&mX>=295&&mX<=505;X.fillStyle=h?'#A67B1A':'#8B6914';X.fillRect(295,b.y-13,210,26);X.fillStyle=h?'#C4941E':'#A67B1A';X.fillRect(299,b.y-9,202,18);X.strokeStyle='#5D4037';X.lineWidth=2;X.strokeRect(295,b.y-13,210,26);X.fillStyle='#fff';X.font='9px "Press Start 2P",monospace';X.fillText(b.t,400,b.y+3)});
-  // Level select grid (debug)
-  X.fillStyle='rgba(0,0,0,0.5)';X.fillRect(190,240,420,120);
-  X.fillStyle='#E8C872';X.font='8px "Press Start 2P",monospace';X.fillText('SELECT LEVEL',400,258);
-  for(let i=0;i<12;i++){
-    const col=i%6,row=Math.floor(i/6);
-    const bx=205+col*66,by=265+row*42;
-    const hov=mX>=bx&&mX<=bx+56&&mY>=by&&mY<=by+32;
-    X.fillStyle=hov?'#A67B1A':'#6B4820';X.fillRect(bx,by,56,32);
-    X.fillStyle=hov?'#C4941E':'#8B6914';X.fillRect(bx+2,by+2,52,28);
-    X.fillStyle='#fff';X.font='7px "Press Start 2P",monospace';X.fillText((i+1)+'',bx+28,by+13);
-    X.fillStyle='#ccc';X.font='5px "Press Start 2P",monospace';X.fillText(LEVELS[i].name.substring(0,8),bx+28,by+24);
-  }
-  X.fillStyle='rgba(255,255,255,0.3)';X.font='6px "Press Start 2P",monospace';X.fillText('A Miniclip/Playdo Classic - Recreated',400,590);X.textAlign='left';
+  // Level select
+  X.fillStyle='rgba(0,0,0,0.5)';X.fillRect(190,236,420,120);X.fillStyle='#E8C872';X.font='8px "Press Start 2P",monospace';X.fillText('SELECT LEVEL',400,254);
+  for(let i=0;i<12;i++){const col=i%6,row=Math.floor(i/6);const bx=205+col*66,by=261+row*42;const hov=mX>=bx&&mX<=bx+56&&mY>=by&&mY<=by+32;X.fillStyle=hov?'#A67B1A':'#6B4820';X.fillRect(bx,by,56,32);X.fillStyle=hov?'#C4941E':'#8B6914';X.fillRect(bx+2,by+2,52,28);X.fillStyle='#fff';X.font='7px "Press Start 2P",monospace';X.fillText(''+(i+1),bx+28,by+13);X.fillStyle='#ccc';X.font='5px "Press Start 2P",monospace';X.fillText(LEVELS[i].name.substring(0,8),bx+28,by+24)}
+  X.fillStyle='rgba(255,255,255,0.3)';X.font='6px "Press Start 2P",monospace';X.fillText('12 Levels - Boss Fight - Rescue the Sheriff!',400,590);X.textAlign='left';
 }
-function renderHowTo(){biome='desert';drawBG(0);const tg=Array.from({length:22},()=>Array(25).fill(0));for(let y=16;y<22;y++)for(let x=0;x<25;x++)tg[y][x]=1;drawTerrain(tg,25,22,0,0);X.textAlign='center';X.fillStyle='#FFD700';X.font='20px "Press Start 2P",monospace';X.fillText('HOW TO PLAY',400,40);X.fillStyle='rgba(0,0,0,0.5)';X.fillRect(70,55,660,380);X.fillStyle='#E8C872';X.font='10px "Press Start 2P",monospace';X.fillText('CONTROLS',400,82);const dk=(x,y,l,w=42)=>{X.fillStyle='#ddd';X.fillRect(x,y,w,26);X.fillStyle='#eee';X.fillRect(x+2,y+2,w-4,20);X.fillStyle='#333';X.font='8px "Press Start 2P",monospace';X.fillText(l,x+w/2,y+16)};dk(375,95,'\u2191');dk(325,128,'\u2190');dk(375,128,'\u2193');dk(425,128,'\u2192');X.fillStyle='#fff';X.font='7px "Press Start 2P",monospace';X.fillText('MOVE & JUMP',375,170);dk(170,110,'SHIFT',60);X.fillStyle='#fff';X.fillText('WALK',200,155);dk(530,105,'P');X.fillStyle='#fff';X.fillText('PAUSE',555,140);X.fillStyle='#E8C872';X.font='10px "Press Start 2P",monospace';X.fillText('RULES',400,200);X.fillStyle='#fff';X.font='7px "Press Start 2P",monospace';['Jump on enemies to stomp them!','Collect blue gems for 100 points','Find a key to unlock the exit door','Avoid bubbles - they hurt!','12 levels across 4 worlds','Save the Sheriff!'].forEach((r,i)=>X.fillText('> '+r,400,225+i*20));const h=mY>=385&&mY<=411&&mX>=330&&mX<=470;X.fillStyle=h?'#A67B1A':'#8B6914';X.fillRect(330,385,140,26);X.fillStyle=h?'#C4941E':'#A67B1A';X.fillRect(334,389,132,18);X.strokeStyle='#5D4037';X.lineWidth=2;X.strokeRect(330,385,140,26);X.fillStyle='#fff';X.font='9px "Press Start 2P",monospace';X.fillText('BACK',400,403);X.textAlign='left'}
-function renderIntro(){drawBG(0,LEVELS[cl].rain);X.fillStyle='rgba(0,0,0,0.7)';X.fillRect(0,0,800,600);X.textAlign='center';X.fillStyle='#888';X.font='10px "Press Start 2P",monospace';X.fillText('WORLD '+Math.floor(cl/3+1),400,200);X.fillStyle='#E8C872';X.font='15px "Press Start 2P",monospace';X.fillText('LEVEL '+(cl+1),400,230);X.fillStyle='#FFD700';X.font='18px "Press Start 2P",monospace';X.fillText(LEVELS[cl].name.toUpperCase(),400,264);drawPig(384,310,1,fc,true);X.fillStyle='#fff';X.beginPath();X.arc(420,300,10,0,Math.PI*2);X.fill();X.fillRect(414,310,4,3);X.beginPath();X.arc(413,316,2,0,Math.PI*2);X.fill();X.fillStyle='#FFD4A8';X.fillRect(415,294,10,10);X.fillStyle='#8B6914';X.fillRect(413,290,14,5);X.fillStyle='#000';X.fillRect(418,298,2,2);X.fillRect(422,298,2,2);X.fillStyle='#aaa';X.font='8px "Press Start 2P",monospace';X.fillText('Find the key to exit!',400,370);X.textAlign='left'}
+function renderHowTo(){biome='desert';drawBG(0);const tg=Array.from({length:22},()=>Array(25).fill(0));for(let y=16;y<22;y++)for(let x=0;x<25;x++)tg[y][x]=1;drawTerrain(tg,25,22,0,0);X.textAlign='center';X.fillStyle='#FFD700';X.font='20px "Press Start 2P",monospace';X.fillText('HOW TO PLAY',400,40);X.fillStyle='rgba(0,0,0,0.5)';X.fillRect(70,55,660,390);X.fillStyle='#E8C872';X.font='10px "Press Start 2P",monospace';X.fillText('CONTROLS',400,82);const dk=(x,y,l,w=42)=>{X.fillStyle='#ddd';X.fillRect(x,y,w,26);X.fillStyle='#eee';X.fillRect(x+2,y+2,w-4,20);X.fillStyle='#333';X.font='8px "Press Start 2P",monospace';X.fillText(l,x+w/2,y+16)};dk(375,95,'\u2191');dk(325,128,'\u2190');dk(375,128,'\u2193');dk(425,128,'\u2192');X.fillStyle='#fff';X.font='7px "Press Start 2P",monospace';X.fillText('MOVE & JUMP',375,170);dk(170,110,'SHIFT',60);X.fillStyle='#fff';X.fillText('WALK',200,155);dk(530,105,'P');X.fillStyle='#fff';X.fillText('PAUSE',555,140);X.fillStyle='#E8C872';X.font='10px "Press Start 2P",monospace';X.fillText('RULES',400,200);X.fillStyle='#fff';X.font='7px "Press Start 2P",monospace';['Stomp enemies! Dodge grenades!','Collect blue gems for 100 points','Find a key to unlock the exit','Stomp detonators to blast walls','Avoid bubbles and boulders!','Defeat the BOSS to save the Sheriff!'].forEach((r,i)=>X.fillText('> '+r,400,225+i*20));const h=mY>=385&&mY<=411&&mX>=330&&mX<=470;X.fillStyle=h?'#A67B1A':'#8B6914';X.fillRect(330,385,140,26);X.fillStyle=h?'#C4941E':'#A67B1A';X.fillRect(334,389,132,18);X.strokeStyle='#5D4037';X.lineWidth=2;X.strokeRect(330,385,140,26);X.fillStyle='#fff';X.font='9px "Press Start 2P",monospace';X.fillText('BACK',400,403);X.textAlign='left'}
+function renderIntro(){drawBG(0,LEVELS[cl].rain);X.fillStyle='rgba(0,0,0,0.7)';X.fillRect(0,0,800,600);X.textAlign='center';X.fillStyle='#888';X.font='10px "Press Start 2P",monospace';X.fillText('WORLD '+Math.floor(cl/3+1),400,200);X.fillStyle='#E8C872';X.font='15px "Press Start 2P",monospace';X.fillText('LEVEL '+(cl+1),400,230);X.fillStyle='#FFD700';X.font='18px "Press Start 2P",monospace';X.fillText(LEVELS[cl].name.toUpperCase(),400,264);drawPig(384,310,1,fc,true);X.fillStyle='#fff';X.beginPath();X.arc(420,300,10,0,Math.PI*2);X.fill();X.fillRect(414,310,4,3);X.beginPath();X.arc(413,316,2,0,Math.PI*2);X.fill();X.fillStyle='#FFD4A8';X.fillRect(415,294,10,10);X.fillStyle='#8B6914';X.fillRect(413,290,14,5);X.fillStyle='#000';X.fillRect(418,298,2,2);X.fillRect(422,298,2,2);X.fillStyle='#aaa';X.font='8px "Press Start 2P",monospace';if(cl===11)X.fillText('Defeat the boss! Save the Sheriff!',400,370);else if(cl===8)X.fillText('Watch out for the water!',400,370);else X.fillText('Find the key to exit!',400,370);X.textAlign='left'}
 function renderOver(){drawBG(0);X.fillStyle='rgba(0,0,0,0.8)';X.fillRect(0,0,800,600);X.textAlign='center';X.fillStyle='#C41E3A';X.font='32px "Press Start 2P",monospace';X.fillText('GAME OVER',400,170);X.fillStyle='#E8C872';X.font='10px "Press Start 2P",monospace';X.fillText('FINAL SCORE',400,225);X.fillStyle='#FFD700';X.font='16px "Press Start 2P",monospace';X.fillText(String(score).padStart(8,'0'),400,252);X.fillStyle='#fff';X.font='8px "Press Start 2P",monospace';X.fillText('Gems: '+gems+'  Level: '+(cl+1)+'/12',400,282);drawPig(384,310,1,0,true);const h=mY>=370&&mY<=396&&mX>=295&&mX<=505;X.fillStyle=h?'#A67B1A':'#8B6914';X.fillRect(295,370,210,26);X.fillStyle=h?'#C4941E':'#A67B1A';X.fillRect(299,374,202,18);X.strokeStyle='#5D4037';X.lineWidth=2;X.strokeRect(295,370,210,26);X.fillStyle='#fff';X.font='9px "Press Start 2P",monospace';X.fillText('TRY AGAIN',400,388);X.textAlign='left'}
-function renderWin(){X.fillStyle='#C8A060';X.fillRect(0,0,800,600);X.fillStyle='#B89050';for(let y=0;y<600;y+=5)X.fillRect(0,y,800,1);X.fillStyle='#A08848';X.fillRect(0,480,800,120);if(fc%6===0)spP(200+Math.random()*400,80+Math.random()*200,['#FFD700','#E53935','#5BAE4A'][Math.floor(Math.random()*3)],3);pts.forEach(p=>{X.globalAlpha=p.l/p.ml;X.fillStyle=p.c;X.fillRect(Math.floor(p.x),Math.floor(p.y),p.s,p.s)});X.globalAlpha=1;X.textAlign='center';X.fillStyle='#FFD700';X.font='14px "Press Start 2P",monospace';X.fillText('GAME COMPLETED!',400,100);X.fillStyle='#fff';X.font='11px "Press Start 2P",monospace';X.fillText('THANK YOU FOR',400,135);X.fillText('SAVING THE SHERIFF!',400,158);X.fillStyle='#FFD4A8';X.fillRect(410,420,20,20);X.fillStyle='#8B6914';X.fillRect(406,413,28,8);X.fillRect(409,407,22,8);X.fillStyle='#000';X.fillRect(416,426,3,3);X.fillRect(424,426,3,3);X.fillStyle='#4488AA';X.fillRect(410,442,20,30);X.fillStyle='#5D4037';X.fillRect(412,472,8,12);X.fillRect(422,472,8,12);drawPig(350,454,1,fc,true);X.fillStyle='#E8C872';X.font='10px "Press Start 2P",monospace';X.fillText('FINAL SCORE',400,230);X.fillStyle='#FFD700';X.font='16px "Press Start 2P",monospace';X.fillText(String(score).padStart(8,'0'),400,258);X.fillStyle='#fff';X.font='8px "Press Start 2P",monospace';X.fillText('Gems: '+gems,400,290);const h=mY>=330&&mY<=356&&mX>=295&&mX<=505;X.fillStyle=h?'#A67B1A':'#8B6914';X.fillRect(295,330,210,26);X.fillStyle=h?'#C4941E':'#A67B1A';X.fillRect(299,334,202,18);X.strokeStyle='#5D4037';X.lineWidth=2;X.strokeRect(295,330,210,26);X.fillStyle='#fff';X.font='9px "Press Start 2P",monospace';X.fillText('PLAY AGAIN',400,348);X.textAlign='left'}
+
+// Victory: Sheriff rescue in wooden room!
+function renderWin(){
+  // Wooden wall background (vertical planks)
+  X.fillStyle='#C8A060';X.fillRect(0,0,800,480);
+  for(let lx=0;lx<800;lx+=12){X.fillStyle=lx%24<12?'#C09850':'#B89048';X.fillRect(lx,0,12,480)}
+  X.fillStyle='#B89050';for(let y=0;y<480;y+=6)X.fillRect(0,y,800,1);
+  // Green floor
+  X.fillStyle='#5BAE4A';X.fillRect(0,480,800,120);X.fillStyle='#4D9A3E';for(let y=480;y<600;y+=5)X.fillRect(0,y,800,1);
+  // Confetti
+  if(fc%6===0)spP(200+Math.random()*400,80+Math.random()*200,['#FFD700','#E53935','#5BAE4A','#4488CC'][Math.floor(Math.random()*4)],3);
+  pts.forEach(p=>{X.globalAlpha=p.l/p.ml;X.fillStyle=p.c;X.fillRect(Math.floor(p.x),Math.floor(p.y),p.s,p.s)});X.globalAlpha=1;
+  X.textAlign='center';
+  X.fillStyle='#FFD700';X.font='14px "Press Start 2P",monospace';X.fillText('GAME COMPLETED!',400,100);
+  X.fillStyle='#fff';X.font='11px "Press Start 2P",monospace';X.fillText('THANK YOU FOR',400,135);X.fillText('SAVING THE SHERIFF!',400,158);
+  // Pig
+  drawPig(340,452,1,fc,true);
+  // Sheriff (man in cowboy hat + blue jeans)
+  X.fillStyle='#FFD4A8';X.fillRect(420,430,20,20);// head
+  X.fillStyle='#8B6914';X.fillRect(414,423,32,8);X.fillRect(418,417,24,8);// hat
+  X.fillStyle='#C4941E';X.fillRect(420,419,16,4);// hat band
+  X.fillStyle='#000';X.fillRect(426,436,3,3);X.fillRect(432,436,3,3);// eyes
+  X.fillStyle='#D4879A';X.fillRect(428,442,5,2);// mouth smile
+  X.fillStyle='#8B6914';X.fillRect(418,452,24,6);// vest
+  X.fillStyle='#4488AA';X.fillRect(420,458,20,24);// blue jeans
+  X.fillStyle='#5D4037';X.fillRect(422,482,8,10);X.fillRect(432,482,8,10);// boots
+  // Score
+  X.fillStyle='#E8C872';X.font='10px "Press Start 2P",monospace';X.fillText('FINAL SCORE',400,220);
+  X.fillStyle='#FFD700';X.font='16px "Press Start 2P",monospace';X.fillText(String(score).padStart(8,'0'),400,248);
+  X.fillStyle='#fff';X.font='8px "Press Start 2P",monospace';X.fillText('Gems: '+gems,400,278);
+  const h=mY>=310&&mY<=336&&mX>=295&&mX<=505;
+  X.fillStyle=h?'#A67B1A':'#8B6914';X.fillRect(295,310,210,26);X.fillStyle=h?'#C4941E':'#A67B1A';X.fillRect(299,314,202,18);X.strokeStyle='#5D4037';X.lineWidth=2;X.strokeRect(295,310,210,26);X.fillStyle='#fff';X.font='9px "Press Start 2P",monospace';X.fillText('PLAY AGAIN',400,328);X.textAlign='left';
+}
 
 let mX=0,mY=0;
 C.addEventListener('mousemove',e=>{const r=C.getBoundingClientRect();mX=(e.clientX-r.left)*(800/r.width);mY=(e.clientY-r.top)*(600/r.height)});
-function onClick(e){const r=C.getBoundingClientRect(),cx=(e.clientX-r.left)*(800/r.width),cy=(e.clientY-r.top)*(600/r.height);if(AC.state==='suspended')AC.resume();if(cx>=770&&cx<=792&&cy>=7&&cy<=19){snd=!snd;return}if(gs==='title'){if(cx>=295&&cx<=505){if(cy>=152&&cy<=178){sfx('sel');startGame()}if(cy>=192&&cy<=218){sfx('sel');gs='howto'}}
-  // Level select grid
-  for(let i=0;i<12;i++){const col=i%6,row=Math.floor(i/6);const bx=205+col*66,by=265+row*42;if(cx>=bx&&cx<=bx+56&&cy>=by&&cy<=by+32){sfx('sel');lives=5;score=0;gems=0;hp=mhp;keys=0;startLv(i);break}}}if(gs==='howto'&&cx>=330&&cx<=470&&cy>=385&&cy<=411){sfx('sel');gs='title'}if(gs==='over'&&cx>=295&&cx<=505&&cy>=370&&cy<=396){sfx('sel');startGame()}if(gs==='win'&&cx>=295&&cx<=505&&cy>=330&&cy<=356){sfx('sel');gs='title'}}
+function onClick(e){const r=C.getBoundingClientRect(),cx=(e.clientX-r.left)*(800/r.width),cy=(e.clientY-r.top)*(600/r.height);if(AC.state==='suspended')AC.resume();
+  if(gs==='title'){if(cx>=295&&cx<=505){if(cy>=152&&cy<=178){sfx('sel');startGame()}if(cy>=192&&cy<=218){sfx('sel');gs='howto'}}
+    for(let i=0;i<12;i++){const col=i%6,row=Math.floor(i/6);const bx=205+col*66,by=261+row*42;if(cx>=bx&&cx<=bx+56&&cy>=by&&cy<=by+32){sfx('sel');lives=5;score=0;gems=0;hp=mhp;keys=0;startLv(i);break}}}
+  if(gs==='howto'&&cx>=330&&cx<=470&&cy>=385&&cy<=411){sfx('sel');gs='title'}
+  if(gs==='over'&&cx>=295&&cx<=505&&cy>=370&&cy<=396){sfx('sel');startGame()}
+  if(gs==='win'&&cx>=295&&cx<=505&&cy>=310&&cy<=336){sfx('sel');gs='title'}}
 
-function loop(){fc++;X.clearRect(0,0,800,600);switch(gs){case'title':renderTitle();break;case'howto':renderHowTo();break;case'intro':lit--;renderIntro();if(lit<=0)gs='play';break;case'play':updPlayer();updEnts();updPts();updCam();renderPlay();if(inp.KeyQ){gs='title';inp.KeyQ=false}break;case'pause':renderPlay();break;case'complete':updPts();renderPlay();X.fillStyle='rgba(0,0,0,0.4)';X.fillRect(0,0,800,600);X.textAlign='center';X.fillStyle='#FFD700';X.font='20px "Press Start 2P",monospace';X.fillText('LEVEL CLEAR!',400,260);X.fillStyle='#fff';X.font='9px "Press Start 2P",monospace';X.fillText('Score: '+score,400,295);X.fillText('Level '+(cl+1)+'/12',400,315);X.textAlign='left';break;case'over':updPts();renderOver();break;case'win':updPts();renderWin();break}requestAnimationFrame(loop)}
+function loop(){fc++;X.clearRect(0,0,800,600);switch(gs){
+  case'title':renderTitle();break;case'howto':renderHowTo();break;
+  case'intro':lit--;renderIntro();if(lit<=0)gs='play';break;
+  case'play':updPlayer();updEnts();updPts();updCam();renderPlay();if(inp.KeyQ){gs='title';inp.KeyQ=false}break;
+  case'pause':renderPlay();break;
+  case'complete':updPts();renderPlay();X.fillStyle='rgba(0,0,0,0.4)';X.fillRect(0,0,800,600);X.textAlign='center';X.fillStyle='#FFD700';X.font='20px "Press Start 2P",monospace';X.fillText('LEVEL CLEAR!',400,260);X.fillStyle='#fff';X.font='9px "Press Start 2P",monospace';X.fillText('Score: '+score,400,295);X.fillText('Level '+(cl+1)+'/12',400,315);X.textAlign='left';break;
+  case'over':updPts();renderOver();break;case'win':updPts();renderWin();break}
+  requestAnimationFrame(loop)}
 loop();
 </script>
 </body>
