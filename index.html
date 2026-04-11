@@ -316,25 +316,35 @@ function drawSpikeTrap(x,y){
   // Base plate
   X.fillStyle='#666';X.fillRect(x,y-2,T,4);X.fillStyle='#999';X.fillRect(x+2,y-1,T-4,2);
 }
-// Piranha: blue fish that jumps out of water
+// Piranha: BIG blue fish with scary teeth
 function drawPiranha(x,y,vx2,vy2){
   X.save();
-  // Rotate fish to face direction of movement
-  const ang=Math.atan2(vy2,vx2);
+  const ang=Math.atan2(vy2||0,vx2||0.01);
   X.translate(x,y);X.rotate(ang);
-  // Body
-  X.fillStyle='#6090CC';X.fillRect(-12,-8,24,16);
-  X.fillStyle='#80B0DD';X.fillRect(-10,-6,18,12);
-  // Tail fin
-  X.fillStyle='#5080BB';X.fillRect(-18,-6,8,12);X.fillRect(-20,-4,4,8);
+  // Body (bigger)
+  X.fillStyle='#4878B0';X.fillRect(-18,-12,36,24);
+  X.fillStyle='#5888C0';X.fillRect(-16,-10,30,20);
+  X.fillStyle='#6898D0';X.fillRect(-14,-8,24,16);
+  // Tail fin (big)
+  X.fillStyle='#4070A8';X.fillRect(-26,-10,12,20);X.fillRect(-30,-6,6,12);
+  // Dorsal fin
+  X.fillStyle='#4878B0';X.fillRect(-6,-16,12,6);X.fillRect(-4,-18,8,4);
   // Head
-  X.fillStyle='#6090CC';X.fillRect(10,-6,6,12);
-  // Eye
-  X.fillStyle='#fff';X.fillRect(10,-4,4,4);X.fillStyle='#000';X.fillRect(12,-3,2,2);
-  // Belly highlight
-  X.fillStyle='#A0D0EE';X.fillRect(-8,2,14,3);
-  // Mouth
-  X.fillStyle='#444';X.fillRect(14,-1,3,2);
+  X.fillStyle='#5080B8';X.fillRect(14,-10,10,20);
+  // Eye (big, angry)
+  X.fillStyle='#fff';X.fillRect(16,-8,6,6);X.fillStyle='#C00';X.fillRect(18,-6,4,4);X.fillStyle='#000';X.fillRect(19,-5,2,2);
+  // Angry eyebrow
+  X.fillStyle='#304060';X.fillRect(15,-9,8,2);
+  // SCARY TEETH! (jagged white triangles)
+  X.fillStyle='#fff';
+  X.fillRect(22,-4,3,2);X.fillRect(22,2,3,2);// top + bottom front teeth
+  X.fillRect(20,-3,2,1);X.fillRect(20,1,2,1);
+  X.fillRect(18,-2,2,1);X.fillRect(18,1,2,1);
+  X.fillRect(24,-3,2,3);X.fillRect(24,0,2,3);// big front fangs
+  // Mouth line
+  X.fillStyle='#C03030';X.fillRect(22,-1,4,2);
+  // Belly
+  X.fillStyle='#90C0E8';X.fillRect(-12,4,22,4);
   X.restore();
 }
 
@@ -385,7 +395,7 @@ const LEVELS=[
   {name:"Red Canyon",bio:'red',rain:false,waterY:0},
   {name:"The Ranch",bio:'town',rain:false,waterY:0},
   {name:"Green Hills",bio:'green',rain:true,waterY:0},
-  {name:"Water World",bio:'green',rain:false,waterY:15},// water at tile row 15
+  {name:"Water World",bio:'green',rain:false,waterY:17},// water at tile row 17 (below island tops at 13)
   {name:"Boulder Caves",bio:'cave',rain:false,waterY:0},
   {name:"Golden Maze",bio:'cave',rain:false,waterY:0},
   {name:"Final Rescue",bio:'stone',rain:true,waterY:0,boss:true}
@@ -586,12 +596,13 @@ function genLv(idx){
     ents.push({type:'door',x:pw-4,y:gY-3});
     decs.push({type:'cactus',x:29*T,y:(gY-5)*T},{type:'plant',x:10*T,y:(gY-3)*T},{type:'plant',x:42*T,y:(gY-4)*T},{type:'plant',x:62*T,y:(gY-3)*T});
     // Piranhas jumping from water!
-    piranhas.push({x:8*T,baseY:gY*T,vx:0,jumpH:6*T,period:90,phase:0,type:'vert'});
-    piranhas.push({x:20*T,baseY:gY*T,vx:3,jumpH:5*T,period:110,phase:30,type:'arc'});
-    piranhas.push({x:34*T,baseY:gY*T,vx:0,jumpH:7*T,period:80,phase:60,type:'vert'});
-    piranhas.push({x:46*T,baseY:gY*T,vx:-2.5,jumpH:5*T,period:100,phase:15,type:'arc'});
-    piranhas.push({x:58*T,baseY:gY*T,vx:0,jumpH:6*T,period:95,phase:45,type:'vert'});
-    piranhas.push({x:72*T,baseY:gY*T,vx:2,jumpH:5*T,period:85,phase:70,type:'arc'});
+    // Piranhas: slower periods so you can appreciate the scary fish
+    piranhas.push({x:8*T,baseY:17*T,vx:0,jumpH:7*T,period:160,phase:0,type:'vert'});
+    piranhas.push({x:20*T,baseY:17*T,vx:2,jumpH:6*T,period:180,phase:40,type:'arc'});
+    piranhas.push({x:34*T,baseY:17*T,vx:0,jumpH:8*T,period:150,phase:80,type:'vert'});
+    piranhas.push({x:46*T,baseY:17*T,vx:-1.5,jumpH:6*T,period:170,phase:20,type:'arc'});
+    piranhas.push({x:58*T,baseY:17*T,vx:0,jumpH:7*T,period:140,phase:60,type:'vert'});
+    piranhas.push({x:72*T,baseY:17*T,vx:1.5,jumpH:6*T,period:160,phase:100,type:'arc'});
     break;
   case 9:// Level 10: UNDERGROUND MAZE - detonator opens entrance, key deep inside, trampoline to escape
     // Surface area
@@ -689,8 +700,11 @@ function genLv(idx){
 }
 
 let LV=null,P={x:0,y:0,vx:0,vy:0,w:30,h:28,dir:1,gnd:false,fr:0,inv:0,dead:false},cam={x:0,y:0};
-function startLv(i){cl=i;biome=LEVELS[i].bio;LV=genLv(i);terrainDirty=true;P.x=2*T;P.y=14*T;P.vx=0;P.vy=0;P.dir=1;P.gnd=false;P.fr=0;P.inv=0;P.dead=false;keys=0;hp=mhp;pts=[];ftx=[];grenades=[];cam.x=P.x-400;cam.y=0;gt=300;tf=0;
-  // Clear all input state to prevent stuck keys after death
+function startLv(i){cl=i;biome=LEVELS[i].bio;LV=genLv(i);terrainDirty=true;
+  // Find the ground at pig's start X to place pig on top of terrain
+  P.x=2*T;P.y=2*T;// start high, will fall to ground
+  for(let sy=0;sy<LV.ph;sy++){if(LV.grid[sy]&&LV.grid[sy][2]){P.y=(sy-1)*T;break}}
+  P.vx=0;P.vy=0;P.dir=1;P.gnd=false;P.fr=0;P.inv=0;P.dead=false;keys=0;hp=mhp;pts=[];ftx=[];grenades=[];cam.x=P.x-400;cam.y=0;gt=300;tf=0;
   Object.keys(inp).forEach(k=>inp[k]=false);
   if(LV.boss){bossHp=bossMax;bootState='ground';bootTimer=90;bossX=65*T;bossY=16*T;bossVx=0;bossVy=0}
   gs='intro';lit=100}
@@ -745,15 +759,24 @@ function updEnts(){
       const sp=e.type==='snake'?1.5:e.type==='bird'?1.2:e.type==='darkfrog'?1.5:.8;
       // Dark frog SEEKS the pig!
       if(e.type==='darkfrog'){
-        const dx=P.x-e.x*T;
-        if(Math.abs(dx)<300){// activated - chase!
-          e.dir=dx>0?1:-1;
-          // Jump toward pig periodically
-          if(!e.jumping&&fc%40===0){e.jumping=true;e.jumpVy=-8;e.jumpVx=e.dir*3}
+        const dx=P.x-e.x*T,dy=P.y-e.y*T;
+        if(Math.abs(dx)<400) e.dir=dx>0?1:-1;// always face pig when nearby
+        if(e.jumping){
+          e.jumpVy+=.4;e.x+=e.jumpVx/T;e.y+=e.jumpVy/T;
+          // Land on ground (check grid)
+          const landY=Math.floor((e.y*T+T)/T);
+          const landX=Math.floor(e.x);
+          if(e.jumpVy>0&&landY>=0&&landY<LV.ph&&landX>=0&&landX<LV.pw&&LV.grid[landY]&&LV.grid[landY][landX]){
+            e.y=landY-1;e.jumping=false;e.jumpVy=0;e.jumpVx=0;
+          }
+          if(e.y>LV.ph)e.alive=false;// fell off map
+        } else {
+          // On ground: walk toward pig, jump periodically
+          e.x+=e.dir*sp/T;
+          if(Math.abs(dx)<400&&fc%50===0){
+            e.jumping=true;e.jumpVy=-9;e.jumpVx=e.dir*4;// aggressive jump toward pig
+          }
         }
-        if(e.jumping){e.jumpVy+=.3;e.x+=e.jumpVx/T;e.y+=e.jumpVy/T;
-          if(e.y>=e.baseY){e.y=e.baseY;e.jumping=false;e.jumpVy=0;e.jumpVx=0}}
-        else{e.x+=e.dir*sp/T;if(e.x<=e.startX){e.x=e.startX;e.dir=1}if(e.x>=e.endX){e.x=e.endX;e.dir=-1}}
       } else {
         e.x+=e.dir*sp/T;if(e.x<=e.startX){e.x=e.startX;e.dir=1}if(e.x>=e.endX){e.x=e.endX;e.dir=-1}
       }
