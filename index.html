@@ -282,6 +282,47 @@ function drawHeart(x,y,f2=true){X.fillStyle=f2?'#E53935':'rgba(80,50,40,0.4)';X.
 function drawDoorExit(x,y,locked){X.fillStyle='#3E2A1A';X.fillRect(x,y-50,32,52);X.fillStyle=locked?'#8B7355':'#5BAE4A';X.fillRect(x+3,y-47,26,47);X.fillStyle=locked?'#7A6345':'#4D9A3E';X.fillRect(x+5,y-43,22,18);X.fillRect(x+5,y-20,22,14);X.fillStyle='#FFD700';X.fillRect(x+22,y-25,3,3)}
 function drawCrate(x,y){X.fillStyle='#C8B078';X.fillRect(x+1,y+1,T-2,T-2);X.fillStyle='#A89058';X.fillRect(x,y,T,2);X.fillRect(x,y+T-2,T,2);X.fillRect(x,y,2,T);X.fillRect(x+T-2,y,2,T);for(let i=0;i<12;i++){X.fillRect(x+4+i*2,y+4+i*2,2,2);X.fillRect(x+24-i*2,y+4+i*2,2,2)}}
 function drawBridge(x,y,w){X.fillStyle='#A08050';X.fillRect(x,y,w,4);X.fillStyle='#806030';X.fillRect(x,y,w,1);X.fillRect(x,y+3,w,1)}
+// Trampoline: zigzag spring that launches pig super high
+function drawTrampoline(x,y){
+  // Base
+  X.fillStyle='#8844AA';X.fillRect(x+4,y+4,24,6);
+  X.fillStyle='#AA55CC';X.fillRect(x+6,y+5,20,4);
+  // Spring zigzag
+  X.fillStyle='#CC66EE';X.lineWidth=2;
+  for(let i=0;i<4;i++){
+    const lx=x+8+i*5,ly=y-8+i%2*6;
+    X.fillRect(lx,ly,6,3);
+  }
+  // Top platform
+  X.fillStyle='#DD77FF';X.fillRect(x+2,y-12,28,4);
+  X.fillStyle='#BB55DD';X.fillRect(x+4,y-10,24,2);
+  // Bounce animation
+  if(fc%20<10){X.fillStyle='#EE88FF';X.fillRect(x+8,y-14,16,2)}
+}
+// Bird Catcher: man with butterfly net, stompable enemy
+function drawBirdCatcher(x,y,f,d){
+  const b=Math.sin(f*.05);const ry=Math.round(y+b);
+  X.save();if(d<0){X.translate(x+16,0);X.scale(-1,1);X.translate(-x-16,0)}
+  // Body (brown coat)
+  X.fillStyle='#8B6830';X.fillRect(x+6,ry+6,20,18);
+  X.fillStyle='#A07838';X.fillRect(x+8,ry+8,16,14);
+  // Head
+  X.fillStyle='#D4A060';X.fillRect(x+8,ry-2,16,12);
+  // Hat (explorer hat)
+  X.fillStyle='#6B5020';X.fillRect(x+4,ry-6,24,5);X.fillStyle='#7B6030';X.fillRect(x+8,ry-10,16,5);
+  // Eyes
+  X.fillStyle='#000';X.fillRect(x+12,ry+2,2,2);X.fillRect(x+18,ry+2,2,2);
+  // Net (held out to the right)
+  X.fillStyle='#5D4037';X.fillRect(x+24,ry+4,12,2);// handle
+  // Net circle
+  X.strokeStyle='#888';X.lineWidth=1;
+  X.fillStyle='rgba(200,200,200,0.3)';X.fillRect(x+32,ry-2,12,14);
+  X.fillStyle='#999';X.fillRect(x+32,ry-2,12,1);X.fillRect(x+32,ry+11,12,1);X.fillRect(x+32,ry-2,1,14);X.fillRect(x+43,ry-2,1,14);
+  // Legs (blue jeans)
+  const la=Math.sin(f*.08)*2;
+  X.fillStyle='#4466AA';X.fillRect(x+8+la,ry+24,6,5);X.fillRect(x+18-la,ry+24,6,5);
+  X.restore();
+}
 function drawCactus(x,y){X.fillStyle='#1B5E20';X.fillRect(x+11,y-54,12,56);X.fillStyle='#3E9E3E';X.fillRect(x+12,y-53,10,54);X.fillStyle='#4DB84D';X.fillRect(x+14,y-51,6,50);X.fillStyle='#5FC75F';X.fillRect(x+15,y-49,3,46);X.fillStyle='#1B5E20';X.fillRect(x+1,y-40,13,9);X.fillRect(x+1,y-48,9,12);X.fillRect(x+19,y-32,13,9);X.fillRect(x+25,y-42,9,14);X.fillStyle='#3E9E3E';X.fillRect(x+2,y-39,11,7);X.fillRect(x+2,y-47,7,10);X.fillRect(x+20,y-31,11,7);X.fillRect(x+26,y-41,7,12);X.fillStyle='#4DB84D';X.fillRect(x+4,y-45,3,12);X.fillRect(x+28,y-39,3,14)}
 function drawBush(x,y){X.fillStyle='#2D862D';X.fillRect(x,y-16,32,18);X.fillRect(x+4,y-22,24,8);X.fillRect(x+8,y-26,16,6);X.fillStyle='#4DB84D';X.fillRect(x+1,y-15,30,16);X.fillRect(x+5,y-21,22,8);X.fillRect(x+9,y-25,14,6);X.fillStyle='#5FC75F';X.fillRect(x+3,y-18,14,12);X.fillRect(x+7,y-23,10,6);X.fillStyle='#3E9E3E';X.fillRect(x+15,y-13,14,12)}
 function drawRock(x,y){X.fillStyle='#787868';X.fillRect(x+3,y-16,26,18);X.fillStyle='#A89878';X.fillRect(x+4,y-15,24,16);X.fillStyle='#B8A888';X.fillRect(x+6,y-17,20,12);X.fillStyle='#C8B898';X.fillRect(x+10,y-14,7,5)}
@@ -532,8 +573,14 @@ function startLv(i){cl=i;biome=LEVELS[i].bio;LV=genLv(i);terrainDirty=true;P.x=2
   if(LV.boss){bossHp=bossMax;bootState='ground';bootTimer=90;bossX=65*T;bossY=16*T;bossVx=0;bossVy=0}
   gs='intro';lit=100}
 function startGame(){lives=5;score=0;gems=0;hp=mhp;keys=0;startLv(0)}
-function solid2(wx,wy){const tx=Math.floor(wx/T),ty=Math.floor(wy/T);if(tx<0||tx>=LV.pw||ty<0||ty>=LV.ph)return 0;const v=LV.grid[ty][tx];return v>0&&v!==2?1:0}// breakable(2) is solid too
-function solidAny(wx,wy){const tx=Math.floor(wx/T),ty=Math.floor(wy/T);if(tx<0||tx>=LV.pw||ty<0||ty>=LV.ph)return 0;return LV.grid[ty][tx]>0?1:0}
+// Collision: solid for horizontal movement (walls). Ropes(3) are NOT solid sideways.
+function solidWall(wx,wy){const tx=Math.floor(wx/T),ty=Math.floor(wy/T);if(tx<0||tx>=LV.pw||ty<0||ty>=LV.ph)return 0;const v=LV.grid[ty][tx];return v>0&&v!==3?1:0}
+// Collision: solid for downward movement (floors). Ropes(3) ARE solid from above.
+function solidFloor(wx,wy){const tx=Math.floor(wx/T),ty=Math.floor(wy/T);if(tx<0||tx>=LV.pw||ty<0||ty>=LV.ph)return 0;return LV.grid[ty][tx]>0?1:0}
+// Collision: solid for upward movement. Ropes(3) are NOT solid from below (can jump through).
+function solidCeil(wx,wy){const tx=Math.floor(wx/T),ty=Math.floor(wy/T);if(tx<0||tx>=LV.pw||ty<0||ty>=LV.ph)return 0;const v=LV.grid[ty][tx];return v>0&&v!==3?1:0}
+// Old compat
+function solidAny(wx,wy){return solidFloor(wx,wy)}
 function rOvr(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y}
 
 // Break blocks near a point
@@ -544,11 +591,17 @@ function updPlayer(){
   if(inp.ArrowLeft){P.vx=-sp;P.dir=-1;P.fr++}else if(inp.ArrowRight){P.vx=sp;P.dir=1;P.fr++}else{P.vx*=.7;if(Math.abs(P.vx)<.1)P.vx=0}
   if((inp.ArrowUp||inp.Space)&&P.gnd){P.vy=JF;P.gnd=false;sfx('jump')}
   P.vy+=GR;if(P.vy>12)P.vy=12;const m=4,nx=P.x+P.vx;
-  if(P.vx<0){if(solidAny(nx+m,P.y+4)||solidAny(nx+m,P.y+P.h-4)){P.x=Math.floor((nx+m)/T)*T+T-m;P.vx=0}else P.x=nx}
-  else if(P.vx>0){if(solidAny(nx+P.w-m,P.y+4)||solidAny(nx+P.w-m,P.y+P.h-4)){P.x=Math.floor((nx+P.w-m)/T)*T-P.w+m;P.vx=0}else P.x=nx}
+  if(P.vx<0){if(solidWall(nx+m,P.y+4)||solidWall(nx+m,P.y+P.h-4)){P.x=Math.floor((nx+m)/T)*T+T-m;P.vx=0}else P.x=nx}
+  else if(P.vx>0){if(solidWall(nx+P.w-m,P.y+4)||solidWall(nx+P.w-m,P.y+P.h-4)){P.x=Math.floor((nx+P.w-m)/T)*T-P.w+m;P.vx=0}else P.x=nx}
+  // Push boulders: if pig walks into a boulder, push it
+  if(LV.boulders)LV.boulders.forEach(b=>{
+    if(Math.abs(P.x+15-b.x)<22&&Math.abs(P.y+14-b.y)<20&&b.grounded){
+      if(P.vx>0.5)b.vx=2;else if(P.vx<-0.5)b.vx=-2;
+    }
+  });
   const ny=P.y+P.vy;P.gnd=false;
-  if(P.vy>0){if(solidAny(P.x+m,ny+P.h)||solidAny(P.x+P.w-m,ny+P.h)){P.y=Math.floor((ny+P.h)/T)*T-P.h;P.vy=0;P.gnd=true}else P.y=ny}
-  else if(P.vy<0){if(solidAny(P.x+m,ny)||solidAny(P.x+P.w-m,ny)){P.y=Math.floor(ny/T)*T+T;P.vy=0}else P.y=ny}
+  if(P.vy>0){if(solidFloor(P.x+m,ny+P.h)||solidFloor(P.x+P.w-m,ny+P.h)){P.y=Math.floor((ny+P.h)/T)*T-P.h;P.vy=0;P.gnd=true}else P.y=ny}
+  else if(P.vy<0){if(solidCeil(P.x+m,ny)||solidCeil(P.x+P.w-m,ny)){P.y=Math.floor(ny/T)*T+T;P.vy=0}else P.y=ny}
   // Fall into pit or water
   if(LV.waterY&&P.y+P.h>LV.waterY*T){sfx('splash');pDie()}
   else if(P.y>LV.ph*T+64)pDie();
@@ -669,11 +722,39 @@ function updEnts(){
       if(!P.dead&&P.inv<=0&&Math.abs(g2.x-P.x-15)<40&&Math.abs(g2.y-P.y-14)<40)pHit();return false}
     if(!P.dead&&P.inv<=0&&Math.abs(g2.x-P.x-15)<20&&Math.abs(g2.y-P.y-14)<20){pHit();spP(g2.x,g2.y,'#FF8800',6);sfx('boom');return false}
     return g2.life>0});
-  // Boulders
+  // Boulders - physics with rope breaking
   LV.boulders.forEach(b=>{
-    if(b.vx!==0){b.x+=b.vx;b.vy+=.3;b.y+=b.vy;
-      if(solidAny(b.x,b.y+b.r+2)){b.y=Math.floor((b.y+b.r+2)/T)*T-b.r-2;b.vy=0;b.grounded=true}else b.grounded=false}
-    if(!P.dead&&P.inv<=0){const dx=b.x-P.x-15,dy=b.y-P.y-14,dist=Math.sqrt(dx*dx+dy*dy);if(dist<b.r+12)pHit()}
+    if(b.vx!==0||!b.grounded){
+      b.x+=b.vx;b.vy+=.4;b.y+=b.vy;
+      // Check ground collision
+      const tx2=Math.floor(b.x/T),ty2=Math.floor((b.y+b.r+2)/T);
+      if(ty2>=0&&ty2<LV.ph&&tx2>=0&&tx2<LV.pw){
+        const tile=LV.grid[ty2]?LV.grid[ty2][tx2]:0;
+        if(tile===3){// Hit a rope! Break it!
+          LV.grid[ty2][tx2]=0;terrainDirty=true;
+          spP(tx2*T+16,ty2*T+4,'#A09060',6);sfx('boom');
+          // Boulder keeps falling through
+        } else if(tile>0){
+          b.y=ty2*T-b.r-2;b.vy=0;b.grounded=true;
+          if(Math.abs(b.vx)>0.1)b.vx*=.9;else b.vx=0;// friction
+        } else b.grounded=false;
+      }
+      // Remove if fell off map
+      if(b.y>LV.ph*T+100)b.dead=true;
+    }
+    // Damage pig (only if boulder is moving)
+    if(!P.dead&&P.inv<=0&&(Math.abs(b.vx)>0.5||Math.abs(b.vy)>1)){
+      const dx=b.x-P.x-15,dy=b.y-P.y-14,dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist<b.r+12)pHit();
+    }
+  });
+  if(LV.boulders)LV.boulders=LV.boulders.filter(b=>!b.dead);
+  // Trampolines
+  if(LV.trampolines)LV.trampolines.forEach(tr=>{
+    if(!P.dead&&P.vy>0&&rOvr({x:P.x+4,y:P.y,w:P.w-8,h:P.h},{x:tr.x,y:tr.y,w:T,h:8})){
+      P.vy=-16;// super high jump!
+      sfx('jump');spP(tr.x+16,tr.y,'#CC44CC',6);
+    }
   });
 }
 
