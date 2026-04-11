@@ -117,10 +117,35 @@ function drawFrog(x,y,f,d){
 }
 
 function drawSnake(x,y,f,d){
-  X.save();if(d<0){X.translate(x+28,0);X.scale(-1,1);X.translate(-x-28,0)}
-  for(let i=0;i<10;i++){const sy=Math.sin(f*.07+i*.6)*4;X.fillStyle='#1B5E20';X.fillRect(x+i*5-1,y+11+sy,8,13);X.fillStyle=i%2?'#2D862D':'#3E9E3E';X.fillRect(x+i*5,y+12+sy,6,11);X.fillStyle='#7AC87A';X.fillRect(x+i*5+1,y+19+sy,4,3)}
-  X.fillStyle='#1B5E20';X.fillRect(x+47,y+5,16,20);X.fillStyle='#3E9E3E';X.fillRect(x+48,y+6,14,18);X.fillStyle='#FFE040';X.fillRect(x+52,y+8,5,5);X.fillStyle='#000';X.fillRect(x+54,y+10,3,3);
-  if(Math.sin(f*.1)>.2){X.fillStyle='#E53935';X.fillRect(x+62,y+16,6,2);X.fillRect(x+66,y+14,2,2);X.fillRect(x+66,y+18,2,2)}
+  // BIG snake - thick coiling body curving up to raised head (2x pig size)
+  X.save();if(d<0){X.translate(x+40,0);X.scale(-1,1);X.translate(-x-40,0)}
+  const ol='#1B5E20',c1='#3E9E3E',c2='#2D862D',hi='#5AB84A',bl='#7AC87A';
+  // Thick coiling body segments on ground
+  for(let i=0;i<7;i++){
+    const sy=Math.sin(f*.06+i*.5)*3;
+    X.fillStyle=ol;X.fillRect(x+i*8-1,y+10+sy,12,20);
+    X.fillStyle=i%2?c2:c1;X.fillRect(x+i*8,y+11+sy,10,18);
+    X.fillStyle=bl;X.fillRect(x+i*8+2,y+23+sy,6,4);
+  }
+  // Body curves UP (the distinctive raised section)
+  X.fillStyle=ol;X.fillRect(x+54,y-6,14,38);
+  X.fillStyle=c1;X.fillRect(x+55,y-5,12,36);
+  X.fillStyle=hi;X.fillRect(x+57,y-3,4,30);
+  // Neck going up
+  X.fillStyle=ol;X.fillRect(x+52,y-22,16,20);
+  X.fillStyle=c1;X.fillRect(x+53,y-21,14,18);
+  X.fillStyle=hi;X.fillRect(x+55,y-19,4,14);
+  // Head (big, at top of raised body)
+  X.fillStyle=ol;X.fillRect(x+48,y-36,22,18);
+  X.fillStyle=c1;X.fillRect(x+49,y-35,20,16);
+  X.fillStyle=c2;X.fillRect(x+49,y-35,20,3);
+  // Eye (large, yellow)
+  X.fillStyle='#FFE040';X.fillRect(x+56,y-32,6,6);
+  X.fillStyle='#000';X.fillRect(x+58,y-30,3,4);
+  // Mouth
+  X.fillStyle=ol;X.fillRect(x+54,y-22,14,2);
+  // Tongue
+  if(Math.sin(f*.1)>.2){X.fillStyle='#E53935';X.fillRect(x+70,y-28,8,2);X.fillRect(x+76,y-30,2,2);X.fillRect(x+76,y-26,2,2)}
   X.restore();
 }
 
@@ -530,7 +555,7 @@ function updEnts(){
         }
       }
       if(!P.dead&&P.inv<=0){
-        const ew=e.type==='snake'?60:e.type==='bird'?24:T;
+        const ew=e.type==='snake'?80:e.type==='bird'?24:T;
         const er={x:e.x*T,y:e.y*T,w:ew,h:T};
         if(rOvr(pr,er)){
           if(P.vy>0&&P.y+P.h<er.y+er.h*.6){
