@@ -425,19 +425,26 @@ function genLv(idx){
     decs.push({type:'rock',x:6*T,y:gY*T},{type:'rock',x:40*T,y:gY*T},{type:'rock',x:70*T,y:(gY-1)*T});
     break;
   case 1:// Level 2: Western Town - ROPES + PUSHABLE BOULDERS
-    flat(0,14,gY);solid(14,gY-3,2,3);solid(16,gY-6,14,1);flat(14,30,gY);solid(28,gY-8,3,2);stUp(30,gY,2);flat(34,50,gY-2);solid(36,gY-5,12,1);solid(36,gY-8,12,1);stDn(50,gY-2,2);flat(54,70,gY);solid(54,gY-3,2,3);solid(56,gY-5,12,1);flat(70,90,gY);stUp(82,gY,2);flat(86,pw,gY-2);
-    // ROPE spanning between buildings with hidden coins below!
-    for(let rx=72;rx<=80;rx++)grid[gY-3][rx]=3;// rope at gY-3 from x=72 to 80
-    // Hidden coins BELOW the rope (only accessible if rope is broken)
-    gem(73,gY-1);gem(75,gY-1);gem(77,gY-1);gem(79,gY-1);
-    // Pushable boulder on the rope - push it off to break the rope!
-    boulder(76,gY-4,0);
-    gLine(2,12,gY);gLine(17,28,gY-6,2);gem(37,gY-9);gem(39,gY-9);gem(41,gY-9);gem(43,gY-9);gLine(36,48,gY-2);gLine(57,66,gY-5,2);gLine(88,pw-5,gY-2);
-    // Bubbles (coins) above rope
-    bubble(73,gY-5);bubble(76,gY-5);bubble(79,gY-5);
+    flat(0,14,gY);solid(14,gY-3,2,3);solid(16,gY-6,14,1);flat(14,30,gY);solid(28,gY-8,3,2);stUp(30,gY,2);flat(34,50,gY-2);solid(36,gY-5,12,1);solid(36,gY-8,12,1);stDn(50,gY-2,2);flat(54,70,gY);solid(54,gY-3,2,3);solid(56,gY-5,12,1);
+    // Ground with ROPE SECTION: solid ground on sides, rope in middle
+    flat(70,73,gY);// solid ground left of rope
+    // ROPE at ground level (gY) - pig walks on it like normal ground
+    for(let rx=73;rx<=82;rx++)grid[gY][rx]=3;// 10-tile wide rope at ground level
+    // Walls on sides below the rope creating a pit with coins
+    solid(70,gY+1,3,ph-gY-1);// left wall of pit
+    solid(83,gY+1,3,ph-gY-1);// right wall of pit
+    // Floor of the pit
+    solid(73,gY+4,10,ph-gY-4);
+    // Hidden coins IN the pit below the rope (accessible when rope breaks)
+    gem(74,gY+2);gem(76,gY+2);gem(78,gY+2);gem(80,gY+2);gem(75,gY+1);gem(77,gY+1);gem(79,gY+1);
+    flat(86,90,gY);// ground right of rope
+    // Pushable boulder sitting on the rope - push to break it!
+    boulder(78,gY-1,0);
+    stUp(90,gY,2);flat(94,pw,gY-2);
+    gLine(2,12,gY);gLine(17,28,gY-6,2);gem(37,gY-9);gem(39,gY-9);gem(41,gY-9);gem(43,gY-9);gLine(36,48,gY-2);gLine(57,66,gY-5,2);gLine(88,89,gY);gLine(96,pw-5,gY-2);
+    bubble(75,gY-2);bubble(78,gY-2);bubble(81,gY-2);
     frog(22,gY-7,18,28);frog(42,gY-3,36,48);frog(62,gY-1,56,68);snake(64,gY-1,56,68);
     ents.push({type:'heart',x:25,y:gY-7,collected:false});ents.push({type:'door',x:pw-4,y:gY-2});
-    crates.push({x:74*T,y:(gY-4)*T});solid(74,gY-4,1,1);// crate on rope
     decs.push({type:'wall',x:16*T,y:(gY-5)*T,w:14*T,h:5*T,color:'#D0A858'},{type:'wall',x:36*T,y:(gY-7)*T,w:12*T,h:5*T,color:'#D0A858'},{type:'wall',x:56*T,y:(gY-4)*T,w:12*T,h:4*T,color:'#D0A858'});
     decs.push({type:'win',x:20*T,y:(gY-4)*T},{type:'win',x:25*T,y:(gY-4)*T},{type:'win',x:39*T,y:(gY-6)*T},{type:'win',x:44*T,y:(gY-6)*T});
     decs.push({type:'rock',x:6*T,y:gY*T},{type:'bush',x:52*T,y:gY*T});break;
@@ -864,9 +871,9 @@ function updEnts(){
       const tx2=Math.floor(b.x/T),ty2=Math.floor((b.y+b.r+2)/T);
       if(ty2>=0&&ty2<LV.ph&&tx2>=0&&tx2<LV.pw){
         const tile=LV.grid[ty2]?LV.grid[ty2][tx2]:0;
-        if(tile===3){// Hit a rope! Break it!
-          LV.grid[ty2][tx2]=0;terrainDirty=true;
-          spP(tx2*T+16,ty2*T+4,'#A09060',6);sfx('boom');
+        if(tile===3){// Hit a rope! Break it AND 2 tiles on each side (wide gap)
+          for(let dx2=-2;dx2<=2;dx2++){const rx=tx2+dx2;if(rx>=0&&rx<LV.pw&&LV.grid[ty2][rx]===3){LV.grid[ty2][rx]=0;spP(rx*T+16,ty2*T+4,'#A09060',3)}}
+          terrainDirty=true;sfx('boom');
           // Boulder keeps falling through
         } else if(tile>0){
           b.y=ty2*T-b.r-2;b.vy=0;b.grounded=true;
