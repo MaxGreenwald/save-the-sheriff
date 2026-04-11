@@ -22,7 +22,7 @@ const T=32,GR=0.55,JF=-11,RS=3.5,WS=1.5;
 let gs='title',cl=0,lives=5,score=0,gems=0,keys=0,hp=4,mhp=4,lit=0,snd=true,fc=0,sht=0,shi=0,gt=300,tf=0;
 let bossHp=0,bossMax=3,bootY=0,bootState='up',bootTimer=0;
 const inp={};
-document.addEventListener('keydown',e=>{inp[e.code]=true;if(e.code==='KeyP'){if(gs==='play')gs='pause';else if(gs==='pause')gs='play'}if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code))e.preventDefault()});
+document.addEventListener('keydown',e=>{inp[e.code]=true;if(e.code==='KeyP'){if(gs==='play')gs='pause';else if(gs==='pause')gs='play'}if(e.code==='Escape'){if(gs==='play'||gs==='pause')gs='title'}if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space','Escape'].includes(e.code))e.preventDefault()});
 document.addEventListener('keyup',e=>{inp[e.code]=false});
 C.addEventListener('click',onClick);
 
@@ -1039,7 +1039,7 @@ function onClick(e){const r=C.getBoundingClientRect(),cx=(e.clientX-r.left)*(800
 function loop(){fc++;X.clearRect(0,0,800,600);switch(gs){
   case'title':renderTitle();break;case'howto':renderHowTo();break;
   case'intro':lit--;renderIntro();if(lit<=0)gs='play';break;
-  case'play':updPlayer();updEnts();updPts();updCam();renderPlay();if(inp.KeyQ){gs='title';inp.KeyQ=false}break;
+  case'play':updPlayer();updEnts();updPts();updCam();renderPlay();if(inp.KeyQ||inp.Escape){gs='title';inp.KeyQ=false;inp.Escape=false}break;
   case'pause':renderPlay();break;
   case'complete':updPts();renderPlay();X.fillStyle='rgba(0,0,0,0.4)';X.fillRect(0,0,800,600);X.textAlign='center';X.fillStyle='#FFD700';X.font='20px "Press Start 2P",monospace';X.fillText('LEVEL CLEAR!',400,260);X.fillStyle='#fff';X.font='9px "Press Start 2P",monospace';X.fillText('Score: '+score,400,295);X.fillText('Level '+(cl+1)+'/12',400,315);X.textAlign='left';break;
   case'over':updPts();renderOver();break;case'win':updPts();renderWin();break}
