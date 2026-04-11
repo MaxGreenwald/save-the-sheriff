@@ -653,7 +653,7 @@ function genLv(idx){
     flat(50,80,gY);
     // Safe rock: pig can hide UNDER this. Boss lands ON TOP only.
     solid(60,gY-4,6,4);// rock platform (6 tiles wide, 4 tall) - pig hides below
-    solid(80,gY-8,2,8);// right wall of arena
+    solid(80,0,2,ph);// right wall of arena - FULL HEIGHT so pig can't jump over
     // After boss: path to sheriff
     flat(82,pw,gY);
     gLine(2,6,gY);gLine(10,12,gY-2);gLine(15,19,gY-3);gLine(22,24,gY-4);gLine(26,32,gY-5);gLine(36,38,gY-4);gLine(40,46,gY-3);
@@ -876,10 +876,8 @@ function updEnts(){
       // Remove if fell off map
       if(b.y>LV.ph*T+100)b.dead=true;
     }
-    // Damage pig (only if boulder is moving)
-    if(!P.dead&&P.inv<=0&&(Math.abs(b.vx)>0.5||Math.abs(b.vy)>1)){
-      const dx=b.x-P.x-15,dy=b.y-P.y-14,dist=Math.sqrt(dx*dx+dy*dy);
-      if(dist<b.r+12)pHit();
+    // Boulders are helpers - pig can push them, they don't hurt
+    if(false){
     }
   });
   if(LV.boulders)LV.boulders=LV.boulders.filter(b=>!b.dead);
