@@ -62,18 +62,29 @@ const BIO={
 let biome='desert';
 
 // Terrain: rendered ONCE to offscreen canvas, then blitted each frame
+// Grid values: 0=air, 1=solid, 2=breakable, 3=rope(one-way from above)
 let terrainCache=null,terrainDirty=true;
 function buildTerrainCache(grid,pw,ph){
   const tc=document.createElement('canvas');tc.width=pw*T;tc.height=ph*T;
   const tx=tc.getContext('2d');tx.imageSmoothingEnabled=false;
   const c=BIO[biome];
   for(let ty=0;ty<ph;ty++)for(let txx=0;txx<pw;txx++){
-    if(!grid[ty]||!grid[ty][txx])continue;
+    const v=grid[ty]?grid[ty][txx]:0;if(!v)continue;
     const px=txx*T,py=ty*T;
+    if(v===3){// Rope: thin horizontal line
+      tx.fillStyle='#A09060';tx.fillRect(px,py,T,4);
+      tx.fillStyle='#B8A878';tx.fillRect(px,py+1,T,2);
+      tx.fillStyle='#887848';tx.fillRect(px,py,T,1);tx.fillRect(px,py+3,T,1);
+      // Vertical rope supports every tile
+      tx.fillStyle='#907850';tx.fillRect(px+14,py+4,4,T-4);
+      continue;
+    }
     tx.fillStyle=c.b;tx.fillRect(px,py,T,T);
     tx.fillStyle=c.s;for(let y=py+5;y<py+T;y+=6)tx.fillRect(px,y,T,1);
+    if(v===2){// Breakable: add crack marks
+      tx.fillStyle=c.ol;tx.fillRect(px+8,py+5,2,7);tx.fillRect(px+18,py+8,2,8);tx.fillRect(px+12,py+19,7,2);
+    }
     if(biome==='green'){tx.strokeStyle='rgba(80,160,60,0.12)';tx.lineWidth=1;tx.beginPath();tx.moveTo(px,py+T);tx.lineTo(px+T,py);tx.stroke();tx.beginPath();tx.moveTo(px+T/2,py+T);tx.lineTo(px+T,py+T/2);tx.stroke()}
-    // Outlines on exposed edges
     const above=ty>0&&grid[ty-1]?grid[ty-1][txx]:0,below=ty<ph-1&&grid[ty+1]?grid[ty+1][txx]:0;
     const left=txx>0?grid[ty][txx-1]:0,right=txx<pw-1?grid[ty][txx+1]:0;
     tx.fillStyle=c.ol;
@@ -84,11 +95,22 @@ function buildTerrainCache(grid,pw,ph){
 }
 function drawTerrain(grid,pw,ph,cx,cy){
   if(terrainDirty||!terrainCache){terrainCache=buildTerrainCache(grid,pw,ph);terrainDirty=false}
-  // Blit only the visible portion
   const sx=Math.max(0,Math.floor(cx)),sy=Math.max(0,Math.floor(cy));
   const sw=Math.min(800,terrainCache.width-sx),sh=Math.min(600,terrainCache.height-sy);
   if(sw>0&&sh>0)X.drawImage(terrainCache,sx,sy,sw,sh,sx,sy,sw,sh);
 }
+
+// Boulder pile: pyramid of circles that acts as solid terrain ramp
+function drawBoulderPile(pile){
+  pile.balls.forEach(b=>{
+    X.fillStyle='#777';X.fillRect(b.x-b.r,b.y-b.r+2,b.r*2,b.r*2-4);X.fillRect(b.x-b.r+2,b.y-b.r,b.r*2-4,b.r*2);
+    X.fillStyle='#999';X.fillRect(b.x-b.r+3,b.y-b.r+3,b.r*2-6,b.r*2-6);
+    X.fillStyle='#BBB';X.fillRect(b.x-b.r*.3,b.y-b.r*.3,b.r*.4,b.r*.4);
+  });
+}
+
+// Cactus platform hitboxes (returned by genLv, checked in collision)
+// Each cactus has arm platforms the pig can stand on
 
 // ═══════════════════ SPRITES ═══════════════════
 function drawPig(x,y,dir,frame,grnd){
