@@ -424,11 +424,20 @@ function genLv(idx){
     decs.push({type:'bush',x:2*T,y:gY*T},{type:'bush',x:36*T,y:gY*T},{type:'bush',x:52*T,y:(gY-3)*T},{type:'bush',x:84*T,y:(gY-3)*T},{type:'bush',x:98*T,y:gY*T});
     decs.push({type:'rock',x:6*T,y:gY*T},{type:'rock',x:40*T,y:gY*T},{type:'rock',x:70*T,y:(gY-1)*T});
     break;
-  case 1:// Level 2: Western Town
+  case 1:// Level 2: Western Town - ROPES + PUSHABLE BOULDERS
     flat(0,14,gY);solid(14,gY-3,2,3);solid(16,gY-6,14,1);flat(14,30,gY);solid(28,gY-8,3,2);stUp(30,gY,2);flat(34,50,gY-2);solid(36,gY-5,12,1);solid(36,gY-8,12,1);stDn(50,gY-2,2);flat(54,70,gY);solid(54,gY-3,2,3);solid(56,gY-5,12,1);flat(70,90,gY);stUp(82,gY,2);flat(86,pw,gY-2);
-    gLine(2,12,gY);gLine(17,28,gY-6,2);gem(37,gY-9);gem(39,gY-9);gem(41,gY-9);gem(43,gY-9);gLine(36,48,gY-2);gLine(57,66,gY-5,2);gLine(72,80,gY);gLine(88,pw-5,gY-2);
+    // ROPE spanning between buildings with hidden coins below!
+    for(let rx=72;rx<=80;rx++)grid[gY-3][rx]=3;// rope at gY-3 from x=72 to 80
+    // Hidden coins BELOW the rope (only accessible if rope is broken)
+    gem(73,gY-1);gem(75,gY-1);gem(77,gY-1);gem(79,gY-1);
+    // Pushable boulder on the rope - push it off to break the rope!
+    boulder(76,gY-4,0);
+    gLine(2,12,gY);gLine(17,28,gY-6,2);gem(37,gY-9);gem(39,gY-9);gem(41,gY-9);gem(43,gY-9);gLine(36,48,gY-2);gLine(57,66,gY-5,2);gLine(88,pw-5,gY-2);
+    // Bubbles (coins) above rope
+    bubble(73,gY-5);bubble(76,gY-5);bubble(79,gY-5);
     frog(22,gY-7,18,28);frog(42,gY-3,36,48);frog(62,gY-1,56,68);snake(64,gY-1,56,68);
     ents.push({type:'heart',x:25,y:gY-7,collected:false});ents.push({type:'door',x:pw-4,y:gY-2});
+    crates.push({x:74*T,y:(gY-4)*T});solid(74,gY-4,1,1);// crate on rope
     decs.push({type:'wall',x:16*T,y:(gY-5)*T,w:14*T,h:5*T,color:'#D0A858'},{type:'wall',x:36*T,y:(gY-7)*T,w:12*T,h:5*T,color:'#D0A858'},{type:'wall',x:56*T,y:(gY-4)*T,w:12*T,h:4*T,color:'#D0A858'});
     decs.push({type:'win',x:20*T,y:(gY-4)*T},{type:'win',x:25*T,y:(gY-4)*T},{type:'win',x:39*T,y:(gY-6)*T},{type:'win',x:44*T,y:(gY-6)*T});
     decs.push({type:'rock',x:6*T,y:gY*T},{type:'bush',x:52*T,y:gY*T});break;
@@ -436,23 +445,33 @@ function genLv(idx){
     flat(0,10,gY);solid(10,gY-5,10,1);flat(10,24,gY);stUp(24,gY,3);flat(30,40,gY-3);solid(30,gY-6,4,3);solid(32,gY-8,8,1);stDn(40,gY-3,2);flat(44,56,gY-1);solid(44,gY-4,2,3);solid(46,gY-6,10,1);flat(56,70,gY);stUp(62,gY,2);flat(66,80,gY-2);stDn(76,gY-2,2);flat(80,pw,gY);
     gLine(2,8,gY);gLine(11,19,gY-5,2);gem(33,gY-9);gem(35,gY-9);gem(37,gY-9);gLine(32,38,gY-3);gLine(47,55,gY-6,2);gLine(58,60,gY);gLine(68,78,gY-2);gLine(82,pw-5,gY);
     frog(15,gY-6,11,19);frog(36,gY-4,31,39);frog(50,gY-2,45,55);
-    bandit(72,gY-3,68,78);// NEW: bandit enemy!
+    bandit(72,gY-3,68,78);
+    ents.push({type:'birdcatcher',x:64,y:gY-1,startX:58,endX:68,dir:-1,alive:true});// Bird Catcher!
     ents.push({type:'heart',x:48,y:gY-7,collected:false});ents.push({type:'door',x:pw-4,y:gY});
     decs.push({type:'wall',x:10*T,y:(gY-4)*T,w:10*T,h:4*T,color:'#C0C0B0'},{type:'wall',x:32*T,y:(gY-7)*T,w:8*T,h:4*T,color:'#C0C0B0'},{type:'wall',x:46*T,y:(gY-5)*T,w:10*T,h:4*T,color:'#C0C0B0'});
     decs.push({type:'win',x:13*T,y:(gY-3)*T},{type:'win',x:17*T,y:(gY-3)*T});decs.push({type:'rock',x:4*T,y:gY*T},{type:'bush',x:56*T,y:gY*T});break;
-  case 3:// Level 4: Desert Canyon - deep gaps
+  case 3:// Level 4: Desert Canyon - ROPES + TNT + BOULDERS
     flat(0,8,gY);stUp(8,gY,4);flat(16,22,gY-4);
-    // Deep gap - must jump across
     flat(26,32,gY-3);stDn(32,gY-3,4);
-    flat(40,46,gY+1>ph?gY:gY);stUp(46,gY,5);flat(56,62,gY-5);
-    stDn(62,gY-5,3);flat(68,76,gY-2);stUp(76,gY-2,2);flat(80,pw,gY-4);
-    gLine(2,6,gY);gLine(10,14,gY-2,2);gLine(18,21,gY-4);gLine(27,31,gY-3);gLine(42,44,gY);gLine(48,54,gY-2,2);gLine(58,61,gY-5);gLine(64,66,gY-4);gLine(70,74,gY-2);gLine(82,pw-5,gY-4);
-    // No key levels 1-6
-    frog(19,gY-5,17,21);frog(29,gY-4,27,31);frog(58,gY-6,56,61);frog(72,gY-3,69,75);
-    snake(42,gY-1,40,46);snake(70,gY-3,68,75);
-    bandit(85,gY-5,82,pw-5);
-    ents.push({type:'heart',x:50,y:gY-3,collected:false});ents.push({type:'door',x:pw-4,y:gY-4});
-    decs.push({type:'cactus',x:4*T,y:gY*T},{type:'cactus',x:44*T,y:gY*T});decs.push({type:'rock',x:24*T,y:gY*T},{type:'rock',x:66*T,y:(gY-2)*T});decs.push({type:'bush',x:16*T,y:(gY-4)*T},{type:'bush',x:56*T,y:(gY-5)*T});break;
+    flat(40,46,gY);
+    // ROPE bridge over deep gap with hidden coins below! Push boulder to break.
+    for(let rx=46;rx<=52;rx++)grid[gY-2][rx]=3;// rope spanning gap
+    boulder(49,gY-3,0);// pushable boulder on the rope
+    // Hidden coins below rope (in the gap)
+    gem(47,gY);gem(49,gY);gem(51,gY);
+    stUp(53,gY,5);flat(63,70,gY-5);
+    stDn(70,gY-5,3);flat(76,84,gY-2);stUp(84,gY-2,2);flat(88,pw,gY-4);
+    // TNT + breakable wall: detonator breaks wall AND nearby ropes
+    grid[gY-5][62]=2;grid[gY-4][62]=2;grid[gY-3][62]=2;// breakable wall
+    ents.push({type:'detonator',x:60,y:gY-6,alive:true,twx:62});
+    gLine(2,6,gY);gLine(10,14,gY-2,2);gLine(18,21,gY-4);gLine(27,31,gY-3);gLine(42,44,gY);
+    gLine(55,60,gY-2,2);gLine(64,69,gY-5);gLine(72,76,gY-4);gLine(78,82,gY-2);gLine(90,pw-5,gY-4);
+    frog(19,gY-5,17,21);frog(29,gY-4,27,31);frog(66,gY-6,63,69);frog(80,gY-3,77,83);
+    snake(42,gY-1,40,46);snake(78,gY-3,76,83);
+    bandit(92,gY-5,89,pw-5);
+    bubble(48,gY-4);bubble(65,gY-7);
+    ents.push({type:'heart',x:57,y:gY-3,collected:false});ents.push({type:'door',x:pw-4,y:gY-4});
+    decs.push({type:'cactus',x:4*T,y:gY*T},{type:'cactus',x:52*T,y:gY*T});decs.push({type:'rock',x:24*T,y:gY*T},{type:'rock',x:74*T,y:(gY-2)*T});decs.push({type:'bush',x:16*T,y:(gY-4)*T},{type:'bush',x:63*T,y:(gY-5)*T});break;
   case 4:// Level 5: Red Rock - boulders + crates + detonator
     flat(0,10,gY);stUp(10,gY,3);flat(16,24,gY-3);stUp(24,gY-3,2);flat(28,36,gY-5);
     // Breakable wall hiding gems
@@ -470,6 +489,10 @@ function genLv(idx){
     snake(56,gY-2,54,61);bandit(85,gY-3,82,pw-5);
     bubble(38,gY-7);bubble(52,gY-4);
     ents.push({type:'heart',x:60,y:gY-2,collected:false});ents.push({type:'door',x:pw-4,y:gY-2});
+    // MEGA TRAMPOLINES to reach high platforms!
+    trampolines.push({x:16*T,y:(gY-3)*T,angle:0});// vertical: reach gY-8 area
+    trampolines.push({x:54*T,y:(gY-1)*T,angle:1});// angled right: launch across gap
+    trampolines.push({x:68*T,y:(gY-4)*T,angle:0});// vertical: reach top area
     decs.push({type:'cactus',x:6*T,y:gY*T},{type:'cactus',x:52*T,y:(gY-1)*T});decs.push({type:'rock',x:40*T,y:(gY-3)*T},{type:'rock',x:78*T,y:(gY-4)*T});break;
   case 5:// Level 6: Red Canyon - bubble field + bridges
     flat(0,6,gY);stUp(6,gY,3);flat(12,16,gY-3);
@@ -490,6 +513,7 @@ function genLv(idx){
     // No key levels 1-6
     frog(25,gY-6,23,27);frog(38,gY-3,35,39);frog(73,gY-5,70,75);
     snake(58,gY-3,56,63);bandit(83,gY-3,81,pw-5);
+    ents.push({type:'birdcatcher',x:44,y:gY-5,startX:44,endX:50,dir:1,alive:true});
     ents.push({type:'heart',x:65,y:gY-4,collected:false});ents.push({type:'door',x:pw-4,y:gY-2});
     decs.push({type:'rock',x:4*T,y:gY*T},{type:'rock',x:33*T,y:(gY-2)*T},{type:'bush',x:54*T,y:(gY-2)*T});break;
   case 6:// Level 7: The Ranch - rooftops + birds
@@ -562,22 +586,48 @@ function genLv(idx){
     piranhas.push({x:58*T,baseY:gY*T,vx:0,jumpH:6*T,period:95,phase:45,type:'vert'});
     piranhas.push({x:72*T,baseY:gY*T,vx:2,jumpH:5*T,period:85,phase:70,type:'arc'});
     break;
-  case 9:// Level 10: Boulder Caves - stacked boulders, maze corridors
-    flat(0,8,gY);solid(8,gY-10,3,10);flat(8,16,gY);solid(16,gY-10,3,10);flat(16,22,gY-5);solid(22,gY-10,3,10);flat(22,30,gY);
-    solid(33,gY-2,3,1);flat(38,46,gY-3);solid(42,gY-9,3,6);stUp(46,gY-3,2);flat(50,56,gY-5);
-    solid(59,gY-4,3,1);flat(64,72,gY-3);solid(68,gY-9,3,6);stUp(72,gY-3,3);flat(78,86,gY-6);stDn(86,gY-6,2);flat(90,pw,gY-4);
-    // Boulders stacked in piles
-    boulder(14,gY-1,0);boulder(14,gY-2,0);boulder(15,gY-1,0);// pile of 3
-    boulder(40,gY-4,0);boulder(41,gY-4,0);// small pile
-    gLine(2,6,gY);gLine(10,14,gY);gLine(17,21,gY-5,2);gLine(24,28,gY);gem(34,gY-3);gLine(39,45,gY-3);gem(51,gY-6);gem(53,gY-6);gem(55,gY-6);gem(60,gY-5);gLine(65,71,gY-3);gLine(79,85,gY-6);gLine(92,pw-5,gY-4);
-    ents.push({type:'key',x:82,y:gY-7,collected:false});
-    frog(12,gY-1,9,15);frog(19,gY-6,17,21);frog(26,gY-1,23,29);frog(53,gY-6,50,55);frog(67,gY-4,64,71);frog(82,gY-7,79,85);
-    snake(24,gY-1,22,29);snake(64,gY-4,64,71);
-    bandit(92,gY-5,90,pw-5);
-    bubble(31,gY-4);bubble(48,gY-6);bubble(57,gY-6);bubble(75,gY-7);bubble(88,gY-7);
-    ents.push({type:'heart',x:34,y:gY-3,collected:false},{type:'heart',x:60,y:gY-5,collected:false});
-    ents.push({type:'door',x:pw-4,y:gY-4});
-    decs.push({type:'rock',x:4*T,y:gY*T},{type:'rock',x:38*T,y:(gY-3)*T});break;
+  case 9:// Level 10: UNDERGROUND MAZE - detonator opens entrance, key deep inside, trampoline to escape
+    // Surface area
+    flat(0,10,gY);flat(10,20,gY-2);flat(20,30,gY);
+    // Breakable floor: detonator blasts open the entrance to underground!
+    grid[gY-2][14]=2;grid[gY-2][15]=2;grid[gY-2][16]=2;grid[gY-2][17]=2;
+    ents.push({type:'detonator',x:12,y:gY-3,alive:true,twx:14});// blasts tiles 14-17
+    // Underground maze (below surface): descending staircase corridors
+    // Left wall
+    solid(10,gY,2,ph-gY);// floor under entrance
+    solid(8,gY-1,2,ph-gY+1);// left boundary
+    // Descending stairs going RIGHT
+    flat(12,18,gY+1>ph?gY:gY);// floor below entrance hole (pig falls here)
+    stDn(18,gY,2);// stairs going deeper
+    flat(22,28,gY+2>ph?gY:gY+1);// deeper corridor... wait, gY=16, ph=22, so gY+2=18 is valid
+    // Actually let's use the bottom of the grid as deep underground
+    solid(12,gY+1,6,1);// floor under entrance
+    solid(18,gY+2,4,1);stDn(22,gY+2,1);solid(24,gY+3,6,1);// descending
+    solid(30,gY+2,4,1);// bottom of maze
+    // Walls creating maze corridors underground
+    solid(20,gY-1,2,4);// wall segment forcing path around
+    solid(26,gY,2,3);// another wall
+    // KEY hidden deep in the maze
+    ents.push({type:'key',x:28,y:gY+2,collected:false});
+    // MEGA TRAMPOLINE at bottom to escape back up!
+    trampolines.push({x:31*T,y:(gY+2)*T,angle:0});
+    // Surface continues to door
+    flat(30,40,gY);stUp(40,gY,2);flat(44,pw,gY-2);
+    // Gems on surface
+    gLine(2,8,gY);gLine(21,28,gY);gLine(32,38,gY);gLine(46,pw-5,gY-2);
+    // Underground gems (bonus for exploring)
+    gem(13,gY);gem(15,gY);gem(17,gY);gem(19,gY+1);gem(21,gY+1);gem(25,gY+2);gem(27,gY+2);gem(29,gY+1);
+    // Enemies
+    frog(4,gY-1,1,9);frog(24,gY-1,21,29);frog(34,gY-1,31,39);frog(48,gY-3,45,pw-5);
+    snake(32,gY-1,30,39);
+    // Underground enemies
+    frog(16,gY,13,17);frog(26,gY+2,24,29);
+    bubble(6,gY-2);bubble(14,gY-4);bubble(36,gY-2);bubble(50,gY-4);
+    boulder(22,gY-1,0);boulder(23,gY-1,0);// boulder pile near entrance
+    ents.push({type:'heart',x:15,y:gY,collected:false},{type:'heart',x:48,y:gY-3,collected:false});
+    ents.push({type:'door',x:pw-4,y:gY-2});
+    decs.push({type:'rock',x:4*T,y:gY*T},{type:'rock',x:20*T,y:gY*T},{type:'rock',x:38*T,y:gY*T});
+    decs.push({type:'bush',x:30*T,y:gY*T},{type:'bush',x:44*T,y:(gY-2)*T});break;
   case 10:// Level 11: Golden Maze - pyramids + red walls
     flat(0,5,gY);solid(5,gY-12,3,12);flat(5,12,gY);solid(12,gY-12,3,12);flat(12,18,gY-6);solid(18,gY-12,3,12);flat(18,26,gY);
     solid(29,gY-2,3,1);stUp(34,gY,3);flat(40,46,gY-3);solid(43,gY-10,3,7);flat(46,52,gY-6);stDn(52,gY-6,2);flat(56,64,gY-4);solid(60,gY-12,3,8);stDn(64,gY-4,2);flat(68,78,gY-2);stUp(78,gY-2,2);flat(82,pw,gY-4);
@@ -585,9 +635,14 @@ function genLv(idx){
     decs.push({type:'wall',x:5*T,y:(gY-12)*T,w:3*T,h:12*T,color:'#C08060'},{type:'wall',x:12*T,y:(gY-12)*T,w:3*T,h:12*T,color:'#C08060'},{type:'wall',x:18*T,y:(gY-12)*T,w:3*T,h:12*T,color:'#C08060'});
     gLine(2,4,gY);gLine(7,11,gY);gLine(13,17,gY-6,2);gLine(20,24,gY);gem(30,gY-3);gLine(36,38,gY-2);gLine(41,45,gY-3);gem(47,gY-7);gem(49,gY-7);gem(51,gY-7);gLine(58,62,gY-4);gLine(70,76,gY-2);gLine(84,pw-5,gY-4);
     ents.push({type:'key',x:49,y:gY-7,collected:false});
-    frog(9,gY-1,6,11);frog(15,gY-7,13,17);frog(22,gY-1,19,25);frog(42,gY-4,40,45);frog(49,gY-7,46,51);frog(72,gY-3,69,77);
+    frog(9,gY-1,6,11);frog(22,gY-1,19,25);frog(42,gY-4,40,45);
+    // SMART DARK FROGS that seek the pig!
+    ents.push({type:'darkfrog',x:15,y:gY-7,startX:13,endX:17,dir:1,alive:true,baseY:gY-7,jumping:false,jumpVy:0,jumpVx:0});
+    ents.push({type:'darkfrog',x:49,y:gY-7,startX:46,endX:51,dir:-1,alive:true,baseY:gY-7,jumping:false,jumpVy:0,jumpVx:0});
+    ents.push({type:'darkfrog',x:72,y:gY-3,startX:69,endX:77,dir:1,alive:true,baseY:gY-3,jumping:false,jumpVy:0,jumpVx:0});
     snake(20,gY-1,18,25);snake(70,gY-3,68,77);
-    bandit(58,gY-5,56,63);bandit(84,gY-5,82,pw-5);
+    ents.push({type:'birdcatcher',x:58,y:gY-5,startX:56,endX:63,dir:-1,alive:true});
+    bandit(84,gY-5,82,pw-5);
     bubble(27,gY-4);bubble(53,gY-8);bubble(62,gY-5);bubble(74,gY-5);
     ents.push({type:'heart',x:30,y:gY-3,collected:false});ents.push({type:'door',x:pw-4,y:gY-4});
     decs.push({type:'plant',x:40*T,y:(gY-3)*T},{type:'plant',x:68*T,y:(gY-2)*T});break;
@@ -640,7 +695,11 @@ function solidAny(wx,wy){return solidFloor(wx,wy)}
 function rOvr(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y}
 
 // Break blocks near a point
-function breakNear(tx2){for(let y=0;y<LV.ph;y++){if(LV.grid[y][tx2]===2){LV.grid[y][tx2]=0;spP(tx2*T+16,y*T+16,'#C0984C',4)}}terrainDirty=true}
+function breakNear(tx2){
+  // Break the target column AND 3 tiles on each side (for wider breakable areas)
+  for(let dx=-3;dx<=3;dx++){const cx=tx2+dx;if(cx<0||cx>=LV.pw)continue;
+    for(let y=0;y<LV.ph;y++){if(LV.grid[y][cx]===2){LV.grid[y][cx]=0;spP(cx*T+16,y*T+16,'#C0984C',3)}}}
+  terrainDirty=true;sfx('boom')}
 
 function updPlayer(){
   if(P.dead)return;const sp=inp.ShiftLeft||inp.ShiftRight?WS:RS;
@@ -671,10 +730,22 @@ function pDie(){P.dead=true;lives--;sfx('die');setTimeout(()=>{if(lives<=0)gs='o
 function updEnts(){
   const pr={x:P.x+4,y:P.y,w:P.w-8,h:P.h};
   LV.ents.forEach(e=>{
-    if(e.alive&&(e.type==='frog'||e.type==='snake'||e.type==='bandit'||e.type==='bird')){
-      const sp=e.type==='snake'?1.5:e.type==='bird'?1.2:.8;
-      e.x+=e.dir*sp/T;if(e.x<=e.startX){e.x=e.startX;e.dir=1}if(e.x>=e.endX){e.x=e.endX;e.dir=-1}
-      // Bird flies in sine wave
+    if(e.alive&&(e.type==='frog'||e.type==='snake'||e.type==='bandit'||e.type==='bird'||e.type==='birdcatcher'||e.type==='darkfrog')){
+      const sp=e.type==='snake'?1.5:e.type==='bird'?1.2:e.type==='darkfrog'?1.5:.8;
+      // Dark frog SEEKS the pig!
+      if(e.type==='darkfrog'){
+        const dx=P.x-e.x*T;
+        if(Math.abs(dx)<300){// activated - chase!
+          e.dir=dx>0?1:-1;
+          // Jump toward pig periodically
+          if(!e.jumping&&fc%40===0){e.jumping=true;e.jumpVy=-8;e.jumpVx=e.dir*3}
+        }
+        if(e.jumping){e.jumpVy+=.3;e.x+=e.jumpVx/T;e.y+=e.jumpVy/T;
+          if(e.y>=e.baseY){e.y=e.baseY;e.jumping=false;e.jumpVy=0;e.jumpVx=0}}
+        else{e.x+=e.dir*sp/T;if(e.x<=e.startX){e.x=e.startX;e.dir=1}if(e.x>=e.endX){e.x=e.endX;e.dir=-1}}
+      } else {
+        e.x+=e.dir*sp/T;if(e.x<=e.startX){e.x=e.startX;e.dir=1}if(e.x>=e.endX){e.x=e.endX;e.dir=-1}
+      }
       if(e.type==='bird')e.y=e.baseY+Math.sin(fc*.04)*2;
       // Bandit throws grenades
       if(e.type==='bandit'){
@@ -868,6 +939,8 @@ function renderPlay(){
     if(e.type==='door')drawDoorExit(ex,ey,keys<LV.kn);if(e.type==='frog'&&e.alive)drawFrog(ex,ey,fc,e.dir);
     if(e.type==='snake'&&e.alive)drawSnake(ex,ey,fc,e.dir);if(e.type==='bubble'&&e.alive)drawBubble(ex,ey,fc);
     if(e.type==='bandit'&&e.alive)drawBandit(ex,ey,fc,e.dir);
+    if(e.type==='birdcatcher'&&e.alive)drawBirdCatcher(ex,ey,fc,e.dir);
+    if(e.type==='darkfrog'&&e.alive){X.fillStyle='#2D6D20';X.fillRect(ex+3,ey+11,26,16);X.fillStyle='#3A8030';X.fillRect(ex+4,ey+12,24,14);X.fillStyle='#fff';X.fillRect(ex+10,ey+2,7,7);X.fillRect(ex+19,ey+2,7,7);X.fillStyle='#C00';X.fillRect(ex+13,ey+4,2,3);X.fillRect(ex+22,ey+4,2,3);X.fillStyle='#2D6D20';X.fillRect(ex+1,ey+22,9,6);X.fillRect(ex+22,ey+22,9,6)}
     if(e.type==='bird'&&e.alive)drawBird(ex,ey,fc);
     if(e.type==='detonator'&&e.alive){drawCrate(ex,ey);X.fillStyle='#FFD700';X.fillRect(ex+12,ey-4,8,6);X.fillStyle='#FF6B00';X.fillRect(ex+14,ey-2,4,3)}
     if(e.type==='boss'&&e.alive)drawBoss();
