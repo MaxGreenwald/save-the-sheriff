@@ -478,7 +478,7 @@ function genLv(idx){
     bandit(92,gY-5,89,pw-5);
     bubble(48,gY-4);bubble(65,gY-7);
     ents.push({type:'heart',x:57,y:gY-3,collected:false});ents.push({type:'door',x:pw-4,y:gY-4});
-    decs.push({type:'cactus',x:4*T,y:gY*T},{type:'cactus',x:52*T,y:gY*T});decs.push({type:'rock',x:24*T,y:gY*T},{type:'rock',x:74*T,y:(gY-2)*T});decs.push({type:'bush',x:16*T,y:(gY-4)*T},{type:'bush',x:63*T,y:(gY-5)*T});break;
+    decs.push({type:'cactus',x:4*T,y:gY*T},{type:'cactus',x:52*T,y:gY*T});decs.push({type:'rock',x:24*T,y:gY*T});decs.push({type:'bush',x:16*T,y:(gY-4)*T},{type:'bush',x:63*T,y:(gY-5)*T});break;
   case 4:// Level 5: Red Rock - boulders + crates + detonator
     flat(0,10,gY);stUp(10,gY,3);flat(16,24,gY-3);stUp(24,gY-3,2);flat(28,36,gY-5);
     // Breakable wall hiding gems
@@ -657,12 +657,14 @@ function genLv(idx){
     flat(0,8,gY);stUp(8,gY,3);flat(14,20,gY-3);stUp(20,gY-3,2);flat(24,34,gY-5);
     stDn(34,gY-5,2);flat(38,48,gY-3);
     // Boss arena
-    flat(50,80,gY);
-    // Safe rock: pig can hide UNDER this. Boss lands ON TOP only.
-    solid(60,gY-4,6,4);// rock platform (6 tiles wide, 4 tall) - pig hides below
-    solid(80,0,2,ph);// right wall of arena - FULL HEIGHT so pig can't jump over
-    // After boss: path to sheriff
-    flat(82,pw,gY);
+    flat(50,82,gY);
+    // Safe rock: pig tunnel underneath (1 tile gap between rock bottom and ground)
+    solid(62,gY-5,6,4);// rock platform raised: bottom at gY-1, pig fits in 1-tile gap below
+    // Arena wall - only exists while boss is alive (removed on defeat)
+    // Wall is 3 tiles wide so pig absolutely cannot squeeze past
+    solid(82,0,3,gY);// wall from top to ground level (not below ground)
+    // After boss: path to sheriff (wall tiles at x=82-84 get cleared on boss defeat)
+    flat(85,pw,gY);
     gLine(2,6,gY);gLine(10,12,gY-2);gLine(15,19,gY-3);gLine(22,24,gY-4);gLine(26,32,gY-5);gLine(36,38,gY-4);gLine(40,46,gY-3);
     // Arena gems
     gLine(52,60,gY);gLine(65,75,gY);
@@ -688,6 +690,8 @@ function genLv(idx){
 
 let LV=null,P={x:0,y:0,vx:0,vy:0,w:30,h:28,dir:1,gnd:false,fr:0,inv:0,dead:false},cam={x:0,y:0};
 function startLv(i){cl=i;biome=LEVELS[i].bio;LV=genLv(i);terrainDirty=true;P.x=2*T;P.y=14*T;P.vx=0;P.vy=0;P.dir=1;P.gnd=false;P.fr=0;P.inv=0;P.dead=false;keys=0;hp=mhp;pts=[];ftx=[];grenades=[];cam.x=P.x-400;cam.y=0;gt=300;tf=0;
+  // Clear all input state to prevent stuck keys after death
+  Object.keys(inp).forEach(k=>inp[k]=false);
   if(LV.boss){bossHp=bossMax;bootState='ground';bootTimer=90;bossX=65*T;bossY=16*T;bossVx=0;bossVy=0}
   gs='intro';lit=100}
 function startGame(){lives=5;score=0;gems=0;hp=mhp;keys=0;startLv(0)}
@@ -783,7 +787,7 @@ function updEnts(){
       // Hopping boot mech AI - seeks the pig!
       bootTimer--;
       const arenaLeft=50*T,arenaRight=78*T,arenaGnd=16*T;
-      const rockTop=12*T,rockLeft=60*T,rockRight=66*T;// safe rock platform
+      const rockTop=11*T,rockLeft=62*T,rockRight=68*T;// safe rock platform (raised, pig tunnel below)
       const pigUnderRock=P.x>rockLeft-10&&P.x<rockRight+10&&P.y>rockTop&&P.y<arenaGnd;
       if(bootState==='ground'){
         if(bootTimer<=0){
@@ -833,7 +837,7 @@ function updEnts(){
             e.alive=false;score+=1000;
             spT(bossX-30,bossY-70,'BOSS DEFEATED!','#FFD700');sfx('clear');
             // Remove arena wall so pig can reach door
-            for(let yy=0;yy<LV.ph;yy++)if(LV.grid[yy]&&LV.grid[yy][80])LV.grid[yy][80]=0;
+            for(let yy=0;yy<LV.ph;yy++)for(let wx=82;wx<=84;wx++)if(LV.grid[yy]&&LV.grid[yy][wx])LV.grid[yy][wx]=0;
             terrainDirty=true;
           } else {
             spT(bossX-20,bossY-70,bossHp+' HITS LEFT','#FF6B6B');
@@ -923,7 +927,7 @@ function updEnts(){
   });
 }
 
-function updCam(){const tx=P.x-350,ty=Math.min(P.y-250,0);cam.x+=(tx-cam.x)*.08;cam.y+=(ty-cam.y)*.08;cam.x=Math.max(0,Math.min(cam.x,LV.pw*T-800));cam.y=Math.max(-(LV.ph*T-600),Math.min(cam.y,0))}
+function updCam(){const tx=P.x-350,ty=P.y-280;cam.x+=(tx-cam.x)*.08;cam.y+=(ty-cam.y)*.08;cam.x=Math.max(0,Math.min(cam.x,LV.pw*T-800));cam.y=Math.max(-(LV.ph*T-600),Math.min(cam.y,LV.ph*T-600))}
 
 // ═══════════════════ RENDER ═══════════════════
 function renderPlay(){
