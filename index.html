@@ -377,50 +377,50 @@ function genLv(idx){
     ents.push({type:'heart',x:62,y:gY-4,collected:false});ents.push({type:'door',x:pw-4,y:gY});
     decs.push({type:'wall',x:14*T,y:(gY-6)*T,w:10*T,h:6*T,color:'#C8A060'},{type:'wall',x:30*T,y:(gY-7)*T,w:8*T,h:5*T,color:'#C8A060'});
     decs.push({type:'win',x:17*T,y:(gY-5)*T},{type:'win',x:21*T,y:(gY-5)*T});decs.push({type:'rock',x:6*T,y:gY*T},{type:'bush',x:42*T,y:gY*T});break;
-  case 7:// Level 8: Green Hills - stone cave start, rain, tower, big gaps
-    // Stone cave start section
-    flat(0,8,gY);stUp(8,gY,3);flat(14,20,gY-3);
-    // Transition to green - BIG GAP
-    flat(24,30,gY-4);
-    flat(34,40,gY-2);stUp(40,gY-2,2);flat(44,50,gY-4);
-    // Tiny floating platform
-    solid(53,gY-3,3,1);
-    flat(58,64,gY-5);
-    // Tower obstacle
-    solid(64,gY-10,3,5);
-    flat(67,74,gY-5);stDn(74,gY-5,3);flat(80,86,gY-2);
-    flat(90,96,gY-3);stUp(96,gY-3,2);flat(100,pw,gY-5);
-    gLine(2,6,gY);gLine(10,12,gY-2);gLine(15,19,gY-3);gLine(25,29,gY-4);gLine(35,39,gY-2);gem(45,gY-5);gem(47,gY-5);gem(49,gY-5);gem(54,gY-4);gLine(59,63,gY-5);gLine(68,73,gY-5);gLine(82,85,gY-2);gLine(91,95,gY-3);gLine(102,pw-5,gY-5);
-    ents.push({type:'key',x:70,y:gY-6,collected:false});
-    frog(17,gY-4,14,19);frog(27,gY-5,24,29);frog(37,gY-3,34,39);frog(47,gY-5,44,49);frog(71,gY-6,68,73);frog(83,gY-3,80,85);frog(93,gY-4,90,95);
-    snake(35,gY-3,34,39);snake(82,gY-3,80,85);
-    bubble(22,gY-6);bubble(31,gY-5);bubble(51,gY-6);bubble(56,gY-7);bubble(76,gY-5);bubble(88,gY-4);
-    bandit(61,gY-6,58,63);
-    ents.push({type:'heart',x:54,y:gY-4,collected:false});ents.push({type:'door',x:pw-4,y:gY-5});
+  case 7:// Level 8: Green Hills - rain, gaps, tower (all gaps jumpable)
+    flat(0,8,gY);stUp(8,gY,3);flat(14,21,gY-3);
+    // Gap (3 tiles - easily jumpable)
+    flat(24,31,gY-4);
+    // Gap (3 tiles)
+    flat(34,42,gY-2);stUp(42,gY-2,2);flat(46,52,gY-4);
+    // Stepping stone then platform
+    solid(55,gY-3,3,1);
+    flat(60,67,gY-5);
+    // Tower obstacle (jump around it)
+    solid(67,gY-10,3,5);
+    flat(70,78,gY-5);stDn(78,gY-5,2);flat(82,88,gY-3);
+    // Gap (3 tiles)
+    flat(91,98,gY-4);stUp(98,gY-4,2);flat(102,pw,gY-6);
+    gLine(2,6,gY);gLine(10,12,gY-2);gLine(15,20,gY-3);gLine(25,30,gY-4);gLine(35,40,gY-2);gem(47,gY-5);gem(49,gY-5);gem(51,gY-5);gem(56,gY-4);gLine(61,66,gY-5);gLine(71,77,gY-5);gLine(83,87,gY-3);gLine(92,97,gY-4);gLine(104,pw-5,gY-6);
+    ents.push({type:'key',x:74,y:gY-6,collected:false});
+    frog(17,gY-4,14,20);frog(27,gY-5,24,30);frog(38,gY-3,34,41);frog(49,gY-5,46,51);frog(73,gY-6,70,77);frog(85,gY-4,82,87);frog(94,gY-5,91,97);
+    snake(36,gY-3,34,41);
+    bubble(22,gY-6);bubble(32,gY-5);bubble(53,gY-6);bubble(58,gY-7);bubble(80,gY-5);bubble(90,gY-5);
+    bandit(63,gY-6,60,66);
+    ents.push({type:'heart',x:56,y:gY-4,collected:false});ents.push({type:'door',x:pw-4,y:gY-6});
     decs.push({type:'bush',x:2*T,y:gY*T},{type:'bush',x:24*T,y:(gY-4)*T},{type:'bush',x:58*T,y:(gY-5)*T},{type:'bush',x:90*T,y:(gY-3)*T});
     decs.push({type:'rock',x:6*T,y:gY*T},{type:'rock',x:38*T,y:(gY-2)*T},{type:'rock',x:80*T,y:(gY-2)*T});break;
-  case 8:// Level 9: WATER WORLD - islands in water!
-    // Water level at gY-1 (tile 15). Islands poke above water.
+  case 8:// Level 9: WATER WORLD - islands in water! (all gaps <=3 tiles)
     flat(0,6,gY-3);// starting island
-    solid(10,gY-3,4,1);// small island
-    solid(16,gY-4,3,2);// slightly taller
-    solid(22,gY-3,5,1);// medium island
-    solid(30,gY-5,4,3);// tall island
-    solid(37,gY-3,3,1);// small
-    solid(42,gY-4,5,2);// medium
-    solid(50,gY-3,3,1);// small
-    solid(56,gY-5,4,3);// tall (key here)
-    solid(63,gY-3,4,1);
-    solid(70,gY-4,3,2);
-    solid(76,gY-3,5,1);
-    flat(84,pw,gY-3);// end island
-    gLine(1,5,gY-3);gem(11,gY-4);gem(13,gY-4);gem(17,gY-5);gLine(23,26,gY-3);gem(31,gY-6);gem(33,gY-6);gem(38,gY-4);gLine(43,46,gY-4);gem(51,gY-4);gLine(57,59,gY-5);gem(64,gY-4);gem(66,gY-4);gem(71,gY-5);gLine(77,80,gY-3);gLine(86,pw-5,gY-3);
-    ents.push({type:'key',x:58,y:gY-6,collected:false});
-    frog(24,gY-4,22,26);frog(44,gY-5,42,46);frog(77,gY-4,76,80);frog(88,gY-4,85,pw-5);
-    bubble(8,gY-6);bubble(20,gY-6);bubble(28,gY-5);bubble(40,gY-6);bubble(48,gY-5);bubble(60,gY-6);bubble(68,gY-5);bubble(74,gY-6);bubble(82,gY-5);
-    ents.push({type:'heart',x:33,y:gY-6,collected:false},{type:'heart',x:71,y:gY-5,collected:false});
+    solid(9,gY-3,4,1);// gap=3
+    solid(15,gY-4,4,2);// gap=2
+    solid(21,gY-3,5,1);// gap=2
+    solid(28,gY-5,5,3);// gap=2, tall island
+    solid(35,gY-3,4,1);// gap=2
+    solid(41,gY-4,5,2);// gap=2
+    solid(48,gY-3,4,1);// gap=2
+    solid(54,gY-5,5,3);// gap=2, tall (key here)
+    solid(61,gY-3,5,1);// gap=2
+    solid(68,gY-4,4,2);// gap=2
+    solid(74,gY-3,5,1);// gap=2
+    flat(81,pw,gY-3);// gap=2, end island
+    gLine(1,5,gY-3);gem(10,gY-4);gem(12,gY-4);gem(16,gY-5);gLine(22,25,gY-3);gem(29,gY-6);gem(31,gY-6);gem(36,gY-4);gLine(42,45,gY-4);gem(49,gY-4);gLine(55,58,gY-5);gem(62,gY-4);gem(64,gY-4);gem(69,gY-5);gLine(75,78,gY-3);gLine(83,pw-5,gY-3);
+    ents.push({type:'key',x:56,y:gY-6,collected:false});
+    frog(23,gY-4,21,25);frog(43,gY-5,41,45);frog(75,gY-4,74,78);frog(85,gY-4,82,pw-5);
+    bubble(7,gY-6);bubble(19,gY-6);bubble(26,gY-5);bubble(39,gY-6);bubble(47,gY-5);bubble(59,gY-6);bubble(67,gY-5);bubble(72,gY-6);bubble(80,gY-5);
+    ents.push({type:'heart',x:31,y:gY-6,collected:false},{type:'heart',x:69,y:gY-5,collected:false});
     ents.push({type:'door',x:pw-4,y:gY-3});
-    decs.push({type:'cactus',x:31*T,y:(gY-5)*T},{type:'plant',x:11*T,y:(gY-3)*T},{type:'plant',x:43*T,y:(gY-4)*T},{type:'plant',x:64*T,y:(gY-3)*T});break;
+    decs.push({type:'cactus',x:29*T,y:(gY-5)*T},{type:'plant',x:10*T,y:(gY-3)*T},{type:'plant',x:42*T,y:(gY-4)*T},{type:'plant',x:62*T,y:(gY-3)*T});break;
   case 9:// Level 10: Boulder Caves - stacked boulders, maze corridors
     flat(0,8,gY);solid(8,gY-10,3,10);flat(8,16,gY);solid(16,gY-10,3,10);flat(16,22,gY-5);solid(22,gY-10,3,10);flat(22,30,gY);
     solid(33,gY-2,3,1);flat(38,46,gY-3);solid(42,gY-9,3,6);stUp(46,gY-3,2);flat(50,56,gY-5);
@@ -539,7 +539,7 @@ function updEnts(){
         }
       }
     }
-    if(e.type==='bubble'&&e.alive&&!P.dead&&P.inv<=0){const bx=e.x*T,by=e.y*T+Math.sin(fc*.03+e.x*.08)*8;if(rOvr(pr,{x:bx+2,y:by+2,w:28,h:28}))pHit()}
+    if(e.type==='bubble'&&e.alive&&!P.dead){const bx=e.x*T,by=e.y*T+Math.sin(fc*.03+e.x*.08)*8;if(rOvr(pr,{x:bx+2,y:by+2,w:28,h:28})){e.alive=false;score+=50;gems++;spP(bx+16,by+16,'#88CCFF',5);spT(bx+8,by-4,'+50','#88DDFF');sfx('gem')}}
     // Detonator
     if(e.type==='detonator'&&e.alive&&rOvr(pr,{x:e.x*T,y:e.y*T,w:T,h:T})){
       if(P.vy>0&&P.y+P.h<e.y*T+T*.6){P.vy=JF*.6;sfx('boom');e.alive=false;spP(e.x*T+16,e.y*T,'#FF8800',12);score+=200;spT(e.x*T,e.y*T-20,'BOOM!','#FF6B00');if(e.twx!==undefined)breakNear(e.twx)}
