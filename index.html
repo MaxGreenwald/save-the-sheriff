@@ -516,14 +516,15 @@ function genLv(idx){
   case 0:// Level 1: Desert Trail
     flat(0,10,gY);stUp(10,gY,2);flat(14,18,gY-2);stUp(18,gY-2,2);flat(22,30,gY-4);stDn(30,gY-4,2);stDn(34,gY-2,1);flat(36,48,gY);
     bridges.push({x:48*T,y:(gY-1)*T,w:3*T});solid(48,gY-1,3,1);
-    flat(51,57,gY-3);flat(51,57,gY);stDn(57,gY-3,1);flat(59,66,gY-2);stDn(66,gY-2,1);flat(68,80,gY-1);
-    crates.push({x:72*T,y:(gY-2)*T});solid(72,gY-2,1,1);
+    flat(51,57,gY-3);flat(51,57,gY);solid(51,gY-3,1,3);solid(56,gY-3,1,3);// side walls for nook
+    stDn(57,gY-3,1);flat(59,66,gY-1);stDn(66,gY-1,1);flat(68,80,gY);// snake at gY-1 (lower)
+    crates.push({x:72*T,y:(gY-1)*T});solid(72,gY-1,1,1);solid(75,gY-3,2,3);// wall behind crate
     stUp(80,gY-1,2);flat(84,94,gY-3);stDn(94,gY-3,3);flat(100,pw,gY);
-    gLine(2,8,gY);gLine(14,16,gY-3);gLine(22,28,gY-4,2);gLine(37,46,gY);gem(49,gY-2);gLine(52,56,gY-4);gLine(60,64,gY-2);gLine(69,78,gY-1);gLine(85,92,gY-3);gLine(101,pw-5,gY);
+    gLine(2,8,gY);gLine(14,16,gY-3);gLine(22,28,gY-4,2);gLine(37,46,gY);gem(49,gY-2);gLine(52,56,gY-4);gLine(60,64,gY-1);gLine(69,78,gY);gLine(85,92,gY-3);gLine(101,pw-5,gY);
     bubble(42,gY-3);bubble(54,gY-6);
     // No key in levels 1-6 - just reach the door
     frog(24,gY-5,22,29);frog(44,gY-1,38,48);frog(53,gY-4,51,56);frog(88,gY-4,85,93);
-    snake(62,gY-3,60,66);snake(74,gY-2,69,79);
+    snake(62,gY-2,60,66);snake(74,gY-1,69,79);
     ents.push({type:'heart',x:49,y:gY-2,collected:false});ents.push({type:'door',x:pw-4,y:gY});
     // Climbable cacti with gems above!
     climbCactus(8,gY);gem(8,gY-3);gem(8,gY-4);
@@ -533,7 +534,7 @@ function genLv(idx){
     decs.push({type:'rock',x:6*T,y:gY*T},{type:'rock',x:40*T,y:gY*T},{type:'rock',x:70*T,y:(gY-1)*T});
     break;
   case 1:// Level 2: Western Town - ROPES + PUSHABLE BOULDERS
-    flat(0,14,gY);solid(14,gY-3,2,3);solid(16,gY-6,14,1);flat(14,30,gY);solid(28,gY-8,3,2);stUp(30,gY,2);flat(34,50,gY-2);solid(36,gY-5,12,1);solid(36,gY-8,12,1);stDn(50,gY-2,2);flat(54,70,gY);solid(54,gY-3,2,3);solid(56,gY-5,12,1);
+    flat(0,14,gY);solid(15,gY-6,1,6);solid(16,gY-6,14,1);flat(14,30,gY);solid(28,gY-8,3,2);stUp(30,gY,2);flat(34,50,gY-2);solid(36,gY-5,12,1);solid(36,gY-8,12,1);stDn(50,gY-2,2);flat(54,70,gY);solid(55,gY-5,1,5);solid(56,gY-5,12,1);
     // Ground with ROPE SECTION: solid ground on sides, rope in middle
     flat(70,73,gY);// solid ground left of rope
     // ROPE at ground level (gY) - pig walks on it like normal ground
@@ -553,7 +554,7 @@ function genLv(idx){
     bubble(75,gY-2);bubble(78,gY-2);bubble(81,gY-2);
     frog(22,gY-7,18,28);frog(42,gY-3,36,48);frog(62,gY-1,56,68);snake(64,gY-1,56,68);
     ents.push({type:'heart',x:25,y:gY-7,collected:false});ents.push({type:'door',x:pw-4,y:gY-2});
-    decs.push({type:'wall',x:16*T,y:(gY-5)*T,w:14*T,h:5*T,color:'#D0A858'},{type:'wall',x:36*T,y:(gY-7)*T,w:12*T,h:5*T,color:'#D0A858'},{type:'wall',x:56*T,y:(gY-4)*T,w:12*T,h:4*T,color:'#D0A858'});
+    decs.push({type:'wall',x:14*T,y:(gY-6)*T,w:16*T,h:6*T,color:'#D0A858'},{type:'wall',x:36*T,y:(gY-8)*T,w:12*T,h:6*T,color:'#D0A858'},{type:'wall',x:54*T,y:(gY-5)*T,w:14*T,h:5*T,color:'#D0A858'});
     decs.push({type:'win',x:20*T,y:(gY-4)*T},{type:'win',x:25*T,y:(gY-4)*T},{type:'win',x:39*T,y:(gY-6)*T},{type:'win',x:44*T,y:(gY-6)*T});
     decs.push({type:'rock',x:6*T,y:gY*T},{type:'bush',x:52*T,y:gY*T});break;
   case 2:// Level 3: Grey Town + bandits
@@ -570,11 +571,20 @@ function genLv(idx){
     ents.push({type:'heart',x:48,y:gY-7,collected:false});ents.push({type:'door',x:pw-4,y:gY});
     // Telephone pole
     pole(22,gY,7);gem(22,gY-3);gem(22,gY-5);gem(22,gY-7);
-    decs.push({type:'wall',x:10*T,y:(gY-4)*T,w:10*T,h:4*T,color:'#C0C0B0'},{type:'wall',x:32*T,y:(gY-7)*T,w:8*T,h:4*T,color:'#C0C0B0'},{type:'wall',x:46*T,y:(gY-5)*T,w:10*T,h:4*T,color:'#C0C0B0'});
-    decs.push({type:'win',x:13*T,y:(gY-3)*T},{type:'win',x:17*T,y:(gY-3)*T});
-    decs.push({type:'win',x:34*T,y:(gY-6)*T},{type:'win',x:38*T,y:(gY-6)*T});// building 2 windows
-    decs.push({type:'win',x:49*T,y:(gY-4)*T},{type:'win',x:53*T,y:(gY-4)*T});// building 3 windows
-    decs.push({type:'rock',x:4*T,y:gY*T},{type:'bush',x:56*T,y:gY*T},{type:'bush',x:74*T,y:(gY-2)*T});break;
+    // Building 1: tall 2-story facade with column under overhang
+    solid(19,gY-5,1,5);// supporting column
+    decs.push({type:'wall',x:10*T,y:(gY-8)*T,w:10*T,h:8*T,color:'#C0C0B0'});
+    decs.push({type:'win',x:13*T,y:(gY-3)*T},{type:'win',x:17*T,y:(gY-3)*T});// lower windows
+    decs.push({type:'win',x:13*T,y:(gY-7)*T},{type:'win',x:17*T,y:(gY-7)*T});// upper windows
+    // Building 2: taller facade
+    decs.push({type:'wall',x:30*T,y:(gY-8)*T,w:10*T,h:5*T,color:'#C0C0B0'});
+    decs.push({type:'win',x:34*T,y:(gY-6)*T},{type:'win',x:38*T,y:(gY-6)*T});
+    // Building 3: tall facade with column
+    solid(45,gY-6,1,5);// supporting column
+    decs.push({type:'wall',x:44*T,y:(gY-8)*T,w:12*T,h:7*T,color:'#C0C0B0'});
+    decs.push({type:'win',x:49*T,y:(gY-4)*T},{type:'win',x:53*T,y:(gY-4)*T});// lower windows
+    decs.push({type:'win',x:49*T,y:(gY-7)*T},{type:'win',x:53*T,y:(gY-7)*T});// upper windows
+    decs.push({type:'rock',x:4*T,y:gY*T},{type:'bush',x:56*T,y:gY*T},{type:'bush',x:57*T,y:gY*T},{type:'bush',x:58*T,y:gY*T},{type:'bush',x:74*T,y:(gY-2)*T});break;
   case 3:// Level 4: Desert Canyon - ROPES + TNT + BOULDERS
     flat(0,8,gY);stUp(8,gY,4);flat(16,22,gY-4);
     flat(26,32,gY-3);stDn(32,gY-3,4);
@@ -607,8 +617,9 @@ function genLv(idx){
     stDn(37,gY-5,2);flat(41,50,gY-3);stDn(50,gY-3,2);flat(54,62,gY-1);stUp(62,gY-1,3);flat(68,76,gY-4);stDn(76,gY-4,2);flat(80,pw,gY-2);
     // Boulders!
     boulder(20,gY-4,0.5);boulder(45,gY-4,0);
-    // Crates
+    // Crates (4 in a row)
     crates.push({x:42*T,y:(gY-4)*T});solid(42,gY-4,1,1);crates.push({x:43*T,y:(gY-4)*T});solid(43,gY-4,1,1);
+    crates.push({x:44*T,y:(gY-4)*T});solid(44,gY-4,1,1);crates.push({x:45*T,y:(gY-4)*T});solid(45,gY-4,1,1);
     // Detonator near breakable wall
     ents.push({type:'detonator',x:34,y:gY-6,alive:true,twx:36});
     gLine(2,8,gY);gLine(12,14,gY-2);gLine(18,22,gY-3);gLine(26,28,gY-4);gLine(30,35,gY-5);gLine(42,48,gY-3);gLine(56,60,gY-1);gLine(64,66,gY-2,2);gLine(70,74,gY-4);gLine(82,pw-5,gY-2);
@@ -636,8 +647,8 @@ function genLv(idx){
     flat(69,76,gY-4);stDn(76,gY-4,2);flat(80,pw,gY-2);
     boulder(14,gY-4,0.8);boulder(46,gY-5,-0.5);
     gLine(2,5,gY);gLine(8,10,gY-2);gLine(13,15,gY-3);gLine(17,21,gY-4);gLine(24,27,gY-5);gLine(36,39,gY-2);gLine(46,50,gY-4);gLine(58,62,gY-2);gLine(65,68,gY-3);gLine(71,75,gY-4);gLine(82,pw-5,gY-2);
-    // Cluster of bubbles
-    for(let i=0;i<8;i++)bubble(35+i*3,gY-4-Math.floor(i/2));
+    // Dense bubble cluster in canyon + scattered field
+    for(let by=0;by<3;by++)for(let bx=0;bx<5;bx++)bubble(35+bx*2,gY-2-by);
     for(let i=0;i<6;i++)bubble(57+i*2,gY-4-(i%3));
     // No key levels 1-6
     frog(25,gY-6,23,27);frog(38,gY-3,35,39);frog(73,gY-5,70,75);
@@ -646,6 +657,8 @@ function genLv(idx){
     ents.push({type:'woman',x:2,y:gY-1,collected:false});
     ents.push({type:'freedbird',x:44,y:gY-7,active:false,delivered:false});
     ents.push({type:'heart',x:65,y:gY-4,collected:false});ents.push({type:'door',x:pw-4,y:gY-2});
+    // Canyon walls flanking bubble field
+    solid(33,gY-8,1,6);solid(45,gY-8,1,6);
     tallCactus(3,gY,5);gem(4,gY-2);gem(2,gY-4);
     decs.push({type:'rock',x:33*T,y:(gY-2)*T},{type:'bush',x:54*T,y:(gY-2)*T});break;
   case 6:// Level 7: The Ranch - rooftops + birds
@@ -669,67 +682,69 @@ function genLv(idx){
     decs.push({type:'cactus',x:42*T,y:gY*T});
     decs.push({type:'rock',x:6*T,y:gY*T},{type:'bush',x:55*T,y:gY*T});break;
   case 7:// Level 8: Green Hills - rain, gaps, tower (all gaps jumpable)
-    flat(0,8,gY);stUp(8,gY,3);flat(14,21,gY-3);
-    // Gap (3 tiles - easily jumpable)
-    flat(24,31,gY-4);
-    // Gap (3 tiles)
-    flat(34,42,gY-2);stUp(42,gY-2,2);flat(46,52,gY-4);
+    // Stone entrance structure
+    solid(0,gY-6,4,6);flat(0,4,gY);
+    decs.push({type:'wall',x:0,y:(gY-6)*T,w:4*T,h:6*T,color:'#A8A898'});
+    flat(4,10,gY);stUp(10,gY,3,3);flat(19,25,gY-3);
+    // Gap (5 tiles)
+    flat(30,37,gY-4);
+    // Gap (4 tiles)
+    flat(41,49,gY-2);stUp(49,gY-2,2,3);flat(55,61,gY-4);
     // Stepping stone then platform
-    solid(55,gY-3,3,1);
-    flat(60,67,gY-5);
-    // Tower obstacle (jump around it)
-    solid(67,gY-10,3,5);
-    flat(70,78,gY-5);stDn(78,gY-5,2);flat(82,88,gY-3);
+    solid(64,gY-3,3,1);
+    flat(69,76,gY-5);
+    // TALL tower obstacle (10 tiles tall)
+    solid(76,gY-14,3,9);
+    flat(79,87,gY-5);stDn(87,gY-5,2,3);flat(93,100,gY-3);
     // Gap (3 tiles)
-    flat(91,98,gY-4);stUp(98,gY-4,2);flat(102,pw,gY-6);
-    gLine(2,6,gY);gLine(10,12,gY-2);gLine(15,20,gY-3);gLine(25,30,gY-4);gLine(35,40,gY-2);gem(47,gY-5);gem(49,gY-5);gem(51,gY-5);gem(56,gY-4);gLine(61,66,gY-5);gLine(71,77,gY-5);gLine(83,87,gY-3);gLine(92,97,gY-4);gLine(104,pw-5,gY-6);
-    ents.push({type:'key',x:74,y:gY-6,collected:false});
-    frog(17,gY-4,14,20);frog(27,gY-5,24,30);frog(38,gY-3,34,41);frog(49,gY-5,46,51);frog(73,gY-6,70,77);frog(85,gY-4,82,87);frog(94,gY-5,91,97);
-    snake(36,gY-3,34,41);
-    bubble(22,gY-6);bubble(32,gY-5);bubble(53,gY-6);bubble(58,gY-7);bubble(80,gY-5);bubble(90,gY-5);
-    bandit(63,gY-6,60,66);
-    ents.push({type:'heart',x:56,y:gY-4,collected:false});ents.push({type:'door',x:pw-4,y:gY-6});
-    // Springs to reach high areas + spike traps
-    trampolines.push({x:14*T,y:(gY-3)*T,angle:0});// vertical spring at start
-    trampolines.push({x:44*T,y:(gY-4)*T,angle:1});// angled spring (launch right)
-    trampolines.push({x:82*T,y:(gY-3)*T,angle:-1});// angled spring (launch left)
-    trampolines.push({x:66*T,y:(gY-5)*T,angle:0});// spring at tower base to reach over it
-    spikes.push({x:67*T,y:(gY-10)*T});// spike on tower top
-    spikes.push({x:68*T,y:(gY-10)*T});spikes.push({x:69*T,y:(gY-10)*T});
-    // Tower is stone-colored (grey wall overlay)
-    decs.push({type:'wall',x:67*T,y:(gY-10)*T,w:3*T,h:5*T,color:'#A8A898'});
-    decs.push({type:'bush',x:2*T,y:gY*T},{type:'bush',x:24*T,y:(gY-4)*T},{type:'bush',x:58*T,y:(gY-5)*T},{type:'bush',x:90*T,y:(gY-3)*T});
-    decs.push({type:'rock',x:6*T,y:gY*T},{type:'rock',x:38*T,y:(gY-2)*T},{type:'rock',x:80*T,y:(gY-2)*T});
-    decs.push({type:'plant',x:14*T,y:(gY-3)*T},{type:'plant',x:34*T,y:(gY-2)*T},{type:'plant',x:70*T,y:(gY-5)*T},{type:'plant',x:98*T,y:(gY-4)*T});break;
-  case 8:// Level 9: WATER WORLD - dramatic descent to islands, then ascent to exit
-    // Descending cliff entrance (3 big steps down to water level)
-    flat(0,3,gY-6);stDn(3,gY-6,2);flat(7,10,gY-4);stDn(10,gY-4,1);flat(12,15,gY-3);
-    // Small islands over water (narrower = more dangerous)
-    solid(18,gY-3,3,1);// gap=3
-    solid(23,gY-4,3,2);// gap=2
-    solid(28,gY-3,3,1);// gap=2
-    solid(33,gY-5,3,3);// gap=2, tall island
-    solid(38,gY-3,3,1);// gap=2
-    solid(43,gY-4,3,2);// gap=2
-    solid(48,gY-3,3,1);// gap=2
-    solid(53,gY-5,4,3);// gap=2, tall (key here)
-    solid(59,gY-3,3,1);// gap=2
-    solid(64,gY-4,3,2);// gap=2
-    solid(69,gY-3,3,1);// gap=2
-    // Ascending cliff exit (mirror of entrance)
-    flat(74,77,gY-3);stUp(77,gY-3,1);flat(79,82,gY-4);stUp(82,gY-4,2);flat(86,pw,gY-6);
+    flat(103,pw,gY-5);
+    gLine(5,8,gY);gLine(14,18,gY-2);gLine(20,24,gY-3);gLine(31,36,gY-4);gLine(42,48,gY-2);gem(56,gY-5);gem(58,gY-5);gem(60,gY-5);gem(65,gY-4);gLine(70,75,gY-5);gLine(80,86,gY-5);gLine(94,99,gY-3);gLine(104,pw-5,gY-5);
+    ents.push({type:'key',x:83,y:gY-6,collected:false});
+    frog(22,gY-4,19,24);frog(33,gY-5,30,36);frog(44,gY-3,41,48);frog(57,gY-5,55,60);frog(82,gY-6,79,86);frog(96,gY-4,93,99);
+    snake(44,gY-3,41,48);
+    bubble(27,gY-6);bubble(38,gY-5);bubble(62,gY-6);bubble(67,gY-7);bubble(90,gY-5);
+    bandit(72,gY-6,69,75);
+    ents.push({type:'heart',x:65,y:gY-4,collected:false});ents.push({type:'door',x:pw-4,y:gY-5});
+    // Springs
+    trampolines.push({x:19*T,y:(gY-3)*T,angle:0});// vertical spring
+    trampolines.push({x:53*T,y:(gY-4)*T,angle:1});// angled spring (launch right)
+    trampolines.push({x:75*T,y:(gY-5)*T,angle:0});// spring at tower base
+    trampolines.push({x:91*T,y:(gY-3)*T,angle:-1});// angled spring (launch left)
+    spikes.push({x:76*T,y:(gY-14)*T});spikes.push({x:77*T,y:(gY-14)*T});spikes.push({x:78*T,y:(gY-14)*T});
+    // Tower stone overlay
+    decs.push({type:'wall',x:76*T,y:(gY-14)*T,w:3*T,h:9*T,color:'#A8A898'});
+    decs.push({type:'bush',x:5*T,y:gY*T},{type:'bush',x:30*T,y:(gY-4)*T},{type:'bush',x:69*T,y:(gY-5)*T},{type:'bush',x:103*T,y:(gY-3)*T});
+    decs.push({type:'rock',x:8*T,y:gY*T},{type:'rock',x:45*T,y:(gY-2)*T},{type:'rock',x:88*T,y:(gY-2)*T});
+    decs.push({type:'plant',x:19*T,y:(gY-3)*T},{type:'plant',x:41*T,y:(gY-2)*T},{type:'plant',x:79*T,y:(gY-5)*T});break;
+  case 8:// Level 9: WATER WORLD - dramatic descent to islands near water
+    // Descending cliff entrance (3 big steps, wide)
+    flat(0,5,gY-8);flat(5,10,gY-5);flat(10,14,gY-2);
+    // Small islands barely above water (waterY=17, islands at gY-1=15 or gY=16)
+    solid(17,gY,3,1);// just above water
+    solid(22,gY-1,3,2);// slightly higher
+    solid(27,gY,3,1);
+    solid(32,gY-2,3,3);// tall island
+    solid(37,gY,3,1);
+    solid(42,gY-1,3,2);
+    solid(47,gY,3,1);
+    solid(52,gY-2,4,3);// tall (key here)
+    solid(58,gY,3,1);
+    solid(63,gY-1,3,2);
+    solid(68,gY,3,1);
+    // Ascending cliff exit (mirror entrance)
+    flat(73,77,gY-2);flat(77,82,gY-5);flat(82,pw,gY-8);
     // Gems
-    gLine(1,2,gY-6);gem(8,gY-5);gem(13,gY-4);
-    gem(19,gY-4);gem(24,gY-5);gem(29,gY-4);gem(34,gY-6);gem(39,gY-4);
-    gem(44,gY-5);gem(49,gY-4);gLine(54,56,gY-5);gem(60,gY-4);gem(65,gY-5);gem(70,gY-4);
-    gem(75,gY-4);gLine(87,pw-5,gY-6);
-    ents.push({type:'key',x:55,y:gY-6,collected:false});
-    frog(29,gY-4,28,30);frog(44,gY-5,43,45);frog(70,gY-4,69,71);frog(88,gY-7,86,pw-5);
-    bubble(5,gY-8);bubble(21,gY-6);bubble(36,gY-6);bubble(51,gY-5);bubble(62,gY-6);bubble(73,gY-5);bubble(80,gY-6);
-    ents.push({type:'heart',x:34,y:gY-6,collected:false},{type:'heart',x:65,y:gY-5,collected:false});
-    ents.push({type:'door',x:pw-4,y:gY-6});
-    tallCactus(1,gY-6,5);tallCactus(pw-5,gY-6,5);
-    decs.push({type:'plant',x:19*T,y:(gY-3)*T},{type:'plant',x:43*T,y:(gY-4)*T},{type:'plant',x:60*T,y:(gY-3)*T});
+    gLine(1,4,gY-8);gem(7,gY-6);gem(12,gY-3);
+    gem(18,gY-1);gem(23,gY-2);gem(28,gY-1);gem(33,gY-3);gem(38,gY-1);
+    gem(43,gY-2);gem(48,gY-1);gLine(53,55,gY-2);gem(59,gY-1);gem(64,gY-2);gem(69,gY-1);
+    gem(74,gY-3);gLine(83,pw-5,gY-8);
+    ents.push({type:'key',x:54,y:gY-3,collected:false});
+    frog(28,gY-1,27,29);frog(43,gY-2,42,44);frog(69,gY-1,68,70);frog(84,gY-9,82,pw-5);
+    bubble(8,gY-7);bubble(20,gY-3);bubble(35,gY-3);bubble(50,gY-2);bubble(61,gY-3);bubble(71,gY-3);bubble(78,gY-7);
+    ents.push({type:'heart',x:33,y:gY-3,collected:false},{type:'heart',x:64,y:gY-2,collected:false});
+    ents.push({type:'door',x:pw-4,y:gY-8});
+    tallCactus(2,gY-8,5);tallCactus(pw-5,gY-8,5);
+    decs.push({type:'plant',x:18*T,y:gY*T},{type:'plant',x:42*T,y:(gY-1)*T},{type:'plant',x:59*T,y:gY*T});
     // Piranhas jumping from water!
     piranhas.push({x:16*T,baseY:17*T,vx:0,jumpH:7*T,period:160,phase:0,type:'vert'});
     piranhas.push({x:26*T,baseY:17*T,vx:2,jumpH:6*T,period:180,phase:40,type:'arc'});
@@ -763,11 +778,11 @@ function genLv(idx){
     // ===== UPPER CORRIDOR (x=22-35, floor at row 20) =====
     solid(22,20,14,1);
 
-    // ===== DESCENT STAIRCASE (x=36-55) =====
-    solid(36,22,5,1);// row 22
-    solid(41,24,5,1);// row 24
-    solid(46,26,5,1);// row 26
-    solid(51,27,5,1);// row 27 (near cave floor)
+    // ===== DESCENT STAIRCASE (x=36-57, wide 6-tile steps) =====
+    solid(36,21,6,1);// row 21
+    solid(42,23,6,1);// row 23
+    solid(48,25,6,1);// row 25
+    solid(54,27,6,1);// row 27 (near cave floor)
 
     // ===== MAIN CAVERN (x=56-84): floor at row 27 + platforms =====
     solid(56,27,29,1);// cavern floor
@@ -795,8 +810,10 @@ function genLv(idx){
     bandit(125,gY-1,118,pw-6);
     decs.push({type:'rock',x:112*T,y:gY*T},{type:'bush',x:122*T,y:gY*T});
 
-    // ===== BOULDERS =====
-    boulder(16,19,0);boulder(17,19,0);// entrance
+    // ===== BOULDERS (pyramid cluster at entrance!) =====
+    boulder(15,19,0);boulder(16,19,0);boulder(17,19,0);// entrance bottom row
+    boulder(15,18,0);boulder(16,18,0);// entrance middle row
+    boulder(16,17,0);// entrance top
     boulder(25,19,0);boulder(30,19,0);// upper corridor
     boulder(38,21,0);boulder(43,23,0);// descent
     boulder(48,25,0);boulder(53,26,0);
@@ -849,8 +866,8 @@ function genLv(idx){
     // Column 2 (gold): height 14
     solid(9,gY-14,2,14);
     flat(9,11,gY);
-    // Gap 2: 1 tile (x=11), floor at gY-6 (elevated walkway)
-    solid(11,gY-6,1,1);
+    // Gap 2: 1 tile (x=11), floor at ground level
+    flat(11,12,gY);
     // Column 3 (red): height 10
     solid(12,gY-10,2,10);decs.push({type:'wall',x:12*T,y:(gY-10)*T,w:2*T,h:10*T,color:'#C08060'});
     flat(12,14,gY);
@@ -861,15 +878,15 @@ function genLv(idx){
     // Column 4 (gold): height 13
     solid(26,gY-13,2,13);
     flat(26,28,gY);
-    // Gap 4: 1 tile
-    solid(28,gY-4,1,1);
+    // Gap 4: 1 tile, ground level
+    flat(28,29,gY);
     // Column 5 (red): height 11
     solid(29,gY-11,2,11);decs.push({type:'wall',x:29*T,y:(gY-11)*T,w:2*T,h:11*T,color:'#C08060'});
     flat(29,31,gY);
     // Open section (x=31-40)
     flat(31,40,gY);solid(33,gY-4,4,1);solid(37,gY-7,3,1);
-    // Column 6 (gold): height 15 (tallest!)
-    solid(40,gY-15,2,15);
+    // Column 6 (gold): FULL HEIGHT (tallest!)
+    solid(40,0,2,gY);
     flat(40,42,gY);
     // Gap 5: 2 tiles
     flat(42,44,gY);
@@ -883,8 +900,13 @@ function genLv(idx){
     // Column 8 (gold): height 10
     solid(60,gY-10,2,10);
     flat(60,62,gY);
-    // Open area to exit (x=62-pw)
-    flat(62,68,gY-2);stUp(68,gY-2,2);flat(72,78,gY-4);stDn(78,gY-4,1);flat(80,pw,gY-3);
+    // Continue column maze toward exit (x=62-80)
+    solid(62,gY-12,2,12);decs.push({type:'wall',x:62*T,y:(gY-12)*T,w:2*T,h:12*T,color:'#C08060'});
+    flat(62,64,gY);flat(64,67,gY);
+    solid(67,0,2,gY);// full-height column
+    flat(67,69,gY);flat(69,73,gY);
+    solid(73,gY-10,2,10);
+    flat(73,75,gY);flat(75,pw,gY);
 
     // === GEMS ===
     gLine(1,3,gY);// start
@@ -899,7 +921,7 @@ function genLv(idx){
     gem(49,gY-10);gem(50,gY-10);// pyramid 2 top
     gem(47,gY-5);gem(53,gY-5);
     gem(58,gY-1);gem(59,gY-1);
-    gLine(63,67,gY-2);gLine(73,77,gY-4);gLine(81,pw-5,gY-3);
+    gLine(64,66,gY);gLine(69,72,gY);gLine(76,pw-5,gY);
 
     // KEY at top of pyramid 2
     ents.push({type:'key',x:49,y:gY-10,collected:false});
@@ -911,22 +933,22 @@ function genLv(idx){
     snake(22,gY-1,17,25);// pyramid 1 base
     snake(50,gY-1,44,55);// pyramid 2 base
     darkfrog(11,gY-7,9,13);darkfrog(42,gY-1,42,43,-1);darkfrog(64,gY-3,62,67);
-    ents.push({type:'birdcatcher',x:73,y:gY-5,startX:72,endX:77,dir:-1,alive:true});
+    ents.push({type:'birdcatcher',x:70,y:gY-1,startX:69,endX:72,dir:-1,alive:true});
     ents.push({type:'woman',x:2,y:gY-1,collected:false});
-    ents.push({type:'freedbird',x:73,y:gY-7,active:false,delivered:false});
-    bandit(82,gY-4,80,pw-5);
+    ents.push({type:'freedbird',x:70,y:gY-3,active:false,delivered:false});
+    bandit(76,gY-1,75,pw-5);
 
-    bubble(5,gY-8);bubble(28,gY-8);bubble(58,gY-8);bubble(75,gY-6);
-    ents.push({type:'heart',x:21,y:gY-7,collected:false});ents.push({type:'heart',x:65,y:gY-3,collected:false});
-    ents.push({type:'door',x:pw-4,y:gY-3});
-    decs.push({type:'plant',x:31*T,y:gY*T},{type:'plant',x:62*T,y:(gY-2)*T});break;}
+    bubble(5,gY-8);bubble(28,gY-8);bubble(58,gY-8);bubble(69,gY-4);
+    ents.push({type:'heart',x:21,y:gY-7,collected:false});ents.push({type:'heart',x:65,y:gY-1,collected:false});
+    ents.push({type:'door',x:pw-4,y:gY});
+    decs.push({type:'plant',x:31*T,y:gY*T},{type:'plant',x:75*T,y:gY*T});break;}
   case 11:// Level 12: FINAL BOSS
-    flat(0,8,gY);stUp(8,gY,3);flat(14,20,gY-3);stUp(20,gY-3,2);flat(24,34,gY-5);
-    stDn(34,gY-5,2);flat(38,48,gY-3);
+    flat(0,8,gY);stUp(8,gY,3,3);flat(17,23,gY-3);stUp(23,gY-3,2,3);flat(29,37,gY-5);
+    stDn(37,gY-5,2,3);flat(43,50,gY-3);
     // Boss arena
     flat(50,82,gY);
-    // Safe rock: stepped pyramid, pig tunnel underneath (1 tile gap)
-    solid(60,gY-1,10,1);solid(62,gY-3,6,2);solid(63,gY-5,4,2);// 3-tier stepped rock
+    // Safe rock: 2-tier stepped structure, pig tunnel underneath (1 tile gap)
+    solid(60,gY-1,10,1);solid(62,gY-4,6,3);// base 10 wide, top 6 wide x 3 tall
     // Arena wall - only exists while boss is alive (removed on defeat)
     // Wall is 3 tiles wide so pig absolutely cannot squeeze past
     solid(82,0,3,gY);// wall from top to ground level (not below ground)
@@ -1253,14 +1275,14 @@ function renderPlay(){
   if(LV.spikes)LV.spikes.forEach(sp=>drawSpikeTrap(sp.x,sp.y));
   // Piranhas
   if(LV.piranhas)LV.piranhas.forEach(p=>{if(p.visible)drawPiranha(p.curX,p.curY,p.curVx||0,p.curVy||0)});
-  // Water
-  if(LV.waterY)drawWater(LV.waterY*T-Math.floor(cam.y),cam.x);
   // Player
   if(!P.dead){if(P.inv<=0||Math.floor(P.inv/4)%2===0)drawPig(P.x,P.y,P.dir,P.fr,P.gnd)}
   else{X.save();X.translate(P.x+16,P.y+14);X.rotate(fc*.2);drawPig(-16,-14,1,0,false);X.restore()}
   pts.forEach(p=>{X.globalAlpha=p.l/p.ml;X.fillStyle=p.c;X.fillRect(Math.floor(p.x),Math.floor(p.y),p.s,p.s)});X.globalAlpha=1;
   ftx.forEach(f=>{X.globalAlpha=f.l/50;X.fillStyle=f.c;X.font='8px "Press Start 2P",monospace';X.fillText(f.t,f.x,f.y)});X.globalAlpha=1;
   X.restore();
+  // Water (drawn outside camera transform so it spans full screen width)
+  if(LV.waterY)drawWater(LV.waterY*T-Math.floor(cam.y),cam.x);
   // HUD
   X.fillStyle='rgba(0,0,0,0.55)';X.fillRect(0,0,800,36);X.fillStyle='#5D4037';X.fillRect(0,36,800,2);
   X.fillStyle='#E0C898';X.fillRect(8,7,12,9);X.fillStyle='#604020';X.fillRect(16,10,2,2);
