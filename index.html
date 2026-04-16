@@ -548,7 +548,14 @@ function genLv(idx){
     decs.push({type:'rock',x:6*T,y:gY*T},{type:'rock',x:40*T,y:gY*T},{type:'rock',x:70*T,y:(gY-1)*T});
     break;
   case 1:// Level 2: Western Town - ROPES + PUSHABLE BOULDERS
-    flat(0,14,gY);solid(15,gY-6,1,6);solid(16,gY-6,14,1);flat(14,30,gY);solid(28,gY-8,3,2);stUp(30,gY,2);flat(34,50,gY-2);solid(36,gY-5,12,1);solid(36,gY-8,12,1);stDn(50,gY-2,2);flat(54,70,gY);solid(55,gY-5,1,5);solid(56,gY-5,12,1);
+    flat(0,14,gY);solid(15,gY-6,1,6);solid(16,gY-6,14,1);flat(14,30,gY);
+    // Building 1 stepping ledges (ground gY -> ledge gY-3 -> roof gY-6)
+    solid(16,gY-3,3,1);solid(25,gY-3,3,1);
+    solid(28,gY-8,3,2);stUp(30,gY,2);flat(34,50,gY-2);solid(36,gY-5,12,1);solid(36,gY-8,12,1);
+    // Building 2 stepping ledge (ground gY-2 -> ledge gY-5 already exists -> roof gY-8)
+    stDn(50,gY-2,2);flat(54,70,gY);solid(55,gY-5,1,5);solid(56,gY-5,12,1);
+    // Building 3 stepping ledge (ground gY -> ledge gY-3 -> roof gY-5)
+    solid(56,gY-3,3,1);solid(63,gY-3,3,1);
     // Ground with ROPE SECTION: solid ground on sides, rope in middle
     flat(70,73,gY);// solid ground left of rope
     // ROPE at ground level (gY) - pig walks on it like normal ground
@@ -572,7 +579,16 @@ function genLv(idx){
     decs.push({type:'win',x:20*T,y:(gY-4)*T},{type:'win',x:25*T,y:(gY-4)*T},{type:'win',x:39*T,y:(gY-6)*T},{type:'win',x:44*T,y:(gY-6)*T});
     decs.push({type:'rock',x:6*T,y:gY*T},{type:'bush',x:52*T,y:gY*T});break;
   case 2:// Level 3: Grey Town + bandits
-    flat(0,10,gY);solid(10,gY-5,10,1);flat(10,24,gY);stUp(24,gY,3);flat(30,40,gY-3);solid(30,gY-6,4,3);solid(32,gY-8,8,1);stDn(40,gY-3,2);flat(44,56,gY-1);solid(44,gY-4,2,3);solid(46,gY-6,10,1);flat(56,70,gY);stUp(62,gY,2);flat(66,80,gY-2);stDn(76,gY-2,2);flat(80,pw,gY);
+    flat(0,10,gY);solid(10,gY-5,10,1);flat(10,24,gY);
+    // Building 1 stepping ledges (ground gY -> ledge gY-3 -> roof gY-5)
+    solid(10,gY-3,3,1);solid(17,gY-3,3,1);
+    stUp(24,gY,3);flat(30,40,gY-3);solid(30,gY-6,4,3);solid(32,gY-8,8,1);
+    // Building 2 stepping ledge (ground gY-3 -> ledge gY-6 -> roof gY-8)
+    solid(32,gY-6,3,1);solid(37,gY-6,3,1);
+    stDn(40,gY-3,2);flat(44,56,gY-1);solid(44,gY-4,2,3);solid(46,gY-6,10,1);
+    // Building 3 stepping ledge (ground gY-1 -> ledge gY-4 -> roof gY-6)
+    solid(46,gY-4,3,1);solid(53,gY-4,3,1);
+    flat(56,70,gY);stUp(62,gY,2);flat(66,80,gY-2);stDn(76,gY-2,2);flat(80,pw,gY);
     gLine(2,8,gY);gLine(11,19,gY-5,2);gem(33,gY-9);gem(35,gY-9);gem(37,gY-9);gLine(32,38,gY-3);gLine(47,55,gY-6,2);gLine(58,60,gY);gLine(68,78,gY-2);gLine(82,pw-5,gY);
     frog(15,gY-6,11,19);frog(36,gY-4,31,39);frog(50,gY-2,45,55);
     bandit(72,gY-3,68,78);
@@ -678,7 +694,7 @@ function genLv(idx){
     tallCactus(3,gY,5);gem(4,gY-2);gem(2,gY-4);
     decs.push({type:'rock',x:33*T,y:(gY-2)*T},{type:'bush',x:54*T,y:(gY-2)*T});break;
   case 6:// Level 7: The Ranch - rooftops + birds
-    flat(0,10,gY);flat(10,24,gY);solid(12,gY-3,2,3);solid(14,gY-5,4,2);solid(14,gY-7,10,1);
+    flat(0,10,gY);flat(10,24,gY);solid(10,gY-3,3,1);solid(12,gY-3,2,3);solid(14,gY-5,4,2);solid(14,gY-7,10,1);solid(21,gY-3,3,1);
     stUp(24,gY,2);flat(28,40,gY-2);solid(28,gY-5,3,3);solid(30,gY-8,8,1);stDn(40,gY-2,2);
     flat(44,60,gY);stUp(52,gY,3);flat(58,68,gY-3);stDn(68,gY-3,2);flat(72,84,gY-1);flat(84,pw,gY);
     gLine(2,8,gY);gLine(15,23,gY-7,2);gem(31,gY-9);gem(33,gY-9);gem(35,gY-9);gem(37,gY-9);gLine(30,38,gY-2);gLine(46,50,gY);gLine(60,66,gY-3);gLine(74,82,gY-1);gLine(86,pw-5,gY);
