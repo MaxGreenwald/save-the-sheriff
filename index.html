@@ -360,7 +360,7 @@ function drawSpring(x,y,angle){
   X.save();
   if(angle!==0){
     // Angled spring - rotate 45 degrees
-    X.translate(x+16,y+8);X.rotate(angle>0?-0.7:0.7);X.translate(-16,-8);
+    X.translate(x+16,y+8);X.rotate(angle>0?0.7:-0.7);X.translate(-16,-8);
     x=0;y=0;
   }
   // Base
