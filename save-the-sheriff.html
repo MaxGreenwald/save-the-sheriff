@@ -26,6 +26,9 @@ document.addEventListener('keydown',e=>{inp[e.code]=true;if(e.code==='KeyP'){if(
 document.addEventListener('keyup',e=>{inp[e.code]=false});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)Object.keys(inp).forEach(k=>inp[k]=false)});
 window.addEventListener('blur',()=>Object.keys(inp).forEach(k=>inp[k]=false));
+// Clear stuck modifier keys (screenshot Cmd+Shift causes Shift to stick)
+document.addEventListener('keydown',e=>{if(e.metaKey||e.key==='Meta'){inp.ShiftLeft=false;inp.ShiftRight=false}});
+document.addEventListener('keyup',e=>{if(e.key==='Meta'||e.key==='Shift'){inp.ShiftLeft=false;inp.ShiftRight=false}});
 C.addEventListener('click',onClick);
 
 // Audio
