@@ -741,11 +741,11 @@ function genLv(idx){
     bandit(72,gY-6,69,75);
     ents.push({type:'heart',x:65,y:gY-4,collected:false});ents.push({type:'door',x:pw-4,y:gY-5});
     // Springs
-    // All springs vertical - pig controls horizontal with arrow keys
-    trampolines.push({x:19*T,y:(gY-3)*T,angle:0});
-    trampolines.push({x:53*T,y:(gY-4)*T,angle:0});
-    trampolines.push({x:75*T,y:(gY-5)*T,angle:0});
-    trampolines.push({x:91*T,y:(gY-3)*T,angle:0});
+    // Springs: angled to launch pig across chasms
+    trampolines.push({x:23*T,y:(gY-3)*T,angle:1});// angled right: clear gap to x=30
+    trampolines.push({x:53*T,y:(gY-4)*T,angle:1});// angled right: clear gap to stepping stone
+    trampolines.push({x:75*T,y:(gY-5)*T,angle:0});// vertical: launch up over tower
+    trampolines.push({x:91*T,y:(gY-3)*T,angle:1});// angled right: clear to exit
     spikes.push({x:76*T,y:(gY-14)*T});spikes.push({x:77*T,y:(gY-14)*T});spikes.push({x:78*T,y:(gY-14)*T});
     // Tower stone overlay
     decs.push({type:'wall',x:76*T,y:(gY-14)*T,w:3*T,h:9*T,color:'#A8A898'});
