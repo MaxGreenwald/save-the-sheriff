@@ -897,62 +897,70 @@ function genLv(idx){
     // Opening flat
     flat(0,4,gY);
     // === COLUMN MAZE (x=4-70): tightly packed tall columns with narrow 1-2 tile gaps ===
-    // Column 1 (red): height 12
+    // Column 1 (red): height 12 + ledges
     solid(4,gY-12,3,12);decs.push({type:'wall',x:4*T,y:(gY-12)*T,w:3*T,h:12*T,color:'#C08060'});
+    solid(3,gY-3,1,1);solid(7,gY-6,1,1);solid(3,gY-9,1,1);
     flat(4,7,gY);
-    // Gap 1: 2 tiles (x=7-8), floor at gY
+    // Gap 1
     flat(7,9,gY);
-    // Column 2 (gold): height 14
+    // Column 2 (gold): height 14 + ledges
     solid(9,gY-14,2,14);
+    solid(8,gY-3,1,1);solid(11,gY-6,1,1);solid(8,gY-9,1,1);solid(11,gY-12,1,1);
     flat(9,11,gY);
-    // Gap 2: 1 tile (x=11), floor at ground level
+    // Gap 2
     flat(11,12,gY);
-    // Column 3 (red): height 10
+    // Column 3 (red): height 10 + ledges
     solid(12,gY-10,2,10);decs.push({type:'wall',x:12*T,y:(gY-10)*T,w:2*T,h:10*T,color:'#C08060'});
+    solid(11,gY-3,1,1);solid(14,gY-6,1,1);solid(11,gY-9,1,1);
     flat(12,14,gY);
-    // Gap 3: 2 tiles, floor at gY
+    // Gap 3
     flat(14,16,gY);
-    // Stepped pyramid 1 (x=16-26): wide base stepping up
+    // Stepped pyramid 1 (x=16-26)
     flat(16,26,gY);solid(18,gY-3,6,3);solid(20,gY-6,2,3);
-    // Column 4 (gold): height 13
+    // Column 4 (gold): height 13 + ledges
     solid(26,gY-13,2,13);
+    solid(25,gY-3,1,1);solid(28,gY-6,1,1);solid(25,gY-9,1,1);solid(28,gY-12,1,1);
     flat(26,28,gY);
-    // Gap 4: 1 tile, ground level
+    // Gap 4
     flat(28,29,gY);
-    // Column 5 (red): height 11
+    // Column 5 (red): height 11 + ledges
     solid(29,gY-11,2,11);decs.push({type:'wall',x:29*T,y:(gY-11)*T,w:2*T,h:11*T,color:'#C08060'});
+    solid(28,gY-3,1,1);solid(31,gY-6,1,1);solid(28,gY-9,1,1);
     flat(29,31,gY);
-    // Open section (x=31-40)
-    flat(31,40,gY);solid(33,gY-4,4,1);solid(37,gY-7,3,1);
-    // Column 6 (gold): FULL HEIGHT with climbing ledges
+    // Open section (x=31-40) with stepping platforms
+    flat(31,40,gY);solid(33,gY-3,4,1);solid(37,gY-6,3,1);
+    // Column 6 (gold): FULL HEIGHT + ledges
     solid(40,0,2,gY);
-    // Stepping ledges on alternating sides for climbing
     solid(39,gY-3,1,1);solid(42,gY-6,1,1);solid(39,gY-9,1,1);solid(42,gY-12,1,1);
     flat(40,42,gY);
-    // Gap 5: 2 tiles
+    // Gap 5
     flat(42,44,gY);
     // Stepped pyramid 2 (x=44-56)
     flat(44,56,gY);solid(46,gY-4,8,4);solid(48,gY-7,4,3);solid(49,gY-9,2,2);
-    // Column 7 (red): height 12
+    // Column 7 (red): height 12 + ledges
     solid(56,gY-12,2,12);decs.push({type:'wall',x:56*T,y:(gY-12)*T,w:2*T,h:12*T,color:'#C08060'});
+    solid(55,gY-3,1,1);solid(58,gY-6,1,1);solid(55,gY-9,1,1);
     flat(56,58,gY);
     // Gap 6
     flat(58,60,gY);
-    // Column 8 (gold): height 10
+    // Column 8 (gold): height 10 + ledges
     solid(60,gY-10,2,10);
+    solid(59,gY-3,1,1);solid(62,gY-6,1,1);solid(59,gY-9,1,1);
     flat(60,62,gY);
     // Continue column maze toward exit (x=62-80)
     solid(62,gY-12,2,12);decs.push({type:'wall',x:62*T,y:(gY-12)*T,w:2*T,h:12*T,color:'#C08060'});
+    solid(61,gY-3,1,1);solid(64,gY-6,1,1);solid(61,gY-9,1,1);
     flat(62,64,gY);flat(64,67,gY);
-    solid(67,0,2,gY);solid(66,gY-3,1,1);solid(69,gY-6,1,1);solid(66,gY-9,1,1);// column + ledges
+    solid(67,0,2,gY);solid(66,gY-3,1,1);solid(69,gY-6,1,1);solid(66,gY-9,1,1);solid(69,gY-12,1,1);
     flat(67,69,gY);flat(69,73,gY);
     solid(73,gY-10,2,10);
+    solid(72,gY-3,1,1);solid(75,gY-6,1,1);solid(72,gY-9,1,1);
     flat(73,75,gY);flat(75,pw,gY);
 
     // === GEMS ===
     gLine(1,3,gY);// start
     gem(7,gY-1);gem(8,gY-1);// gap 1
-    gem(11,gY-7);// elevated gap
+    gem(11,gY-1);// gap floor
     gem(14,gY-1);gem(15,gY-1);
     gem(20,gY-7);gem(21,gY-7);// pyramid 1 top
     gLine(17,25,gY);
@@ -988,8 +996,8 @@ function genLv(idx){
     stDn(37,gY-5,2,3);flat(43,50,gY-3);
     // Boss arena
     flat(50,82,gY);
-    // Safe rock: 2-tier stepped structure, pig tunnel underneath (row gY-1 is the gap)
-    solid(60,gY-2,10,2);solid(62,gY-4,6,2);// base at gY-2, top tier gY-4 to gY-3
+    // Safe rock: 2-tier stepped structure, pig tunnel underneath (row gY-1=15 is the gap)
+    solid(60,gY-3,10,2);solid(62,gY-5,6,2);// base rows 13-14, top rows 11-12, gap at row 15
     // Arena wall - only exists while boss is alive (removed on defeat)
     // Wall is 3 tiles wide so pig absolutely cannot squeeze past
     solid(82,0,3,gY);// wall from top to ground level (not below ground)
@@ -1126,7 +1134,7 @@ function updEnts(){
       // Hopping boot mech AI - seeks the pig!
       bootTimer--;
       const arenaLeft=50*T,arenaRight=78*T,arenaGnd=16*T;
-      const rockTop=12*T,rockLeft=60*T,rockRight=70*T;// safe rock platform (gY-4=12, pig tunnel below)
+      const rockTop=11*T,rockLeft=60*T,rockRight=70*T;// safe rock platform (gY-5=11, pig tunnel at row 15)
       const pigUnderRock=P.x>rockLeft-10&&P.x<rockRight+10&&P.y>rockTop&&P.y<arenaGnd;
       if(bootState==='ground'){
         if(bootTimer<=0){
