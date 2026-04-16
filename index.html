@@ -1126,7 +1126,7 @@ function updEnts(){
       // Hopping boot mech AI - seeks the pig!
       bootTimer--;
       const arenaLeft=50*T,arenaRight=78*T,arenaGnd=16*T;
-      const rockTop=(gY-4)*T,rockLeft=60*T,rockRight=70*T;// safe rock platform (raised, pig tunnel below)
+      const rockTop=12*T,rockLeft=60*T,rockRight=70*T;// safe rock platform (gY-4=12, pig tunnel below)
       const pigUnderRock=P.x>rockLeft-10&&P.x<rockRight+10&&P.y>rockTop&&P.y<arenaGnd;
       if(bootState==='ground'){
         if(bootTimer<=0){
