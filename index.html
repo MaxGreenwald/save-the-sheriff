@@ -1158,7 +1158,7 @@ function updEnts(){
             e.alive=false;score+=1000;
             spT(bossX-30,bossY-70,'BOSS DEFEATED!','#FFD700');sfx('clear');
             // Drop key where boss died
-            LV.ents.push({type:'key',x:Math.floor(bossX/T),y:gY-1,collected:false});
+            LV.ents.push({type:'key',x:Math.floor(bossX/T),y:Math.floor(bossY/T)-1,collected:false});
             // Remove arena wall so pig can reach door
             for(let yy=0;yy<LV.ph;yy++)for(let wx=82;wx<=84;wx++)if(LV.grid[yy]&&LV.grid[yy][wx])LV.grid[yy][wx]=0;
             terrainDirty=true;
