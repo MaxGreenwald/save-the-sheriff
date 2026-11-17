@@ -227,18 +227,19 @@ var LEVELS = [
     rows: 18,
     exit: 'sign',
     goals: {},
-    /* Rainy green hills from the level 8 frames. A cave mouth, frogs, one
-       spiked stone pillar that stays put, a spring, and a swirl sign. */
+    /* Rainy green hills. A cave mouth, a flat pillar and a spiked pillar that
+       stay put, two springs, and the swirl sign. */
     ground: [[0, 85, 15]],
     rects: [
-      [6, 9, 6, 5, TILE.SOLID],
-      [40, 11, 4, 3, TILE.SOLID]
+      [6, 9, 6, 4, TILE.SOLID],
+      [28, 11, 4, 3, TILE.SOLID],
+      [44, 11, 4, 3, TILE.SOLID]
     ],
-    spikes: [[40, 10, 4]],
-    plats: [[18, 13, 5], [28, 12, 4], [56, 13, 6]],
-    tokens: [[4, 13], [14, 12], [22, 11], [34, 13], [48, 12], [60, 11], [72, 13]],
+    spikes: [[44, 10, 4]],
+    plats: [[18, 13, 5], [36, 13, 4], [56, 13, 6]],
+    tokens: [[4, 13], [10, 12], [14, 12], [18, 12], [22, 11], [34, 13], [48, 12], [60, 11], [72, 13]],
     frogs: [[20, 12], [58, 12]],
-    springs: [[64, 14]],
+    springs: [[52, 14], [66, 14]],
     cacti: [[74, 14]],
     signs: [[80, 14]],
     script: [
@@ -256,8 +257,8 @@ var LEVELS = [
     rows: 18,
     exit: 'cave',
     goals: {},
-    /* Play order from the level 9 frames: grass and a cactus, a drop onto tan
-       islets, a snake, fish leaping out of the water, a net on the stair, crates, a cave mouth. */
+    /* Water crossing: cactus, islets, fish, a cage, a row of stones, a net
+       on the stair, and a spring in the last shaft. The plunger is not required. */
     ground: [[0, 14, 10]],
     rects: [
       [18, 10, 11, 2, TILE.SOLID],
@@ -274,6 +275,10 @@ var LEVELS = [
     frogs: [[10, 9]],
     snakes: [[36, 9, 3]],
     nets: [[74, 7, 1]],
+    hostages: [[50, 7]],
+    boulders: [[48, 7], [49, 7], [50, 7], [51, 7]],
+    plungers: [{ c: 46, r: 7, clears: [] }],
+    springs: [[100, 8]],
     fish: [[16], [30], [44], [56], [68], [82], [96]],
     cacti: [[4, 9], [34, 9], [100, 9]],
     caves: [[104, 9]],
@@ -296,16 +301,17 @@ var LEVELS = [
     rows: 18,
     exit: 'edge',
     goals: {},
-    /* Outdoor orange canyon from the level 10 frames. Boulder pile, a vertical
-       coin shaft, a spring, a wooden building, and a star plunger that the
-       playthrough walks past. No key is required to leave. */
+    /* Orange canyon. Cave mouth, a sphere pile, a vertical coin shaft, a
+       spring, a floating key that is not required, and a star plunger on the roof. */
     ground: [[0, 95, 15]],
+    rects: [[0, 9, 4, 4, TILE.SOLID]],
     plats: [[10, 13, 5], [18, 11, 4], [36, 12, 6], [48, 13, 3], [50, 12, 3], [52, 11, 3], [66, 12, 5], [78, 11, 6]],
-    tokens: [[4, 14], [8, 12], [14, 10], [22, 9], [40, 8], [40, 10], [40, 12], [40, 14], [46, 13], [46, 11], [46, 9], [60, 10], [70, 10], [84, 9], [90, 14]],
+    tokens: [[4, 14], [8, 12], [14, 10], [22, 9], [40, 7], [40, 8], [40, 9], [40, 10], [40, 11], [40, 12], [40, 13], [40, 14], [46, 13], [46, 11], [46, 9], [60, 10], [70, 10], [84, 9], [90, 14]],
     boulders: [[36, 11], [37, 11], [38, 11], [37, 10], [38, 10], [38, 9]],
     springs: [[62, 14]],
+    keys: [[68, 10]],
     buildings: [[80, 9, 8, 6]],
-    plungers: [{ c: 90, r: 14 }],
+    plungers: [{ c: 90, r: 14, clears: [] }],
     cacti: [[2, 14]],
     script: [
       ['goto', 8, 14],
@@ -320,17 +326,18 @@ var LEVELS = [
   {
     id: 11,
     biome: 'sunset',
-    sky: 'sunset',
+    sky: 'rain',
     cols: 92,
     rows: 18,
     exit: 'edge',
     goals: { boss: 1 },
-    /* The video cards call the cave LEVEL 11 and the boot LEVEL 12. This stage
-       is that cave corridor, then the sunset arena and the flying boot. */
+    /* Wood cave, then the boot. The fight has rain over orange ground.
+       The boot still takes 4 stomps. */
     ground: [[0, 91, 15]],
-    plats: [[6, 12, 4], [14, 11, 3], [22, 13, 4]],
+    plats: [[6, 12, 4], [14, 11, 3], [22, 13, 4], [48, 13, 5]],
     rects: [
       [0, 0, 30, 10, TILE.SOLID],
+      [56, 11, 5, 3, TILE.WALL],
       [72, 8, 2, 8, TILE.GATE]
     ],
     spikes: [[8, 12, 2]],
