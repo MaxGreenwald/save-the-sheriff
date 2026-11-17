@@ -102,31 +102,32 @@ var LEVELS = [
     sky: 'day',
     cols: 100,
     rows: 18,
-    exit: 'edge',
+    exit: 'sign',
     goals: { plungers: 1 },
-    /* Ropes and TNT from the level 4 frames. The plunger sits on the first
-       rope and clears the crates. Boulder steps, a cactus, and a stone tower
-       follow. No sign was in the frames. */
-    ground: [[0, 14, 15], [24, 99, 15]],
-    ropes: [[15, 14, 9], [70, 14, 6]],
+    /* Orange canyon from the level 4 frames. A high block and a cactus, a
+       snake in the notch, TNT on the rope, a plunger, boulder steps, a tower,
+       and the swirl sign at the end. */
+    ground: [[0, 12, 15], [16, 99, 15]],
+    ropes: [[13, 14, 4], [70, 14, 6]],
     rects: [
-      [16, 12, 2, 2, TILE.TNT],
-      [20, 12, 2, 2, TILE.TNT],
+      [14, 12, 2, 2, TILE.TNT],
+      [18, 12, 2, 2, TILE.TNT],
       [82, 9, 4, 4, TILE.SOLID]
     ],
-    plats: [[40, 13, 4], [44, 12, 4], [48, 11, 4], [52, 10, 4], [88, 12, 4]],
-    tokens: [[6, 13], [17, 12], [21, 12], [30, 13], [46, 8], [60, 12], [74, 12], [76, 12], [92, 13]],
+    plats: [[2, 14, 6], [4, 13, 4], [40, 13, 4], [44, 12, 4], [48, 11, 4], [52, 10, 4], [88, 12, 4]],
+    tokens: [[6, 10], [15, 12], [19, 12], [30, 13], [46, 8], [60, 12], [74, 12], [76, 12], [92, 13]],
     snakes: [[36, 12, 2]],
     nets: [[56, 11, 1]],
-    plungers: [{ c: 30, r: 14, clears: [{ c: 16, r: 12, w: 6, h: 2 }] }],
-    boulders: [[48, 9], [49, 9], [49, 8], [83, 8]],
-    cacti: [[4, 14], [64, 14]],
+    plungers: [{ c: 28, r: 14, clears: [{ c: 14, r: 12, w: 6, h: 2 }] }],
+    boulders: [[5, 12], [48, 9], [49, 9], [49, 8], [83, 8]],
+    cacti: [[4, 12], [64, 14]],
+    signs: [[96, 14]],
     script: [
-      ['goto', 12, 14],
+      ['goto', 6, 12],
       ['goto', 20, 14],
-      ['goto', 40, 14],
+      ['goto', 36, 14],
       ['goto', 66, 14],
-      ['goto', 98, 14]
+      ['goto', 96, 14]
     ]
   },
   {
@@ -135,11 +136,10 @@ var LEVELS = [
     sky: 'day',
     cols: 100,
     rows: 18,
-    exit: 'edge',
+    exit: 'sign',
     goals: {},
-    /* Desert from the level 5 frames: cactus, a rope over a gap, stairs,
-       a spring, boulders on a ledge, a standing bandit, a plunger that is
-       not required. No water trench and no rolling boulder ride. */
+    /* Desert from the level 5 frames. The swirl by the porch is the exit.
+       Earlier signs in the video are mid-level and are not the end. */
     ground: [[0, 24, 15], [28, 99, 15]],
     ropes: [[25, 14, 3]],
     plats: [[8, 13, 5], [36, 13, 4], [40, 12, 4], [44, 11, 5], [70, 13, 6], [88, 12, 6]],
@@ -152,13 +152,15 @@ var LEVELS = [
     boulders: [[45, 10], [46, 10]],
     crates: [[38, 12]],
     cacti: [[3, 14], [18, 14], [62, 14]],
+    buildings: [[88, 10, 7, 5]],
+    signs: [[96, 14]],
     script: [
       ['goto', 14, 14],
       ['goto', 26, 14],
       ['goto', 40, 14],
       ['goto', 58, 14],
       ['goto', 76, 14],
-      ['goto', 98, 14]
+      ['goto', 96, 14]
     ]
   },
   {
@@ -172,7 +174,7 @@ var LEVELS = [
     /* Town from the level 6 frames: buildings, pegged poles, a wire with birds,
        a snake, and a caged bandit on a balcony. No plunger and no boulder wall. */
     ground: [[0, 95, 15]],
-    buildings: [[2, 9, 8, 6], [26, 8, 8, 7], [50, 9, 7, 6], [72, 10, 8, 5]],
+    buildings: [[10, 9, 8, 6], [26, 8, 8, 7], [50, 9, 7, 6], [72, 10, 8, 5]],
     poles: [[16, 14, 8], [42, 14, 8]],
     wires: [[16, 7, 30]],
     birds: [[20, 6, 12], [46, 6, 8]],
@@ -202,19 +204,19 @@ var LEVELS = [
        door. Not a rainy cave. The key sits on the roof and is not required. */
     ground: [[0, 87, 15]],
     buildings: [[60, 9, 8, 6]],
-    plats: [[8, 13, 4], [14, 12, 4], [20, 11, 4], [36, 13, 6], [52, 12, 5], [66, 11, 6]],
+    plats: [[8, 13, 4], [14, 12, 4], [20, 11, 4], [36, 13, 6], [52, 14, 4], [56, 13, 4], [60, 12, 4], [64, 11, 8]],
     tokens: [[4, 13], [10, 11], [18, 9], [30, 13], [40, 11], [54, 10], [70, 9]],
     frogs: [[16, 10]],
     snakes: [[22, 10, 2]],
     birds: [[40, 8, 6]],
     keys: [[68, 10]],
-    doors: [{ c: 84, r: 14, exit: true, great: true, needKey: false }],
+    doors: [{ c: 70, r: 10, exit: true, great: true, needKey: false }],
     cacti: [[2, 14], [32, 14]],
     script: [
       ['goto', 12, 14],
       ['goto', 34, 14],
       ['goto', 56, 14],
-      ['goto', 84, 14]
+      ['goto', 70, 10]
     ]
   },
   {
