@@ -57,8 +57,8 @@ var LEVELS = [
        net bandit, the lady at the saloon, a hanging frame, and a star
        plunger that frees the sphere pile. The bird quest is optional. */
     ground: [[0, 95, 15]],
-    buildings: [[6, 8, 12, 7, 'wood'], [22, 8, 18, 7, 'brick'], [44, 9, 8, 6, 'white'], [74, 10, 7, 5, 'yellow']],
-    women: [[16, 14]],
+    buildings: [[6, 8, 12, 7, 'saloon'], [22, 8, 18, 7, 'brick'], [44, 9, 8, 6, 'white'], [74, 10, 7, 5, 'yellow']],
+    women: [[11, 14]],
     poles: [[18, 14, 8], [46, 14, 7]],
     frames: [[40, 11]],
     plats: [[8, 12, 6], [32, 12, 6], [56, 13, 5], [78, 11, 5], [84, 12, 2], [88, 12, 4]],
@@ -433,7 +433,11 @@ function compileLevel(def) {
   var npc = null;
   if (cages.length && def.women && def.women.length) {
     var w0 = def.women[0];
-    npc = { x: w0[0] * 32, y: (w0[1] + 1) * 32 - 40, w: 32, h: 44, bubble: 0 };
+    var feet = (w0[1] + 1) * 32;
+    npc = {
+      x: w0[0] * 32, y: feet - 52, w: 46, h: 56, bubble: 0,
+      perchX: w0[0] * 32 - 20, perchY: feet - 32
+    };
   }
 
   function cell(c, r, kind, extra) {

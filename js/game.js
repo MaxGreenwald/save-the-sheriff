@@ -846,17 +846,17 @@ function updateQuest() {
     pet.y += (gy - pet.y) * 0.16;
     if (npc && overlap(P, npc)) {
       pet.back = true;
-      pet.x = npc.x + 2;
-      pet.y = npc.y - 4;
-      npc.bubble = 120;
+      pet.x = npc.perchX;
+      pet.y = npc.perchY;
+      npc.bubble = 140;
       score += 2000;
-      floatText(npc.x, npc.y - 18, '2000', '#ff8ab0');
-      affection(npc.x + 12, npc.y);
+      floatText(npc.x + 4, npc.y - 28, '2000', '#ff8ab0');
+      affection(npc.x + 10, npc.y + 6);
       sfx('great');
     }
   } else if (pet && pet.back && npc) {
-    pet.x = npc.x + 2;
-    pet.y = npc.y - 4;
+    pet.x = npc.perchX;
+    pet.y = npc.perchY;
   }
   if (npc && npc.bubble > 0) npc.bubble--;
   for (var p = 0; p < level.plungers.length; p++) {
@@ -1135,7 +1135,10 @@ function drawActors() {
   level.decals.buildings.forEach(function (b, bi) {
     drawFacade(b[0] * T, b[1] * T, b[2] * T, b[3] * T, bi);
   });
-  level.decals.women.forEach(function (w) { drawWoman(w[0] * T, (w[1] + 1) * T); });
+  level.decals.women.forEach(function (w) {
+    var fx = w[0] * T, fy = (w[1] + 1) * T;
+    if (level.npc && Math.abs(level.npc.x - fx) < 4) drawPerch(fx - 18, fy);
+  });
   level.decals.cacti.forEach(function (c) { drawCactus(c[0] * T, (c[1] + 1) * T); });
   if (level.decals.saloon) drawSaloon(level.decals.saloon[0] * T, (level.decals.saloon[1] + 1) * T);
   level.decals.poles.forEach(function (p) { drawPole(p[0] * T, (p[1] + 1) * T, p[2] * T); });
@@ -1164,9 +1167,7 @@ function drawActors() {
     ctx.fillStyle = '#f2f4f8'; ctx.fillRect(s.x - 2, s.y, s.w + 4, 5);
   });
   level.boulders.forEach(function (b) {
-    ctx.fillStyle = '#1a120c'; ctx.fillRect(b.x, b.y, b.w, b.h);
-    ctx.fillStyle = '#8e949e'; ctx.fillRect(b.x + 2, b.y + 2, b.w - 4, b.h - 4);
-    ctx.fillStyle = '#c5cad2'; ctx.fillRect(b.x + 6, b.y + 5, 8, 6);
+    ART.sphere(ctx, b.x, b.y);
   });
   level.crates.forEach(function (c) {
     if (!c.alive) return;
@@ -1236,10 +1237,11 @@ function drawActors() {
     ART.bird(ctx, level.pet.x, level.pet.y, frame);
     if (!level.pet.back) drawThought(P.x + 18, P.y - 16);
   }
-  if (level.npc && level.npc.bubble > 0) drawThought(level.npc.x + 26, level.npc.y - 28);
   if (P.iframes <= 0 || Math.floor(P.iframes / 4) % 2 === 0) {
     if (gs === 'play' || gs === 'dead' || gs === 'leveldone') drawPig(P.x, P.y, P.dir, P.anim, !P.ground);
   }
+  level.decals.women.forEach(function (w) { drawWoman(w[0] * T, (w[1] + 1) * T); });
+  if (level.npc && level.npc.bubble > 0) drawThought(level.npc.x + 4, level.npc.y - 8);
 }
 function drawCage(cage) {
   ctx.fillStyle = '#6a4a28';
@@ -1347,6 +1349,7 @@ function drawFacade(x, y, w, h, bi) {
     blue: { wall: '#f0d24a', line: '#e0b030', trim: '#c89020', door: '#2f6fd0' }
   };
   var key = level.decals.buildings[bi][4];
+  if (key === 'saloon') { drawSaloonFacade(x, y, w, h); return; }
   var order = ['white', 'yellow', 'wood', 'brick'];
   var s = named[key] || named[order[bi % 4]];
   ctx.fillStyle = '#1a120c'; ctx.fillRect(x, y, w, h);
@@ -1380,11 +1383,52 @@ function drawFacade(x, y, w, h, bi) {
   }
 }
 function drawWoman(x, y) {
-  ctx.fillStyle = '#1a120c'; ctx.fillRect(x + 6, y - 28, 14, 28);
-  ctx.fillStyle = '#f2d48a'; ctx.fillRect(x + 8, y - 26, 10, 6);
-  ctx.fillStyle = '#f7f4ee'; ctx.fillRect(x + 7, y - 18, 12, 8);
-  ctx.fillStyle = '#3d8a40'; ctx.fillRect(x + 7, y - 10, 12, 10);
-  ctx.fillStyle = '#f0c2a4'; ctx.fillRect(x + 9, y - 24, 6, 5);
+  ART.lady(ctx, x, y);
+}
+function drawPerch(x, feet) {
+  ctx.fillStyle = '#1a120c';
+  ctx.fillRect(x + 6, feet - 16, 4, 16);
+  ctx.fillRect(x, feet - 20, 16, 5);
+  ctx.fillStyle = '#a87438';
+  ctx.fillRect(x + 7, feet - 15, 2, 14);
+  ctx.fillRect(x + 1, feet - 19, 14, 3);
+}
+function drawSaloonFacade(x, y, w, h) {
+  ctx.fillStyle = '#1a120c';
+  ctx.fillRect(x, y, w, h);
+  ctx.fillStyle = '#e6c48a';
+  ctx.fillRect(x + 2, y + 2, w - 4, h - 4);
+  ctx.fillStyle = '#c89858';
+  for (var vx = x + 6; vx < x + w - 4; vx += 8) ctx.fillRect(vx, y + 3, 2, h - 6);
+  ctx.fillStyle = '#f3d7a4';
+  for (var hx = x + 8; hx < x + w - 4; hx += 8) ctx.fillRect(hx, y + 3, 1, h - 6);
+  function pane(px, py) {
+    ctx.fillStyle = '#1a120c'; ctx.fillRect(px, py, 26, 22);
+    ctx.fillStyle = '#b7dff0'; ctx.fillRect(px + 2, py + 2, 22, 18);
+    ctx.fillStyle = '#6a4224';
+    ctx.fillRect(px + 12, py + 2, 2, 18);
+    ctx.fillRect(px + 2, py + 10, 22, 2);
+  }
+  pane(x + 18, y + 16);
+  pane(x + w - 46, y + 16);
+  var dx = x + Math.floor(w / 2) - 52;
+  var dy = y + h - 58;
+  ctx.fillStyle = '#1a120c';
+  ctx.fillRect(dx, dy, 104, 58);
+  ctx.fillStyle = '#24160e';
+  ctx.fillRect(dx + 4, dy + 8, 96, 50);
+  ctx.fillStyle = '#d7a15a';
+  ctx.fillRect(dx + 6, dy + 12, 36, 42);
+  ctx.fillRect(dx + 62, dy + 12, 36, 42);
+  ctx.fillStyle = '#f0c888';
+  ctx.fillRect(dx + 8, dy + 14, 10, 36);
+  ctx.fillRect(dx + 84, dy + 14, 10, 36);
+  ctx.fillStyle = '#8a5a28';
+  ctx.fillRect(dx + 6, dy + 30, 36, 3);
+  ctx.fillRect(dx + 62, dy + 30, 36, 3);
+  ctx.fillStyle = '#6a3a18';
+  ctx.fillRect(dx + 22, dy + 16, 3, 34);
+  ctx.fillRect(dx + 78, dy + 16, 3, 34);
 }
 function drawSaloon(x, y) {
   ctx.fillStyle = '#1a120c'; ctx.fillRect(x, y - 96, 96, 96);
