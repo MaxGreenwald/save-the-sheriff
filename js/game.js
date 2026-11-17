@@ -8,7 +8,8 @@ var canvas, ctx, frame = 0;
 var gs = 'title', sceneT = 0;
 var level = null, levelId = 1;
 var camX = 0, camY = 0;
-var score = 0, coins = 0, lives = 5, hearts = 4, keys = 0, timer = 300, timeAcc = 0;
+var score = 0, coins = 0, lives = 5, hearts = 5, keys = 0, timer = 300, timeAcc = 0;
+var HEARTS = 5;
 var scriptI = 0, testing = false, wantTouch = false;
 var mx = 0, my = 0, jumpQueue = 0, shake = 0;
 var parts = [], floats = [], deathReason = '';
@@ -18,6 +19,7 @@ var BTNS = [];
 var SAVE_KEY = 'sts-save-v2';
 
 var key = { left: false, right: false, up: false, down: false, jump: false, shift: false };
+var dropLatch = 0;
 var touch = { left: false, right: false, jump: false };
 var auto = { left: false, right: false, up: false, creep: false, nojump: false };
 var ptrs = {};
@@ -86,7 +88,7 @@ function loadLevel(n) {
   P.prevX = P.x; P.prevY = P.y;
   scriptI = 0;
   keys = 0;
-  hearts = 4;
+  dropLatch = 0;
   timer = 300;
   timeAcc = 0;
   parts = []; floats = [];
@@ -97,8 +99,9 @@ function loadLevel(n) {
 }
 
 function begin(n, opt) {
+  if (!(opt && opt.keepHearts)) hearts = HEARTS;
   loadLevel(n);
-  runSnap = { level: n, score: score, lives: lives, coins: coins };
+  runSnap = { level: n, score: score, lives: lives, coins: coins, hearts: hearts };
   persist();
   setTune(n === 11 ? 'boss' : tuneFor(level.def.biome));
   if (opt && opt.instant) gs = 'play';
@@ -109,6 +112,9 @@ function respawn() {
   var s = score, l = lives, c = coins, id = levelId;
   loadLevel(id);
   score = s; lives = l; coins = c;
+  hearts = HEARTS;
+  timer = 300;
+  timeAcc = 0;
   P.iframes = 50;
   gs = 'play';
 }
@@ -248,10 +254,21 @@ function updatePlayer() {
   P.y += P.vy;
   P.ground = false;
   var landedId = null;
+    var dropThrough = key.down || auto.down || dropLatch > 0;
+  if (dropLatch > 0) dropLatch--;
   if (!climbing) {
     if (P.vy >= 0) {
-      var ropeY = ropeCatch(prevFeet, P.y + P.h);
-      var hit = ropeY || groundY(prevFeet, P.y + P.h);
+      var feetNow = P.y + P.h;
+      var hit = groundY(prevFeet, feetNow);
+      var ropeY = ropeCatch(prevFeet, feetNow);
+      if (ropeY && (hit === null || ropeY < hit)) hit = ropeY;
+      if (!dropThrough) {
+        var plat = platformCatch(prevFeet, feetNow);
+        if (plat && (hit === null || plat.top < hit)) {
+          hit = plat.top;
+          if (plat.plunger) armPlunger(plat.plunger);
+        }
+      }
       if (hit !== null) {
         P.y = hit - P.h; P.vy = 0; P.ground = true;
       }
@@ -277,6 +294,12 @@ function updatePlayer() {
     }
   }
   P.rideId = landedId;
+  if (P.ground && P.vy === 0) {
+    if (checkTntLand()) {
+      var fy = P.y + P.h;
+      if (!supportAt(P.x + 8, fy) && !supportAt(P.x + P.w - 8, fy)) P.ground = false;
+    }
+  }
   if (P.ground) P.coyote = 6; else if (P.coyote > 0) P.coyote--;
   stepUp();
   hazards();
@@ -312,6 +335,86 @@ function groundY(prevFeet, feet) {
   }
   return found;
 }
+function platformCatch(prevFeet, feet) {
+  if (!level) return null;
+  var best = null;
+  function consider(top, x, w, plunger) {
+    if (P.x + P.w - 4 <= x || P.x + 4 >= x + w) return;
+    if (prevFeet <= top + 6 && feet >= top && (!best || top < best.top)) best = { top: top, plunger: plunger || null };
+  }
+  var plats = level.platforms || [];
+  for (var i = 0; i < plats.length; i++) consider(plats[i].y, plats[i].x, plats[i].w, null);
+  for (var p = 0; p < level.plungers.length; p++) {
+    var pl = level.plungers[p];
+    var sink = pl.used ? 12 : (pl.arm ? (1 - pl.arm / 16) * 8 : 0);
+    consider(pl.y + sink, pl.x, pl.w, pl.used ? null : pl);
+  }
+  return best;
+}
+function armPlunger(pl) {
+  if (!pl || pl.used || pl.arm) return;
+  pl.arm = 16;
+}
+function blastAt(col, row, clears) {
+  if (clears && clears.length) {
+    for (var i = 0; i < clears.length; i++) {
+      var c = clears[i];
+      clearTiles(c.c, c.r, c.w, c.h);
+      burst((c.c + c.w / 2) * T, (c.r + c.h / 2) * T, '#ffb020', 12);
+    }
+  } else if (col != null) {
+    var stack = [[col, row]];
+    var guard = 0;
+    while (stack.length && guard < 80) {
+      guard++;
+      var p = stack.pop();
+      var x = p[0], y = p[1];
+      if (x < 0 || y < 0 || x >= level.cols || y >= level.rows) continue;
+      var idx = y * level.cols + x;
+      if (level.tiles[idx] !== TILE.TNT) continue;
+      level.tiles[idx] = TILE.AIR;
+      burst(x * T + 16, y * T + 16, '#d2ff6a', 6);
+      stack.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
+    }
+  }
+  releaseFreedStones();
+  sfx('boom');
+  shake = 8;
+  burst((col != null ? col : 0) * T + 16, (row != null ? row : 0) * T, '#ffe14a', 14);
+}
+function releaseFreedStones() {
+  for (var i = 0; i < level.boulders.length; i++) {
+    var b = level.boulders[i];
+    if (!b.held) continue;
+    var still = false;
+    for (var dy = -2; dy <= 2 && !still; dy++) {
+      for (var dx = -3; dx <= 3; dx++) {
+        var tx = b.anchorC + dx, ty = b.anchorR + dy;
+        if (tx < 0 || ty < 0 || tx >= level.cols || ty >= level.rows) continue;
+        if (level.tiles[ty * level.cols + tx] === TILE.TNT) still = true;
+      }
+    }
+    if (still) continue;
+    b.held = false;
+    b.tumble = 160;
+    b.vx = b.kick || -1;
+    b.vy = -0.8;
+  }
+}
+function checkTntLand() {
+  var feet = P.y + P.h;
+  var xs = [P.x + 8, P.x + P.w - 8];
+  for (var i = 0; i < xs.length; i++) {
+    var c = Math.floor(xs[i] / T);
+    var r = Math.floor((feet + 1) / T);
+    if (c < 0 || r < 0 || c >= level.cols || r >= level.rows) continue;
+    if (level.tiles[r * level.cols + c] === TILE.TNT) {
+      blastAt(c, r, null);
+      return true;
+    }
+  }
+  return false;
+}
 function ropeCatch(prevFeet, feet) {
   if (feet < prevFeet - 1) return 0;
   var xs = [P.x + 6, P.x + P.w - 6];
@@ -341,7 +444,7 @@ function supportAt(x, surfaceY) {
 function pushBoulders() {
   for (var i = 0; i < level.boulders.length; i++) {
     var b = level.boulders[i];
-    if (b.snapped || b.slot >= 0) continue;
+    if (b.snapped || b.slot >= 0 || b.held) continue;
     if (!overlap(P, b)) continue;
     if (P.y + P.h > b.y + 12 && P.y < b.y + b.h - 6) {
       var dir = (P.x + P.w / 2) < (b.x + b.w / 2) ? 1 : -1;
@@ -381,6 +484,16 @@ function stepUp() {
     P.y = s.y - P.h; P.vy = 0; P.ground = true; P.rideId = s.id;
     return;
   }
+  if (key.down || auto.down) return;
+  var plats = level.platforms || [];
+  for (var n = 0; n < plats.length; n++) {
+    var pf = plats[n];
+    if (front < pf.x - 2 || front > pf.x + pf.w + 2) continue;
+    if (pf.y < feet - 36 || pf.y > feet - 8) continue;
+    if (isSolid(P.x + 6, pf.y - 10) || isSolid(P.x + P.w - 6, pf.y - 10)) continue;
+    P.y = pf.y - P.h; P.vy = 0; P.ground = true;
+    return;
+  }
 }
 
 function hazards() {
@@ -415,7 +528,7 @@ function updateBoulders() {
   var basin = level.def.basin;
   for (var i = 0; i < level.boulders.length; i++) {
     var b = level.boulders[i];
-    if (b.snapped) continue;
+    if (b.snapped || b.held) continue;
     if (b.slot >= 0) {
       var sl = level.slots[b.slot];
       b.x += clamp(sl.x - b.x, -3, 3);
@@ -426,21 +539,33 @@ function updateBoulders() {
       }
       continue;
     }
-    b.vy = Math.min(9, b.vy + 0.5);
+    var tumbling = b.tumble > 0;
+    if (tumbling) b.tumble--;
+    b.vy = Math.min(tumbling ? 3.1 : 9, b.vy + (tumbling ? 0.14 : 0.5));
     b.x += b.vx;
     if (hitBoxX(b)) b.vx = 0;
     b.y += b.vy;
     b.grounded = false;
-    if (hitBoxY(b)) { b.grounded = true; b.vy = 0; b.vx *= 0.9; }
+    if (hitBoxY(b)) { b.grounded = true; b.vy = 0; b.vx *= tumbling ? 0.992 : 0.9; }
     if (Math.abs(b.vx) < 0.06) b.vx = 0;
     for (var o = 0; o < level.boulders.length; o++) {
       if (o === i) continue;
       var oth = level.boulders[o];
       if (oth.snapped || oth.slot >= 0) continue;
+      if (oth.held) continue;
       if (b.x < oth.x + oth.w && b.x + b.w > oth.x && b.y < oth.y + oth.h && b.y + b.h > oth.y) {
-        if (b.x <= oth.x && b.vx > 0) oth.vx = Math.max(oth.vx, b.vx);
-        if (b.x > oth.x && b.vx < 0) oth.vx = Math.min(oth.vx, b.vx);
-        if (b.x < oth.x) b.x = oth.x - b.w; else oth.x = b.x - oth.w;
+        var overlapX = Math.min(b.x + b.w, oth.x + oth.w) - Math.max(b.x, oth.x);
+        var overlapY = Math.min(b.y + b.h, oth.y + oth.h) - Math.max(b.y, oth.y);
+        if (overlapY < overlapX && b.vy >= 0 && b.y <= oth.y) {
+          b.y = oth.y - b.h;
+          b.vy = 0;
+          b.grounded = true;
+          b.vx *= 0.86;
+        } else {
+          if (b.x <= oth.x && b.vx > 0) oth.vx = Math.max(oth.vx, b.vx);
+          if (b.x > oth.x && b.vx < 0) oth.vx = Math.min(oth.vx, b.vx);
+          if (b.x < oth.x) b.x = oth.x - b.w; else oth.x = b.x - oth.w;
+        }
       }
     }
     if (basin && b.grounded && b.y > basin.y) {
@@ -632,7 +757,7 @@ function pickups() {
     var t = level.tokens[i];
     if (t.got) continue;
     if (overlap(P, t)) {
-      t.got = true; coins++; score += 100; sfx('coin');
+      t.got = true; grantCoin();
       floatText(t.x, t.y, '100', '#9fd7ff'); burst(t.x + 16, t.y + 16, '#7ec8ff', 5);
     }
   }
@@ -640,14 +765,6 @@ function pickups() {
     var keyItem = level.keys[k];
     if (keyItem.got) continue;
     if (overlap(P, keyItem)) { keyItem.got = true; keys++; sfx('key'); floatText(keyItem.x, keyItem.y - 8, 'KEY', '#ffd24a'); }
-  }
-  for (var p = 0; p < level.plungers.length; p++) {
-    var pl = level.plungers[p];
-    if (pl.used || !overlap(P, pl)) continue;
-    pl.used = true; level.counters.plungers++;
-    if (pl.clears) pl.clears.forEach(function (c) { clearTiles(c.c, c.r, c.w, c.h); });
-    else { clearKind(TILE.WALL); clearKind(TILE.TNT); }
-    sfx('boom'); great(); shake = 7; burst(pl.x, pl.y, '#ff7a22', 12);
   }
   for (var d = 0; d < level.doors.length; d++) {
     var door = level.doors[d];
@@ -673,7 +790,7 @@ function pickups() {
     var sh = level.sheriffs[h];
     if (sh.got) continue;
     if (overlap(P, { x: sh.x, y: sh.y, w: 28, h: 36 })) {
-      sh.got = true; if (hearts < 4) hearts++; sfx('coin'); floatText(sh.x, sh.y - 10, 'HEART', '#ff5a6a');
+      sh.got = true; if (hearts < HEARTS) hearts++; sfx('coin'); floatText(sh.x, sh.y - 10, 'HEART', '#ff5a6a');
     }
   }
 }
@@ -697,6 +814,75 @@ function loseLife(why) {
   sfx('die');
   if (lives <= 0) { gs = 'gameover'; runSnap = null; persist(); }
   else { gs = 'dead'; deadTimer = 42; }
+}
+function grantCoin() {
+  coins++;
+  score += 100;
+  sfx('coin');
+  if (coins >= 100) {
+    coins -= 100;
+    lives++;
+    floatText(P.x, P.y - 28, '1-UP', '#ffe14a');
+    sfx('great');
+  }
+}
+function updateQuest() {
+  if (!level.cages) return;
+  for (var i = 0; i < level.cages.length; i++) {
+    var cage = level.cages[i];
+    if (cage.open) continue;
+    var touch = { x: cage.x - 6, y: cage.y - 8, w: cage.w + 12, h: cage.h + 12 };
+    if (overlap(P, touch)) {
+      cage.open = true;
+      level.pet = { x: cage.x, y: cage.y - 10, free: true, back: false };
+    }
+  }
+  var pet = level.pet;
+  var npc = level.npc;
+  if (pet && pet.free && !pet.back) {
+    var gx = P.x + (P.dir > 0 ? -22 : P.w + 4);
+    var gy = P.y - 8 + Math.sin(frame * 0.2) * 3;
+    pet.x += (gx - pet.x) * 0.16;
+    pet.y += (gy - pet.y) * 0.16;
+    if (npc && overlap(P, npc)) {
+      pet.back = true;
+      pet.x = npc.x + 2;
+      pet.y = npc.y - 4;
+      npc.bubble = 120;
+      score += 2000;
+      floatText(npc.x, npc.y - 18, '2000', '#ff8ab0');
+      affection(npc.x + 12, npc.y);
+      sfx('great');
+    }
+  } else if (pet && pet.back && npc) {
+    pet.x = npc.x + 2;
+    pet.y = npc.y - 4;
+  }
+  if (npc && npc.bubble > 0) npc.bubble--;
+  for (var p = 0; p < level.plungers.length; p++) {
+    var pl = level.plungers[p];
+    if (!pl.arm) continue;
+    pl.arm--;
+    if (pl.arm <= 0) {
+      pl.arm = 0;
+      pl.used = true;
+      level.counters.plungers++;
+      blastAt(pl.c, pl.r, pl.clears);
+    }
+  }
+}
+function affection(x, y) {
+  for (var i = 0; i < 8; i++) {
+    parts.push({
+      x: x, y: y,
+      vx: (i - 3.5) * 0.35,
+      vy: -1.4 - (i % 3) * 0.25,
+      life: 54,
+      c: '#ff8ab0',
+      s: 8,
+      heart: true
+    });
+  }
 }
 function great() { floatText(P.x - 10, P.y - 28, 'GREAT!', '#ffe14a'); sfx('great'); }
 function floatText(x, y, t, c) { floats.push({ x: x, y: y, t: t, c: c || '#fff', life: 48 }); }
@@ -727,6 +913,7 @@ function updatePlay() {
   updateBoss();
   if (gs !== 'play') return;
   pickups();
+  updateQuest();
   timeAcc++;
   if (timeAcc >= 60) {
     timeAcc = 0;
@@ -767,7 +954,7 @@ function updateScene() {
 
 function advance() {
   if (levelId >= 11) { gs = 'victory'; sceneT = 0; runSnap = null; persist(); return; }
-  begin(levelId + 1);
+  begin(levelId + 1, { keepHearts: true });
 }
 
 function anyPress() {
@@ -918,7 +1105,17 @@ function drawWorld() {
       ctx.fillStyle = '#eee';
       for (var k = 0; k < 3; k++) ctx.fillRect(x + 6 + k * 8, y - 8, 4, 10);
     }
-    if (t === TILE.TNT) { ctx.fillStyle = '#ffe14a'; ctx.fillRect(x + 8, y + 12, 16, 8); ctx.fillStyle = '#222'; ctx.fillRect(x + 14, y + 4, 4, 8); }
+    if (t === TILE.TNT) {
+      ctx.fillStyle = '#1a120c'; ctx.fillRect(x, y, T, T);
+      ctx.fillStyle = '#3e8a32'; ctx.fillRect(x + 2, y + 2, T - 4, T - 4);
+      ctx.fillStyle = '#e23b3b';
+      ctx.fillRect(x + 6, y + 7, 4, T - 12);
+      ctx.fillRect(x + 14, y + 9, 4, T - 16);
+      ctx.fillRect(x + 22, y + 7, 4, T - 12);
+      ctx.fillStyle = '#ffe14a';
+      ctx.fillRect(x + 6, y + 4, 4, 4);
+      ctx.fillRect(x + 22, y + 4, 4, 4);
+    }
     if (cracked) { ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(x + 4, y + 4, T - 8, T - 8); }
   }
   if (level.def.water) {
@@ -1010,12 +1207,15 @@ function drawActors() {
     ctx.fillRect(d.x + 3, d.y + 3, d.w - 6, d.h - 6);
     drawSwirl(d.x + 16, d.y + 18, 6);
   });
-  level.plungers.forEach(function (p) {
-    if (p.used) return;
-    ctx.fillStyle = '#1a120c'; ctx.fillRect(p.x + 4, p.y + 8, 24, 22);
-    ctx.fillStyle = '#e23b3b'; ctx.fillRect(p.x + 6, p.y + 10, 20, 18);
-    ctx.fillStyle = '#ffe14a'; ctx.fillRect(p.x + 12, p.y, 8, 12);
+  level.platforms.forEach(function (s) {
+    if (s.kind !== 'frame') return;
+    ctx.fillStyle = '#1a120c'; ctx.fillRect(s.x, s.y, s.w, 24);
+    ctx.fillStyle = '#f4e2b0'; ctx.fillRect(s.x + 3, s.y + 3, s.w - 6, 18);
+    ctx.fillStyle = '#3e9a34'; ctx.fillRect(s.x + 10, s.y + 7, 8, 8);
+    ctx.fillStyle = '#e23b3b'; ctx.fillRect(s.x + 18, s.y + 8, 4, 6);
   });
+  level.cages.forEach(function (cage) { drawCage(cage); });
+  level.plungers.forEach(function (p) { drawPlunger(p); });
   level.sheriffs.forEach(function (sh) {
     if (sh.got) return;
     drawSheriff(sh.x, sh.y, true);
@@ -1032,9 +1232,55 @@ function drawActors() {
   else if (level.boss && !level.boss.alive) {
     /* freed sheriff stands where the boot was */
   }
+  if (level.pet && level.pet.free) {
+    ART.bird(ctx, level.pet.x, level.pet.y, frame);
+    if (!level.pet.back) drawThought(P.x + 18, P.y - 16);
+  }
+  if (level.npc && level.npc.bubble > 0) drawThought(level.npc.x + 26, level.npc.y - 28);
   if (P.iframes <= 0 || Math.floor(P.iframes / 4) % 2 === 0) {
     if (gs === 'play' || gs === 'dead' || gs === 'leveldone') drawPig(P.x, P.y, P.dir, P.anim, !P.ground);
   }
+}
+function drawCage(cage) {
+  ctx.fillStyle = '#6a4a28';
+  ctx.fillRect(cage.x, cage.y + cage.h - 6, cage.w, 6);
+  ctx.fillStyle = '#1a120c';
+  ctx.fillRect(cage.x, cage.y, cage.w, 3);
+  ctx.fillRect(cage.x, cage.y + cage.h - 3, cage.w, 3);
+  ctx.fillRect(cage.x, cage.y, 3, cage.h);
+  ctx.fillRect(cage.x + cage.w - 3, cage.y, 3, cage.h);
+  ctx.fillStyle = '#e7eef4';
+  for (var i = 1; i <= 3; i++) ctx.fillRect(cage.x + i * 7, cage.y + 3, 2, cage.h - 8);
+  ctx.fillStyle = '#9aa6b2';
+  ctx.fillRect(cage.x + 3, cage.y + 10, cage.w - 6, 2);
+  ctx.fillRect(cage.x + 3, cage.y + 18, cage.w - 6, 2);
+  if (!cage.open) ART.bird(ctx, cage.x + 2, cage.y + 6, frame);
+}
+function drawPlunger(p) {
+  var sink = p.used ? 0 : (p.arm ? (1 - p.arm / 16) * 8 : 0);
+  ctx.fillStyle = '#1a120c'; ctx.fillRect(p.x + 4, p.y + 14, 24, 22);
+  ctx.fillStyle = '#7a3030'; ctx.fillRect(p.x + 6, p.y + 16, 20, 18);
+  ctx.fillStyle = '#ffe14a';
+  ctx.fillRect(p.x + 12, p.y + 20, 8, 8);
+  ctx.fillRect(p.x + 8, p.y + 22, 16, 4);
+  ctx.fillRect(p.x + 14, p.y + 16, 4, 16);
+  if (!p.used) {
+    var hy = p.y + sink;
+    ctx.fillStyle = '#1a120c';
+    ctx.fillRect(p.x + 6, hy, 20, 4);
+    ctx.fillRect(p.x + 13, hy + 4, 6, 12);
+    ctx.fillStyle = '#d7dbe2';
+    ctx.fillRect(p.x + 7, hy + 1, 18, 2);
+    ctx.fillRect(p.x + 14, hy + 4, 4, 10);
+  }
+}
+function drawThought(x, y) {
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.ellipse(x, y, 16, 12, 0, 0, 7); ctx.fill();
+  ctx.strokeStyle = '#1c140c'; ctx.lineWidth = 1; ctx.stroke();
+  ctx.beginPath(); ctx.arc(x - 10, y + 12, 3, 0, 7); ctx.fill();
+  ctx.beginPath(); ctx.arc(x - 14, y + 16, 2, 0, 7); ctx.fill();
+  ART.bird(ctx, x - 12, y - 10, Math.floor(frame / 6));
 }
 
 function drawEnemy(e) {
@@ -1174,7 +1420,17 @@ function renderPlay() {
   ctx.translate(-Math.round(camX), -Math.round(camY));
   drawWorld();
   drawActors();
-  parts.forEach(function (p) { ctx.globalAlpha = Math.max(0, p.life / 24); ctx.fillStyle = p.c; ctx.fillRect(p.x, p.y, p.s, p.s); ctx.globalAlpha = 1; });
+  parts.forEach(function (p) {
+    ctx.globalAlpha = Math.max(0, p.life / 24);
+    if (p.heart) {
+      ctx.fillStyle = '#ff8ab0';
+      ctx.fillRect(p.x, p.y, 4, 4);
+      ctx.fillRect(p.x + 5, p.y, 4, 4);
+      ctx.fillRect(p.x + 2, p.y + 3, 5, 4);
+      ctx.fillRect(p.x + 4, p.y + 6, 2, 2);
+    } else { ctx.fillStyle = p.c; ctx.fillRect(p.x, p.y, p.s, p.s); }
+    ctx.globalAlpha = 1;
+  });
   floats.forEach(function (f) { ctx.globalAlpha = Math.max(0, f.life / 48); text(f.t, f.x, f.y, 2, f.c, '#1a120c'); ctx.globalAlpha = 1; });
   ctx.restore();
   drawHUD();
@@ -1185,7 +1441,7 @@ function renderPlay() {
 function drawHUD() {
   ART.pigHead(ctx, 6, 6);
   text('x' + lives, 24, 8, 2, '#fff', '#1a120c');
-  for (var h = 0; h < 4; h++) ART.heart(ctx, 6 + h * 14, 26, h < hearts);
+  for (var h = 0; h < HEARTS; h++) ART.heart(ctx, 6 + h * 12, 26, h < hearts);
   ART.coin(ctx, 96, 4);
   text('x' + coins, 112, 8, 2, '#fff', '#1a120c');
   text(pad(score, 6), (VW - textWidth(pad(score, 6), 2)) / 2, 8, 2, '#fff', '#1a120c');
@@ -1304,9 +1560,11 @@ function renderHelp() {
     .concat(wrap('Bandits grabbed the sheriff. You are his pig. Reach the exit of each level.', 42))
     .concat(wrap('Move with arrows or WASD, or the on screen buttons. Jump with up, W, or space.', 42))
     .concat(wrap('Stomp enemies from above. A chain in the air scores 100, then 200, then 300.', 42))
-    .concat(wrap('Side bumps and spikes cost a heart. Pits and water cost a life.', 42))
-    .concat(wrap('Blue swirls are worth 100. Time left at the exit is added as bonus.', 42))
-    .concat(wrap('P pauses. M toggles music. Push boulders, ride springs, and stomp plungers.', 42));
+    .concat(wrap('Five hearts carry from level to level. A side bump or spikes cost a heart. Pits and water cost a life.', 42))
+    .concat(wrap('Death refills the hearts and the timer. Coins and score stay. Every 100 swirls grant a 1-up.', 42))
+    .concat(wrap('Touch a caged bird to free it, then bring it to the lady for 2000 points. Freeing it alone scores nothing.', 42))
+    .concat(wrap('Land on a star plunger, or on dynamite, so the crates blow and the stones roll. Pegs, roofs, and ropes can be stood on.', 42))
+    .concat(wrap('P pauses. M toggles music. Push boulders and ride springs.', 42));
   renderMenu('HELP', lines, null);
 }
 function renderAbout() {
@@ -1454,13 +1712,16 @@ function hitBtn(x, y) {
 function onUI(id) {
   if (!id) return;
   sfx('click'); unlockAudio();
-  if (id === 'continue' && runSnap) { score = runSnap.score; lives = runSnap.lives; coins = runSnap.coins; begin(runSnap.level); }
+  if (id === 'continue' && runSnap) {
+    score = runSnap.score; lives = runSnap.lives; coins = runSnap.coins; hearts = runSnap.hearts || HEARTS;
+    begin(runSnap.level, { keepHearts: true });
+  }
   else if (id === 'new') gs = 'confirm';
-  else if (id === 'yes') { score = 0; lives = 5; coins = 0; begin(1); }
+  else if (id === 'yes') { score = 0; lives = 5; coins = 0; hearts = HEARTS; begin(1); }
   else if (id === 'no' || id === 'back' || id === 'title' || id === 'quit') { gs = 'title'; setTune('title'); persist(); }
   else if (id === 'settings') gs = 'settings';
   else if (id === 'stages') gs = 'stages';
-  else if (id.indexOf('stage:') === 0) { score = 0; lives = 5; coins = 0; begin(parseInt(id.slice(6), 10)); }
+  else if (id.indexOf('stage:') === 0) { score = 0; lives = 5; coins = 0; hearts = HEARTS; begin(parseInt(id.slice(6), 10)); }
   else if (id === 'scores') gs = 'scores';
   else if (id === 'help') gs = 'help';
   else if (id === 'about') gs = 'about';
@@ -1469,7 +1730,7 @@ function onUI(id) {
   else if (id === 'lang') { floatText(VW / 2, 80, 'ENGLISH', '#fff'); }
   else if (id === 'reset') { highs = []; persist(); }
   else if (id === 'resume') gs = 'play';
-  else if (id === 'retry') { score = runSnap ? runSnap.score : 0; lives = 5; coins = runSnap ? runSnap.coins : 0; begin(levelId || 1); }
+  else if (id === 'retry') { score = runSnap ? runSnap.score : 0; lives = 5; coins = runSnap ? runSnap.coins : 0; hearts = HEARTS; begin(levelId || 1); }
   else if (id.indexOf('k:') === 0) { if (nickStr.length < 8) nickStr += id.slice(2); }
   else if (id === 'del') nickStr = nickStr.slice(0, -1);
   else if (id === 'ok' || id === 'nickok') submitNick();
@@ -1529,6 +1790,7 @@ function think() {
   if (!step) { edgeSeek(); return; }
   var op = step[0];
   if (op === 'goto') moveToward(step[1] * T + T / 2, (step[2] + 1) * T, true);
+  else if (op === 'plunge') stepPlunge(step[1]);
   else if (op === 'plank') stepPlank(step[1]);
   else if (op === 'push') stepPush(step[1], step[2]);
   else if (op === 'stomp') stepStomp(step[1]);
@@ -1585,7 +1847,27 @@ function moveToward(tx, feetY, arrive) {
   if (lip || (dy < -16 && Math.abs(dx) < 48)) auto.creep = true;
   if (!P.ground && dy < -10 && Math.abs(dx) < 12 && !deep) { auto.left = auto.right = false; }
   if ((P.ground || P.coyote > 0) && (lip || shouldJump(dir, feetY, dx))) jumpQueue = 8;
+  if (dy > 48 && P.ground) { auto.down = true; dropLatch = 36; }
   if (arrive && Math.abs(dx) < 16 && (P.ground || P.rideId) && (Math.abs(dy) < 30 || dy > 6)) scriptI++;
+}
+function stepPlunge(col) {
+  var pl = null;
+  for (var i = 0; i < level.plungers.length; i++) if (level.plungers[i].c === col) pl = level.plungers[i];
+  if (!pl || pl.used) { scriptI++; return; }
+  var tx = pl.x + pl.w / 2;
+  var dx = tx - (P.x + P.w / 2);
+  var onIt = P.ground && Math.abs((P.y + P.h) - (pl.y + (pl.arm ? 6 : 0))) < 14 && Math.abs(dx) < 18;
+  if (pl.arm || onIt) { auto.left = auto.right = false; return; }
+  auto.creep = true;
+  if (!P.ground) {
+    if (dx > 4) auto.right = true;
+    else if (dx < -4) auto.left = true;
+    return;
+  }
+  if (Math.abs(dx) > 8) { if (dx > 0) auto.right = true; else auto.left = true; return; }
+  auto.right = dx >= 0;
+  auto.left = dx < 0;
+  jumpQueue = 8;
 }
 function lipAhead(dir) {
   var feet = P.y + P.h;
@@ -1813,8 +2095,8 @@ function forceComplete() {
 window.STS = {
   silent: false,
   startLevel: function (n, opt) {
-    score = 0; lives = 5; coins = 0;
-    begin(n, { instant: !opt || opt.instant !== false });
+    score = 0; lives = 5; coins = 0; hearts = HEARTS;
+    begin(n, { instant: !opt || opt.instant !== false, keepHearts: true });
   },
   state: function () {
     return { gs: gs, level: levelId, x: P.x, y: P.y, lives: lives, hearts: hearts, scriptI: scriptI, score: score, reason: deathReason, counters: level && level.counters };
