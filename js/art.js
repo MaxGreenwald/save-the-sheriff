@@ -166,5 +166,29 @@ var ART = (function () {
     ctx.beginPath(); ctx.arc(x + 6, y + 8, 2.2, 0.4, 4); ctx.stroke();
   }
 
-  return { pig: pig, pigHead: pigHead, frog: frog, snake: snake, bird: bird, bandit: bandit, bug: bug, fish: fish, boot: boot, heart: heart, clock: clock, coin: coin };
+  function sphere(ctx, x, y) {
+    blob(ctx, x + 16, y + 16, 14.2, 14.2, '#d7dee6', INK);
+    blob(ctx, x + 16, y + 18, 11.2, 10, '#b4bec8', null);
+    blob(ctx, x + 17, y + 22, 7.5, 5.2, '#8e98a3', null);
+    blob(ctx, x + 11, y + 10, 4.2, 3, '#f7fbff', null);
+  }
+
+  function lady(ctx, x, y) {
+    blob(ctx, x + 10, y - 7, 3, 5, '#e7b898', INK);
+    blob(ctx, x + 18, y - 7, 3, 5, '#e7b898', INK);
+    blob(ctx, x + 14, y - 16, 9, 8, '#3d8a40', INK);
+    blob(ctx, x + 14, y - 18, 6, 4, '#2f6e34', null);
+    blob(ctx, x + 14, y - 28, 8, 6.5, '#f7f4ee', INK);
+    blob(ctx, x + 8, y - 30, 2.4, 3, '#f7f4ee', INK);
+    blob(ctx, x + 20, y - 30, 2.4, 3, '#f7f4ee', INK);
+    blob(ctx, x + 14, y - 40, 6.2, 5.5, '#f0c2a4', INK);
+    blob(ctx, x + 14, y - 46, 7.5, 4.8, '#f2d48a', INK);
+    blob(ctx, x + 8, y - 47, 2.8, 3.4, '#e2c070', INK);
+    blob(ctx, x + 20, y - 47, 2.8, 3.4, '#e2c070', INK);
+    pix(ctx, x + 12, y - 41, INK);
+    pix(ctx, x + 16, y - 41, INK);
+    pix(ctx, x + 14, y - 38, '#e09090');
+  }
+
+  return { pig: pig, pigHead: pigHead, frog: frog, snake: snake, bird: bird, bandit: bandit, bug: bug, fish: fish, boot: boot, heart: heart, clock: clock, coin: coin, sphere: sphere, lady: lady };
 })();

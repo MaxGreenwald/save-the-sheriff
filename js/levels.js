@@ -53,23 +53,24 @@ var LEVELS = [
     rows: 18,
     exit: 'edge',
     goals: {},
-    /* Town from the level 2 frames: a pegged pole, awnings, a cage on a
-       balcony, a chimney building with a star plunger, and a boulder pile.
-       The exit itself is off-screen after that pile. */
+    /* Town from the level 2 frames: pegged poles, a balcony cage beside a
+       net bandit, the lady at the saloon, a hanging frame, and a star
+       plunger that frees the sphere pile. The bird quest is optional. */
     ground: [[0, 95, 15]],
-    buildings: [[6, 8, 12, 7, 'wood'], [22, 8, 18, 7, 'brick'], [44, 9, 8, 6, 'white'], [74, 10, 7, 5, 'yellow']],
-    women: [[16, 14]],
+    buildings: [[6, 8, 12, 7, 'saloon'], [22, 8, 18, 7, 'brick'], [44, 9, 8, 6, 'white'], [74, 10, 7, 5, 'yellow']],
+    women: [[11, 14]],
     poles: [[18, 14, 8], [46, 14, 7]],
-    plats: [[8, 12, 6], [32, 12, 6], [56, 13, 5], [78, 11, 5], [88, 12, 4]],
+    frames: [[40, 11]],
+    plats: [[8, 12, 6], [32, 12, 6], [56, 13, 5], [78, 11, 5], [84, 12, 2], [88, 12, 4]],
     tokens: [[6, 13], [12, 10], [16, 10], [24, 13], [36, 10], [40, 10], [50, 12], [62, 13], [70, 11], [86, 13]],
     frogs: [[10, 11]],
     birds: [[20, 6, 8], [34, 6, 8]],
     bugs: [[42, 8]],
-    hostages: [[34, 11]],
     guns: [[58, 11, 2]],
-    nets: [[80, 10, -1]],
+    nets: [[81, 10, 1]],
+    cages: [[78, 10]],
     rects: [[86, 11, 2, 2, TILE.TNT]],
-    plungers: [{ c: 68, r: 14, clears: [{ c: 86, r: 11, w: 2, h: 2 }] }],
+    plungers: [{ c: 84, r: 11, clears: [{ c: 86, r: 11, w: 2, h: 2 }] }],
     boulders: [[88, 11], [89, 11], [89, 10], [90, 11]],
     script: [
       ['goto', 14, 14],
@@ -126,13 +127,14 @@ var LEVELS = [
     tokens: [[6, 10], [15, 12], [19, 12], [30, 13], [46, 8], [60, 12], [74, 12], [76, 12], [92, 13]],
     snakes: [[36, 12, 2]],
     nets: [[56, 11, 1]],
-    plungers: [{ c: 28, r: 14, clears: [{ c: 14, r: 12, w: 6, h: 2 }] }],
+    plungers: [{ c: 28, r: 14, clears: [{ c: 14, r: 12, w: 6, h: 2 }, { c: 13, r: 14, w: 4, h: 1 }] }],
     boulders: [[5, 12], [66, 11], [67, 11], [68, 11], [69, 11], [67, 10], [68, 10], [69, 10], [68, 9], [83, 8]],
     cacti: [[4, 12], [64, 14]],
     signs: [[96, 14]],
     script: [
       ['goto', 6, 12],
       ['goto', 20, 14],
+      ['plunge', 28],
       ['goto', 36, 14],
       ['goto', 66, 14],
       ['goto', 96, 14]
@@ -211,10 +213,12 @@ var LEVELS = [
     exit: 'door',
     goals: {},
     /* Outdoor pale steps from the level 7 frames, then a building with a blue
-       door. Not a rainy cave. The key sits on the roof and is not required. */
+       door. A caged bird on the steps can be walked back to the woman.
+       The key sits on the roof and is not required. */
     ground: [[0, 87, 15]],
     buildings: [[60, 9, 8, 6, 'blue']],
     women: [[54, 14]],
+    cages: [[15, 11]],
     plats: [[8, 13, 4], [14, 12, 4], [20, 11, 4], [36, 13, 6], [52, 14, 4], [56, 13, 4], [60, 12, 4], [64, 11, 8]],
     tokens: [[4, 13], [10, 11], [18, 9], [30, 13], [40, 11], [54, 10], [70, 9]],
     frogs: [[16, 10]],
@@ -288,7 +292,7 @@ var LEVELS = [
     frogs: [[10, 9]],
     snakes: [[36, 9, 3]],
     nets: [[74, 7, 1]],
-    hostages: [[50, 7]],
+    cages: [[49, 7]],
     boulders: [[48, 7], [49, 7], [50, 7], [51, 7]],
     plungers: [{ c: 46, r: 7, clears: [] }],
     springs: [[100, 8]],
@@ -400,7 +404,41 @@ function compileLevel(def) {
   (def.ropes || []).forEach(function (r) { fill(r[0], r[1], r[2], 1, TILE.ROPE); });
   (def.wires || []).forEach(function (r) { fill(r[0], r[1], r[2], 1, TILE.WIRE); });
   (def.ladders || []).forEach(function (L) { fill(L[0], L[1] - L[2] + 1, 1, L[2], TILE.LADDER); });
-  (def.poles || []).forEach(function (L) { fill(L[0], L[1] - L[2] + 1, 1, L[2], TILE.LADDER); });
+
+  var platforms = [];
+  (def.poles || []).forEach(function (p) {
+    var x = p[0] * 32, y = (p[1] + 1) * 32, h = p[2] * 32;
+    var pegs = Math.max(3, Math.floor(h / 36));
+    var step = Math.floor((h - 28) / pegs);
+    for (var i = 0; i < pegs; i++) {
+      var py = y - h + 18 + i * step;
+      var left = i % 2 === 0;
+      platforms.push({ x: left ? x - 10 : x + 20, y: py, w: 18, h: 6, kind: 'peg' });
+    }
+  });
+  (def.buildings || []).forEach(function (b) {
+    var x = b[0] * 32, y = b[1] * 32, w = b[2] * 32, h = b[3] * 32;
+    platforms.push({ x: x, y: y, w: w, h: 6, kind: 'roof' });
+    platforms.push({ x: x + 8, y: y + Math.floor(h * 0.42), w: Math.max(16, w - 16), h: 6, kind: 'balcony' });
+    platforms.push({ x: x + Math.floor(w / 2) - 20, y: y + h - 8, w: 40, h: 6, kind: 'stoop' });
+  });
+  (def.frames || []).forEach(function (f) {
+    platforms.push({ x: f[0] * 32, y: f[1] * 32, w: 32, h: 8, kind: 'frame' });
+  });
+  var cages = (def.cages || []).map(function (c) {
+    var box = { x: c[0] * 32 + 2, y: c[1] * 32, w: 28, h: 32, open: false };
+    platforms.push({ x: box.x, y: box.y, w: box.w, h: 6, kind: 'cage' });
+    return box;
+  });
+  var npc = null;
+  if (cages.length && def.women && def.women.length) {
+    var w0 = def.women[0];
+    var feet = (w0[1] + 1) * 32;
+    npc = {
+      x: w0[0] * 32, y: feet - 52, w: 46, h: 56, bubble: 0,
+      perchX: w0[0] * 32 - 20, perchY: feet - 32
+    };
+  }
 
   function cell(c, r, kind, extra) {
     var o = { kind: kind, c: c, r: r, x: c * 32, y: r * 32, w: 32, h: 32, alive: true };
@@ -458,8 +496,22 @@ function compileLevel(def) {
   var springs = (def.springs || []).map(function (s) {
     return { x: s[0] * 32 + 2, y: s[1] * 32 + 8, w: 28, h: 24 };
   });
-  var boulders = (def.boulders || []).map(function (b) {
-    return { x: b[0] * 32, y: b[1] * 32, w: 32, h: 32, vx: 0, vy: 0, grounded: false, slot: -1, snapped: false };
+  var boulders = (def.boulders || []).map(function (b, i) {
+    var rock = { x: b[0] * 32, y: b[1] * 32, w: 32, h: 32, vx: 0, vy: 0, grounded: false, slot: -1, snapped: false, held: false, tumble: 0, kick: 0 };
+    var bc = b[0], br = b[1];
+    for (var dy = -2; dy <= 2 && !rock.held; dy++) {
+      for (var dx = -3; dx <= 3; dx++) {
+        var tx = bc + dx, ty = br + dy;
+        if (!inside(tx, ty)) continue;
+        if (tiles[I(tx, ty)] !== TILE.TNT) continue;
+        rock.held = true;
+        rock.anchorC = tx;
+        rock.anchorR = ty;
+        rock.kick = ((tx * 32 + 16) < (rock.x + 16) ? -1 : 1) * (0.75 + (i % 4) * 0.22);
+        break;
+      }
+    }
+    return rock;
   });
   var crates = (def.crates || []).map(function (c) {
     return { x: c[0] * 32, y: c[1] * 32, w: 32, h: 32, alive: true };
@@ -552,6 +604,10 @@ function compileLevel(def) {
     caves: caves,
     doors: doors,
     plungers: plungers,
+    platforms: platforms,
+    cages: cages,
+    npc: npc,
+    pet: null,
     springs: springs,
     boulders: boulders,
     crates: crates,
