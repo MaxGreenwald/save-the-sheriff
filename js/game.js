@@ -857,10 +857,13 @@ function drawWorld() {
       continue;
     }
     if (t === TILE.ROPE || t === TILE.WIRE) {
-      var yy = y + T - 6;
-      ctx.fillStyle = t === TILE.WIRE ? '#222' : '#8a6230';
-      ctx.fillRect(x, yy, T, t === TILE.WIRE ? 2 : 4);
-      if (t === TILE.ROPE) { ctx.fillStyle = '#c09058'; ctx.fillRect(x, yy + 1, T, 2); }
+      var yy = y + T - 10;
+      ctx.fillStyle = t === TILE.WIRE ? '#222' : '#5a3818';
+      ctx.fillRect(x, yy, T, t === TILE.WIRE ? 2 : 8);
+      if (t === TILE.ROPE) {
+        ctx.fillStyle = '#e2b56a'; ctx.fillRect(x, yy + 2, T, 3);
+        ctx.fillStyle = '#8a5a28'; ctx.fillRect(x + 4, yy + 1, 2, 6); ctx.fillRect(x + 14, yy + 1, 2, 6); ctx.fillRect(x + 24, yy + 1, 2, 6);
+      }
       continue;
     }
     var cracked = t === TILE.CRUMBLE && level.crumble[r * level.cols + c] > 0 && (frame % 4 < 2);
@@ -870,8 +873,20 @@ function drawWorld() {
     var rightN = c < level.cols - 1 ? level.tiles[r * level.cols + c + 1] : 0;
     var skyC = level.def.sky === 'sunset' ? '#f0b06a' : level.def.sky === 'rain' ? '#9eb8cc' : '#8ecff2';
     var merged = solidT(t) && t !== TILE.TNT && t !== TILE.WALL && t !== TILE.GATE && t !== TILE.SPIKE;
+    if (level.def.wood && c < (level.def.woodUntil || 30) && r < 12) {
+      ctx.fillStyle = '#6a3a18'; ctx.fillRect(x, y, T, T);
+      ctx.fillStyle = (c + r) % 2 ? '#c48a48' : '#a86a30'; ctx.fillRect(x + 1, y + 1, T - 2, T - 2);
+      ctx.fillStyle = '#e8c48a'; ctx.fillRect(x + 4, y + 2, 2, T - 4);
+      continue;
+    }
+    var paleHere = false;
+    var pale = level.decals.pale;
+    for (var pi = 0; pi < pale.length; pi++) {
+      var pz = pale[pi];
+      if (c >= pz[0] && c < pz[0] + pz[2] && r === pz[1]) paleHere = true;
+    }
     if (merged) {
-      ctx.fillStyle = col.fill;
+      ctx.fillStyle = paleHere ? '#f3e2a0' : col.fill;
       ctx.fillRect(x, y, T, T);
       ctx.fillStyle = 'rgba(110,62,12,0.38)';
       for (var sy = y - (y % 4); sy < y + T; sy += 4) if (sy >= y) ctx.fillRect(x, sy, T, 2);
@@ -923,6 +938,7 @@ function drawActors() {
   level.decals.buildings.forEach(function (b, bi) {
     drawFacade(b[0] * T, b[1] * T, b[2] * T, b[3] * T, bi);
   });
+  level.decals.women.forEach(function (w) { drawWoman(w[0] * T, (w[1] + 1) * T); });
   level.decals.cacti.forEach(function (c) { drawCactus(c[0] * T, (c[1] + 1) * T); });
   if (level.decals.saloon) drawSaloon(level.decals.saloon[0] * T, (level.decals.saloon[1] + 1) * T);
   level.decals.poles.forEach(function (p) { drawPole(p[0] * T, (p[1] + 1) * T, p[2] * T); });
@@ -1077,13 +1093,16 @@ function drawPole(x, y, h) {
   }
 }
 function drawFacade(x, y, w, h, bi) {
-  var styles = [
-    { wall: '#f4f0e4', line: '#d9d0bc', trim: '#c8b48a' },
-    { wall: '#f0d24a', line: '#e0b030', trim: '#c89020' },
-    { wall: '#e8c48a', line: '#c89858', trim: '#a07038' },
-    { wall: '#e8b0b8', line: '#d09098', trim: '#f7f4ee' }
-  ];
-  var s = styles[bi % styles.length];
+  var named = {
+    white: { wall: '#f4f0e4', line: '#d9d0bc', trim: '#c8b48a', door: '#a86830' },
+    yellow: { wall: '#f0d24a', line: '#e0b030', trim: '#c89020', door: '#a86830' },
+    wood: { wall: '#e8c48a', line: '#c89858', trim: '#a07038', door: '#8a4a20' },
+    brick: { wall: '#e8b0b8', line: '#d09098', trim: '#f7f4ee', door: '#a86830' },
+    blue: { wall: '#f0d24a', line: '#e0b030', trim: '#c89020', door: '#2f6fd0' }
+  };
+  var key = level.decals.buildings[bi][4];
+  var order = ['white', 'yellow', 'wood', 'brick'];
+  var s = named[key] || named[order[bi % 4]];
   ctx.fillStyle = '#1a120c'; ctx.fillRect(x, y, w, h);
   ctx.fillStyle = s.wall; ctx.fillRect(x + 2, y + 2, w - 4, h - 4);
   ctx.fillStyle = s.line;
@@ -1100,14 +1119,40 @@ function drawFacade(x, y, w, h, bi) {
   var doorX = x + Math.floor(w / 2) - 10;
   var doorY = y + h - 36;
   ctx.fillStyle = '#1a120c'; ctx.fillRect(doorX, doorY, 20, 32);
-  ctx.fillStyle = '#a86830'; ctx.fillRect(doorX + 2, doorY + 2, 16, 28);
-  ctx.fillStyle = '#f0d070'; ctx.fillRect(doorX + 12, doorY + 14, 2, 2);
+  ctx.fillStyle = s.door; ctx.fillRect(doorX + 2, doorY + 2, 16, 28);
+  if (s.door === '#2f6fd0') {
+    ctx.fillStyle = '#d7f4ff'; ctx.fillRect(doorX + 5, doorY + 6, 10, 12);
+    drawSwirl(doorX + 10, doorY + 12, 4);
+  } else ctx.fillStyle = '#f0d070'; ctx.fillRect(doorX + 12, doorY + 14, 2, 2);
+  if (key === 'sheriff') {
+    ctx.fillStyle = '#1a120c'; ctx.fillRect(x + w - 28, y + 16, 18, 16);
+    ctx.fillStyle = '#9fd4ee'; ctx.fillRect(x + w - 26, y + 18, 14, 12);
+    ctx.fillStyle = '#f0c2a4'; ctx.fillRect(x + w - 22, y + 20, 6, 6);
+    ctx.fillStyle = '#6a4a22'; ctx.fillRect(x + w - 24, y + 18, 10, 3);
+    ctx.fillStyle = '#1a120c';
+    ctx.fillRect(x + w - 26, y + 18, 1, 12); ctx.fillRect(x + w - 20, y + 18, 1, 12); ctx.fillRect(x + w - 14, y + 18, 1, 12);
+  }
+}
+function drawWoman(x, y) {
+  ctx.fillStyle = '#1a120c'; ctx.fillRect(x + 6, y - 28, 14, 28);
+  ctx.fillStyle = '#f2d48a'; ctx.fillRect(x + 8, y - 26, 10, 6);
+  ctx.fillStyle = '#f7f4ee'; ctx.fillRect(x + 7, y - 18, 12, 8);
+  ctx.fillStyle = '#3d8a40'; ctx.fillRect(x + 7, y - 10, 12, 10);
+  ctx.fillStyle = '#f0c2a4'; ctx.fillRect(x + 9, y - 24, 6, 5);
 }
 function drawSaloon(x, y) {
-  ctx.fillStyle = '#1a120c'; ctx.fillRect(x, y - 70, 70, 70);
-  ctx.fillStyle = '#c4844a'; ctx.fillRect(x + 3, y - 66, 64, 66);
-  ctx.fillStyle = '#8a3a28'; ctx.fillRect(x + 8, y - 78, 54, 12);
-  ctx.fillStyle = '#203040'; ctx.fillRect(x + 12, y - 48, 16, 18); ctx.fillRect(x + 40, y - 48, 16, 18);
+  ctx.fillStyle = '#1a120c'; ctx.fillRect(x, y - 96, 96, 96);
+  ctx.fillStyle = '#e8c48a'; ctx.fillRect(x + 3, y - 92, 90, 88);
+  ctx.fillStyle = '#c89858';
+  for (var ly = y - 88; ly < y - 8; ly += 4) ctx.fillRect(x + 4, ly, 88, 1);
+  ctx.fillStyle = '#8a3a28'; ctx.fillRect(x + 8, y - 108, 80, 14);
+  ctx.fillStyle = '#203040'; ctx.fillRect(x + 12, y - 78, 18, 16); ctx.fillRect(x + 66, y - 78, 18, 16);
+  ctx.fillStyle = '#9fd4ee'; ctx.fillRect(x + 14, y - 76, 14, 12); ctx.fillRect(x + 68, y - 76, 14, 12);
+  ctx.fillStyle = '#3a2412'; ctx.fillRect(x + 28, y - 48, 40, 44);
+  ctx.fillStyle = '#6a3a18'; ctx.fillRect(x + 32, y - 44, 32, 8);
+  ctx.fillStyle = '#f0d070'; ctx.fillRect(x + 36, y - 42, 4, 4); ctx.fillRect(x + 44, y - 42, 4, 4); ctx.fillRect(x + 52, y - 42, 4, 4);
+  ctx.fillStyle = '#c4844a'; ctx.fillRect(x + 30, y - 34, 8, 30); ctx.fillRect(x + 58, y - 34, 8, 30);
+  drawWoman(x + 40, y);
 }
 function drawSign(x, y) {
   ctx.fillStyle = '#1a120c'; ctx.fillRect(x + 12, y - 36, 6, 36);

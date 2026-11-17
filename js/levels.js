@@ -22,15 +22,18 @@ var LEVELS = [
     ground: [[0, 20, 15], [28, 119, 15]],
     plats: [[34, 13, 5], [38, 12, 6], [60, 14, 4], [64, 13, 4], [68, 12, 6], [78, 13, 8], [90, 12, 6]],
     rects: [
-      [6, 12, 8, 3, TILE.SOLID]
+      [6, 12, 8, 3, TILE.SOLID],
+      [22, 13, 2, 1, TILE.SOLID],
+      [21, 16, 7, 2, TILE.SOLID]
     ],
+    ropes: [[21, 14, 7]],
     tokens: [[2, 11], [4, 9], [7, 8], [9, 8], [11, 8], [13, 8], [22, 13], [36, 10], [42, 9], [49, 8], [56, 14], [64, 11], [72, 9], [80, 12], [88, 14]],
     frogs: [[10, 11]],
     snakes: [[70, 11, 3], [78, 14, 3]],
     cacti: [[2, 14], [40, 11], [66, 14], [84, 14], [104, 14]],
     saloon: [112, 14],
     boulders: [[44, 14]],
-    crates: [[50, 14]],
+    crates: [[24, 15], [50, 14]],
     plank: { c: 18, len: 6, dist: 8, period: 150, pause: 36 },
     script: [
       ['goto', 4, 14],
@@ -54,7 +57,8 @@ var LEVELS = [
        balcony, a chimney building with a star plunger, and a boulder pile.
        The exit itself is off-screen after that pile. */
     ground: [[0, 95, 15]],
-    buildings: [[4, 9, 8, 6], [28, 8, 9, 7], [52, 9, 8, 6], [74, 10, 7, 5]],
+    buildings: [[6, 8, 12, 7, 'wood'], [22, 8, 18, 7, 'brick'], [44, 9, 8, 6, 'white'], [74, 10, 7, 5, 'yellow']],
+    women: [[16, 14]],
     poles: [[18, 14, 8], [46, 14, 7]],
     plats: [[8, 12, 6], [32, 12, 6], [56, 13, 5], [78, 11, 5], [88, 12, 4]],
     tokens: [[6, 13], [12, 10], [16, 10], [24, 13], [36, 10], [40, 10], [50, 12], [62, 13], [70, 11], [86, 13]],
@@ -86,7 +90,7 @@ var LEVELS = [
        frog, a snake, a gun bandit on a terrace, then stairs. No sign was in
        the frames before the level-done card. */
     ground: [[0, 16, 15], [22, 91, 15]],
-    plats: [[8, 12, 6], [28, 13, 5], [34, 11, 6], [48, 12, 5], [58, 13, 4], [64, 12, 4], [70, 11, 5]],
+    plats: [[8, 12, 6], [28, 13, 5], [48, 14, 1], [49, 13, 1], [50, 12, 1], [51, 11, 1], [52, 10, 1], [53, 11, 1], [54, 12, 1], [55, 13, 1], [56, 14, 1], [64, 12, 4], [70, 11, 5]],
     tokens: [[4, 12], [12, 9], [18, 13], [26, 11], [32, 9], [40, 9], [52, 10], [66, 9], [78, 13], [86, 12]],
     frogs: [[11, 11]],
     snakes: [[30, 12, 3]],
@@ -111,19 +115,19 @@ var LEVELS = [
     /* Orange canyon from the level 4 frames. A high block and a cactus, a
        snake in the notch, TNT on the rope, a plunger, boulder steps, a tower,
        and the swirl sign at the end. */
-    ground: [[0, 12, 15], [16, 99, 15]],
-    ropes: [[13, 14, 4], [70, 14, 6]],
+    ground: [[0, 12, 15], [16, 40, 15], [64, 99, 15]],
+    ropes: [[13, 14, 4], [42, 14, 22]],
     rects: [
       [14, 12, 2, 2, TILE.TNT],
       [18, 12, 2, 2, TILE.TNT],
       [82, 9, 4, 4, TILE.SOLID]
     ],
-    plats: [[2, 14, 6], [4, 13, 4], [40, 13, 4], [44, 12, 4], [48, 11, 4], [52, 10, 4], [88, 12, 4]],
+    plats: [[2, 14, 6], [4, 13, 4], [66, 12, 6], [68, 11, 4], [70, 10, 2], [88, 12, 4]],
     tokens: [[6, 10], [15, 12], [19, 12], [30, 13], [46, 8], [60, 12], [74, 12], [76, 12], [92, 13]],
     snakes: [[36, 12, 2]],
     nets: [[56, 11, 1]],
     plungers: [{ c: 28, r: 14, clears: [{ c: 14, r: 12, w: 6, h: 2 }] }],
-    boulders: [[5, 12], [48, 9], [49, 9], [49, 8], [83, 8]],
+    boulders: [[5, 12], [66, 11], [67, 11], [68, 11], [69, 11], [67, 10], [68, 10], [69, 10], [68, 9], [83, 8]],
     cacti: [[4, 12], [64, 14]],
     signs: [[96, 14]],
     script: [
@@ -144,8 +148,9 @@ var LEVELS = [
     goals: {},
     /* Desert from the level 5 frames. The swirl by the porch is the exit.
        Earlier signs in the video are mid-level and are not the end. */
-    ground: [[0, 24, 15], [28, 99, 15]],
-    ropes: [[25, 14, 3]],
+    ground: [[0, 20, 15], [40, 99, 15]],
+    ropes: [[21, 14, 19]],
+    rects: [[21, 16, 19, 2, TILE.TNT]],
     plats: [[8, 13, 5], [36, 13, 4], [40, 12, 4], [44, 11, 5], [70, 13, 6], [88, 12, 6]],
     tokens: [[4, 12], [10, 11], [16, 13], [22, 12], [34, 11], [42, 9], [52, 13], [66, 12], [76, 13], [92, 10]],
     frogs: [[12, 12]],
@@ -183,7 +188,8 @@ var LEVELS = [
     wires: [[16, 7, 30]],
     birds: [[20, 6, 12], [46, 6, 8]],
     plats: [[34, 13, 5], [58, 13, 4], [74, 11, 6]],
-    tokens: [[6, 13], [12, 11], [20, 6], [24, 6], [30, 6], [38, 11], [54, 13], [64, 11], [80, 12], [90, 13]],
+    tokens: [[6, 13], [12, 11], [20, 6], [24, 6], [30, 8], [31, 8], [32, 8], [30, 9], [31, 9], [32, 9], [30, 10], [31, 10], [32, 10], [38, 11], [54, 13], [64, 11], [80, 12], [90, 13]],
+    pale: [[84, 13, 8], [86, 12, 6], [88, 11, 4]],
     frogs: [[36, 12]],
     snakes: [[60, 12, 2]],
     hostages: [[76, 10]],
@@ -207,7 +213,8 @@ var LEVELS = [
     /* Outdoor pale steps from the level 7 frames, then a building with a blue
        door. Not a rainy cave. The key sits on the roof and is not required. */
     ground: [[0, 87, 15]],
-    buildings: [[60, 9, 8, 6]],
+    buildings: [[60, 9, 8, 6, 'blue']],
+    women: [[54, 14]],
     plats: [[8, 13, 4], [14, 12, 4], [20, 11, 4], [36, 13, 6], [52, 14, 4], [56, 13, 4], [60, 12, 4], [64, 11, 8]],
     tokens: [[4, 13], [10, 11], [18, 9], [30, 13], [40, 11], [54, 10], [70, 9]],
     frogs: [[16, 10]],
@@ -236,9 +243,11 @@ var LEVELS = [
     ground: [[0, 85, 15]],
     rects: [
       [6, 9, 6, 4, TILE.SOLID],
+      [18, 8, 16, 5, TILE.SOLID],
       [28, 11, 4, 3, TILE.SOLID],
       [44, 11, 4, 3, TILE.SOLID]
     ],
+    carve: [[20, 10, 10, 2]],
     spikes: [[44, 10, 4]],
     plats: [[18, 13, 5], [36, 13, 4], [56, 13, 6]],
     tokens: [[4, 13], [10, 12], [14, 12], [18, 12], [22, 11], [34, 13], [48, 12], [60, 11], [72, 13]],
@@ -283,6 +292,8 @@ var LEVELS = [
     boulders: [[48, 7], [49, 7], [50, 7], [51, 7]],
     plungers: [{ c: 46, r: 7, clears: [] }],
     springs: [[100, 8]],
+    ropes: [[15, 9, 3], [29, 9, 3], [44, 9, 2], [55, 9, 3], [67, 9, 3], [81, 9, 3], [95, 9, 3]],
+    women: [[6, 9]],
     fish: [[16], [30], [44], [56], [68], [82], [96]],
     cacti: [[4, 9], [34, 9], [100, 9]],
     caves: [[104, 9]],
@@ -311,10 +322,10 @@ var LEVELS = [
     rects: [[0, 9, 4, 4, TILE.SOLID]],
     plats: [[10, 13, 5], [18, 11, 4], [36, 12, 6], [48, 13, 3], [50, 12, 3], [52, 11, 3], [66, 12, 5], [78, 11, 6]],
     tokens: [[4, 14], [8, 12], [14, 10], [22, 9], [40, 7], [40, 8], [40, 9], [40, 10], [40, 11], [40, 12], [40, 13], [40, 14], [46, 13], [46, 11], [46, 9], [60, 10], [70, 10], [84, 9], [90, 14]],
-    boulders: [[36, 11], [37, 11], [38, 11], [37, 10], [38, 10], [38, 9]],
+    boulders: [[36, 11], [37, 11], [38, 11], [39, 11], [40, 11], [37, 10], [38, 10], [39, 10], [38, 9], [39, 9], [38, 8]],
     springs: [[62, 14]],
     keys: [[68, 10]],
-    buildings: [[80, 9, 8, 6]],
+    buildings: [[80, 9, 8, 6, 'blue']],
     plungers: [{ c: 90, r: 14, clears: [] }],
     cacti: [[2, 14]],
     script: [
@@ -335,6 +346,8 @@ var LEVELS = [
     rows: 18,
     exit: 'edge',
     goals: { boss: 1 },
+    wood: true,
+    woodUntil: 30,
     /* Wood cave, then the boot. The fight has rain over orange ground.
        The boot still takes 4 stomps. */
     ground: [[0, 91, 15]],
@@ -345,6 +358,7 @@ var LEVELS = [
       [72, 8, 2, 8, TILE.GATE]
     ],
     spikes: [[8, 12, 2]],
+    buildings: [[78, 10, 8, 5, 'sheriff']],
     tokens: [[4, 13], [12, 13], [18, 12], [26, 14], [84, 14]],
     frogs: [[16, 10]],
     snakes: [[10, 11, 2]],
@@ -375,6 +389,11 @@ function compileLevel(def) {
   (def.ground || []).forEach(function (g) { fill(g[0], g[2], g[1] - g[0] + 1, rows - g[2], TILE.SOLID); });
   (def.plats || []).forEach(function (p) { fill(p[0], p[1], p[2], 1, TILE.SOLID); });
   (def.rects || []).forEach(function (r) { fill(r[0], r[1], r[2], r[3], r[4]); });
+  (def.cacti || []).forEach(function (c) {
+    fill(c[0] - 1, c[1] - 3, 1, 1, TILE.SOLID);
+    fill(c[0] + 1, c[1] - 2, 1, 1, TILE.SOLID);
+  });
+  (def.carve || []).forEach(function (c) { fill(c[0], c[1], c[2], c[3], TILE.AIR); });
   (def.crumble || []).forEach(function (c) { fill(c[0], c[1], c[2], 1, TILE.CRUMBLE); });
   (def.spikes || []).forEach(function (s) { fill(s[0], s[1], s[2], 1, TILE.SPIKE); });
   (def.water || []).forEach(function (w) { fill(w[0], w[1], w[2], w[3], TILE.WATER); });
@@ -550,7 +569,9 @@ function compileLevel(def) {
       saloon: def.saloon || null,
       poles: def.poles || [],
       ladders: def.ladders || [],
-      buildings: def.buildings || []
+      buildings: def.buildings || [],
+      women: def.women || [],
+      pale: def.pale || []
     },
     script: (def.script || []).map(function (s) { return s.slice(); }),
     counters: { crates: 0, hostages: 0, plungers: 0, keyed: 0, slots: 0, boss: 0, ride: 0 }
