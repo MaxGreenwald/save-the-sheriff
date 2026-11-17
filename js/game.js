@@ -71,6 +71,7 @@ function tuneFor(biome) {
   if (biome === 'cave') return 'cave';
   if (biome === 'water') return 'water';
   if (biome === 'sunset') return 'boss';
+  if (biome === 'hill') return 'cave';
   return 'desert';
 }
 
@@ -833,6 +834,7 @@ function biomeColors() {
   if (b === 'water') return { fill: '#e0b45e', top: '#73d04e', edge: '#3d6a28', brick: '#c49a48' };
   if (b === 'sunset') return { fill: '#f0c15a', top: '#ffe08a', edge: '#a85a20', brick: '#e0a040' };
   if (b === 'canyon') return { fill: '#e8a04a', top: '#f2c56a', edge: '#8a4a18', brick: '#d09040' };
+  if (b === 'hill') return { fill: '#6aaa4a', top: '#8ed060', edge: '#2f5a28', brick: '#5e9440' };
   return { fill: '#efc56e', top: '#f6d78a', edge: '#a87430', brick: '#e2b25c' };
 }
 
