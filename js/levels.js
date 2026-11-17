@@ -12,22 +12,23 @@ var LEVELS = [
     id: 1,
     biome: 'desert',
     sky: 'day',
-    cols: 96,
+    cols: 120,
     rows: 18,
     exit: 'edge',
     goals: { crates: 1 },
-    ground: [[0, 20, 15], [28, 95, 15]],
-    /* Tall tan block with the frog and the row of four swirls, then a step down,
-       matching the 1:00 to 1:10 stretch. The pillar, plank, and crate are the 1:16 beat. */
-    plats: [[34, 13, 5], [38, 12, 6], [68, 12, 8], [74, 10, 6]],
+    /* Desert from the full level 1 frames: cactus, the frog block and four
+       coins, a plank over the pit, stairs, a snake ledge, and the wood
+       building at the end. */
+    ground: [[0, 20, 15], [28, 119, 15]],
+    plats: [[34, 13, 5], [38, 12, 6], [60, 14, 4], [64, 13, 4], [68, 12, 6], [78, 13, 8], [90, 12, 6]],
     rects: [
       [6, 12, 8, 3, TILE.SOLID]
     ],
     tokens: [[2, 11], [4, 9], [7, 8], [9, 8], [11, 8], [13, 8], [22, 13], [36, 10], [42, 9], [49, 8], [56, 14], [64, 11], [72, 9], [80, 12], [88, 14]],
     frogs: [[10, 11]],
     snakes: [[70, 11, 3], [78, 14, 3]],
-    cacti: [[2, 14], [40, 11], [66, 14], [84, 14]],
-    saloon: [90, 14],
+    cacti: [[2, 14], [40, 11], [66, 14], [84, 14], [104, 14]],
+    saloon: [112, 14],
     boulders: [[44, 14]],
     crates: [[50, 14]],
     plank: { c: 18, len: 6, dist: 8, period: 150, pause: 36 },
@@ -38,7 +39,7 @@ var LEVELS = [
       ['plank', 30],
       ['goto', 42, 14],
       ['push', 1, 'crates'],
-      ['goto', 94, 14]
+      ['goto', 118, 14]
     ]
   },
   {
@@ -58,10 +59,13 @@ var LEVELS = [
     plats: [[8, 12, 6], [32, 12, 6], [56, 13, 5], [78, 11, 5], [88, 12, 4]],
     tokens: [[6, 13], [12, 10], [16, 10], [24, 13], [36, 10], [40, 10], [50, 12], [62, 13], [70, 11], [86, 13]],
     frogs: [[10, 11]],
-    birds: [[34, 6, 8]],
+    birds: [[20, 6, 8], [34, 6, 8]],
+    bugs: [[42, 8]],
     hostages: [[34, 11]],
+    guns: [[58, 11, 2]],
     nets: [[80, 10, -1]],
-    plungers: [{ c: 68, r: 14, clears: [] }],
+    rects: [[86, 11, 2, 2, TILE.TNT]],
+    plungers: [{ c: 68, r: 14, clears: [{ c: 86, r: 11, w: 2, h: 2 }] }],
     boulders: [[88, 11], [89, 11], [89, 10], [90, 11]],
     script: [
       ['goto', 14, 14],
@@ -86,7 +90,7 @@ var LEVELS = [
     tokens: [[4, 12], [12, 9], [18, 13], [26, 11], [32, 9], [40, 9], [52, 10], [66, 9], [78, 13], [86, 12]],
     frogs: [[11, 11]],
     snakes: [[30, 12, 3]],
-    guns: [[38, 10, 3]],
+    guns: [[38, 10, 3], [72, 10, 2]],
     boulders: [[36, 10]],
     cacti: [[3, 14], [14, 14], [84, 14]],
     script: [
