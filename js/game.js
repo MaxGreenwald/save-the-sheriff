@@ -832,6 +832,7 @@ function biomeColors() {
   if (b === 'cave') return { fill: '#8e93a0', top: '#67c24a', edge: '#3e4452', brick: '#6d7382' };
   if (b === 'water') return { fill: '#e0b45e', top: '#73d04e', edge: '#3d6a28', brick: '#c49a48' };
   if (b === 'sunset') return { fill: '#f0c15a', top: '#ffe08a', edge: '#a85a20', brick: '#e0a040' };
+  if (b === 'canyon') return { fill: '#e8a04a', top: '#f2c56a', edge: '#8a4a18', brick: '#d09040' };
   return { fill: '#efc56e', top: '#f6d78a', edge: '#a87430', brick: '#e2b25c' };
 }
 
