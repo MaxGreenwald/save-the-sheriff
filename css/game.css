@@ -1,7 +1,7 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body {
   height: 100%;
-  background: #140c08;
+  background: #000;
   color: #fff8e6;
   overflow: hidden;
   touch-action: none;
@@ -21,12 +21,12 @@ body {
 }
 #stage {
   position: relative;
-  width: min(100vw, calc(100dvh * 16 / 9));
-  height: min(100dvh, calc(100vw * 9 / 16));
+  width: min(100vw, 100dvh);
+  height: min(100vw, 100dvh);
   max-width: 100%;
   max-height: 100dvh;
-  aspect-ratio: 16 / 9;
-  background: #87d4f8;
+  aspect-ratio: 1 / 1;
+  background: #8ecff2;
   box-shadow: 0 0 0 4px #6b4518, 0 16px 50px rgba(0, 0, 0, 0.45);
 }
 canvas {

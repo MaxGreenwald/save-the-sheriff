@@ -12,29 +12,33 @@ var LEVELS = [
     id: 1,
     biome: 'desert',
     sky: 'day',
-    cols: 78,
+    cols: 96,
     rows: 18,
     exit: 'edge',
     goals: { crates: 1 },
-    ground: [[0, 24, 15], [30, 77, 15]],
-    plats: [[8, 13, 5], [14, 12, 7], [34, 13, 4]],
-    rects: [[48, 13, 8, 1, TILE.SOLID]],
-    tokens: [[4, 14], [10, 12], [16, 11], [20, 14], [33, 14], [42, 11], [58, 14], [70, 14]],
-    frogs: [[18, 14], [36, 14]],
-    snakes: [[14, 11]],
-    cacti: [[3, 14], [22, 14], [63, 14]],
-    saloon: [68, 14],
+    ground: [[0, 20, 15], [28, 95, 15]],
+    /* Tall tan block with the frog and the row of four swirls, then a step down,
+       matching the 1:00 to 1:10 stretch. The pillar, plank, and crate are the 1:16 beat. */
+    plats: [[34, 13, 5], [38, 12, 6], [68, 12, 8], [74, 10, 6]],
+    rects: [
+      [6, 12, 8, 3, TILE.SOLID]
+    ],
+    tokens: [[2, 11], [4, 9], [7, 8], [9, 8], [11, 8], [13, 8], [22, 13], [36, 10], [42, 9], [49, 8], [56, 14], [64, 11], [72, 9], [80, 12], [88, 14]],
+    frogs: [[10, 11]],
+    snakes: [[70, 11, 3], [78, 14, 3]],
+    cacti: [[2, 14], [40, 11], [66, 14], [84, 14]],
+    saloon: [90, 14],
     boulders: [[44, 14]],
-    crates: [[48, 14]],
-    plank: { c: 22, len: 5, dist: 4, period: 170, pause: 50 },
+    crates: [[50, 14]],
+    plank: { c: 18, len: 6, dist: 8, period: 150, pause: 36 },
     script: [
+      ['goto', 4, 14],
+      ['goto', 8, 11],
       ['goto', 16, 14],
-      ['goto', 23, 14],
-      ['plank', 32],
-      ['goto', 41, 14],
+      ['plank', 30],
+      ['goto', 42, 14],
       ['push', 1, 'crates'],
-      ['goto', 60, 14],
-      ['goto', 76, 14]
+      ['goto', 94, 14]
     ]
   },
   {
@@ -64,7 +68,6 @@ var LEVELS = [
       ['climb', 18, 10],
       ['goto', 34, 14],
       ['climb', 34, 8],
-      ['goto', 50, 11],
       ['stomp', 'hostage'],
       ['goto', 70, 14],
       ['goto', 84, 14]
@@ -227,7 +230,7 @@ var LEVELS = [
     ground: [[0, 18, 15], [40, 46, 15], [62, 83, 15]],
     rects: [
       [20, 13, 4, 5, TILE.SOLID],
-      [19, 11, 21, 1, TILE.SOLID]
+      [16, 11, 24, 1, TILE.SOLID]
     ],
     spikes: [[42, 15, 3]],
     water: [[47, 15, 14, 3]],
@@ -331,12 +334,12 @@ var LEVELS = [
     exit: 'edge',
     goals: { boss: 1 },
     ground: [[0, 77, 15]],
-    plats: [[8, 13, 5]],
+    plats: [[4, 13, 3], [8, 13, 5]],
     rects: [[58, 8, 2, 8, TILE.GATE]],
     tokens: [[4, 14], [10, 12], [20, 14], [70, 14]],
-    frogs: [[6, 14]],
-    snakes: [[14, 14]],
-    guns: [[12, 12]],
+    frogs: [[10, 12]],
+    snakes: [[5, 12, 2]],
+    guns: [[12, 12, 3]],
     boss: { c: 40 },
     arena: [28, 56],
     script: [
@@ -382,9 +385,10 @@ function compileLevel(def) {
     enemies.push(cell(f[0], f[1], 'frog', { dir: 1, flip: 0, w: 30, h: 26, y: f[1] * 32 + 6 }));
   });
   (def.snakes || []).forEach(function (s) {
+    var span = s[2] || 5;
     var left = s[0], right = s[0];
-    while (left > 0 && solidish(tiles, cols, left - 1, s[1] + 1) && !solidish(tiles, cols, left - 1, s[1])) left--;
-    while (right < cols - 1 && solidish(tiles, cols, right + 1, s[1] + 1) && !solidish(tiles, cols, right + 1, s[1])) right++;
+    while (left > Math.max(0, s[0] - span) && solidish(tiles, cols, left - 1, s[1] + 1) && !solidish(tiles, cols, left - 1, s[1])) left--;
+    while (right < Math.min(cols - 1, s[0] + span) && solidish(tiles, cols, right + 1, s[1] + 1) && !solidish(tiles, cols, right + 1, s[1])) right++;
     enemies.push(cell(s[0], s[1], 'snake', { dir: 1, minX: left * 32, maxX: (right + 1) * 32 - 36, w: 36, h: 18, y: s[1] * 32 + 14 }));
   });
   (def.birds || []).forEach(function (b) {
@@ -394,9 +398,10 @@ function compileLevel(def) {
     enemies.push(cell(h[0], h[1], 'hostage', { dir: 1, w: 30, h: 40, y: h[1] * 32 - 8, freed: false }));
   });
   (def.guns || []).forEach(function (g) {
+    var span = g[2] || 4;
     var left = g[0], right = g[0];
-    while (left > 0 && solidish(tiles, cols, left - 1, g[1] + 1) && !solidish(tiles, cols, left - 1, g[1])) left--;
-    while (right < cols - 1 && solidish(tiles, cols, right + 1, g[1] + 1) && !solidish(tiles, cols, right + 1, g[1])) right++;
+    while (left > Math.max(0, g[0] - span) && solidish(tiles, cols, left - 1, g[1] + 1) && !solidish(tiles, cols, left - 1, g[1])) left--;
+    while (right < Math.min(cols - 1, g[0] + span) && solidish(tiles, cols, right + 1, g[1] + 1) && !solidish(tiles, cols, right + 1, g[1])) right++;
     enemies.push(cell(g[0], g[1], 'gun', {
       dir: -1, minX: left * 32, maxX: (right + 1) * 32 - 30,
       w: 28, h: 40, y: g[1] * 32 - 8, cool: 40
