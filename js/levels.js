@@ -62,17 +62,23 @@ var LEVELS = [
     women: [[11, 14]],
     poles: [[18, 14, 8], [46, 14, 7]],
     frames: [[40, 11]],
-    plats: [[8, 12, 6], [32, 12, 6], [56, 13, 5], [78, 11, 5], [84, 12, 2], [88, 12, 4]],
+    plats: [[32, 12, 6], [56, 13, 5], [74, 12, 10], [78, 11, 5]],
     tokens: [[6, 13], [12, 10], [16, 10], [24, 13], [36, 10], [40, 10], [50, 12], [62, 13], [70, 11], [86, 13]],
-    frogs: [[10, 11]],
+    frogs: [[4, 14]],
     birds: [[20, 6, 8], [34, 6, 8]],
     bugs: [[42, 8]],
     guns: [[58, 11, 2]],
     nets: [[81, 10, 1]],
     cages: [[78, 10]],
-    rects: [[86, 11, 2, 2, TILE.TNT]],
-    plungers: [{ c: 84, r: 11, clears: [{ c: 86, r: 11, w: 2, h: 2 }] }],
-    boulders: [[88, 11], [89, 11], [89, 10], [90, 11]],
+    rects: [[72, 9, 2, 4, TILE.TNT]],
+    plungers: [{ c: 66, r: 14, clears: [{ c: 72, r: 9, w: 2, h: 4 }] }],
+    boulders: [
+      [76, 11, 30], [77, 11, 30], [78, 11, 30], [79, 11, 30], [80, 11, 30],
+      [77, 10, 30], [78, 10, 30], [79, 10, 30], [80, 10, 30],
+      [78, 9, 30], [79, 9, 30], [80, 9, 30],
+      [79, 8, 30], [80, 8, 30],
+      [80, 7, 30]
+    ],
     signs: [[92, 14]],
     script: [
       ['goto', 14, 14],
@@ -129,7 +135,7 @@ var LEVELS = [
     plats: [[2, 14, 6], [4, 13, 4], [66, 12, 6], [68, 11, 4], [70, 10, 2], [88, 12, 4]],
     tokens: [[6, 10], [15, 12], [19, 12], [30, 13], [46, 8], [60, 12], [74, 12], [76, 12], [92, 13]],
     snakes: [[36, 12, 2]],
-    nets: [[56, 11, 1]],
+    nets: [[36, 14, 1]],
     plungers: [{ c: 28, r: 14, clears: [{ c: 14, r: 12, w: 6, h: 2 }, { c: 13, r: 14, w: 4, h: 1 }] }],
     boulders: [[5, 12], [66, 11], [67, 11], [68, 11], [69, 11], [67, 10], [68, 10], [69, 10], [68, 9], [83, 8]],
     cacti: [[4, 12], [64, 14]],
@@ -189,6 +195,7 @@ var LEVELS = [
        a snake, and a caged bandit on a balcony. No plunger and no boulder wall. */
     ground: [[0, 95, 15]],
     buildings: [[10, 9, 8, 6], [26, 8, 8, 7], [50, 9, 7, 6], [72, 10, 8, 5]],
+    women: [[20, 14]],
     poles: [[16, 14, 8], [42, 14, 8]],
     wires: [[16, 7, 30]],
     birds: [[20, 6, 12], [46, 6, 8]],
@@ -197,7 +204,7 @@ var LEVELS = [
     pale: [[84, 13, 8], [86, 12, 6], [88, 11, 4]],
     frogs: [[36, 12]],
     snakes: [[60, 12, 2]],
-    hostages: [[76, 10]],
+    hostages: [[76, 9]],
     cacti: [[92, 14]],
     signs: [[90, 14]],
     script: [
@@ -471,7 +478,10 @@ function compileLevel(def) {
     enemies.push(cell(s[0], s[1], 'snake', { dir: 1, minX: left * 32, maxX: (right + 1) * 32 - 36, w: 36, h: 18, y: s[1] * 32 + 14 }));
   });
   var perchers = (def.birds || []).map(function (b) {
-    return { x: b[0] * 32, y: b[1] * 32, w: 28, h: 18 };
+    return {
+      x: b[0] * 32, y: b[1] * 32, baseY: b[1] * 32, w: 28, h: 18,
+      dir: 1, minX: b[0] * 32, maxX: (b[0] + (b[2] || 6)) * 32 - 28
+    };
   });
   (def.hostages || []).forEach(function (h) {
     enemies.push(cell(h[0], h[1], 'hostage', { dir: 1, w: 30, h: 40, y: h[1] * 32 - 8, freed: false }));
@@ -492,14 +502,40 @@ function compileLevel(def) {
   (def.bugs || []).forEach(function (b) {
     enemies.push(cell(b[0], b[1], 'bug', { w: 26, h: 18, homeX: b[0] * 32, homeY: b[1] * 32, swoop: 0, lockX: 0 }));
   });
+  function nearestSupport(x, feet) {
+    var best = null;
+    var c = Math.floor(x / 32);
+    for (var r = 0; r < rows; r++) {
+      if (!solidish(tiles, cols, c, r)) continue;
+      var top = r * 32;
+      if (top + 4 >= feet && (best === null || top < best)) best = top;
+    }
+    platforms.forEach(function (p) {
+      if (x < p.x || x > p.x + p.w) return;
+      if (p.y + 4 >= feet && (best === null || p.y < best)) best = p.y;
+    });
+    return best;
+  }
+  function ledgeSpan(e, span) {
+    var feet = e.y + e.h;
+    var row = Math.floor((feet + 1) / 32);
+    var c = Math.floor((e.x + e.w / 2) / 32);
+    var left = c, right = c, guard = 0;
+    while (guard++ < span && left > 0 && solidish(tiles, cols, left - 1, row) && !solidish(tiles, cols, left - 1, row - 1)) left--;
+    guard = 0;
+    while (guard++ < span && right < cols - 1 && solidish(tiles, cols, right + 1, row) && !solidish(tiles, cols, right + 1, row - 1)) right++;
+    e.minX = left * 32;
+    e.maxX = Math.max(e.minX + 8, (right + 1) * 32 - e.w);
+    e.homeX = e.x;
+    e.face = e.dir || 1;
+  }
   enemies.forEach(function (e) {
     var feet = e.y + e.h;
     var c = Math.floor((e.x + e.w / 2) / 32);
     var row = Math.floor((feet + 1) / 32);
-    if (solidish(tiles, cols, c, row)) return;
-    for (var rr = row; rr < rows; rr++) {
-      if (solidish(tiles, cols, c, rr)) { e.y = rr * 32 - e.h; break; }
-    }
+    var support = nearestSupport(e.x + e.w / 2, e.y + e.h);
+    if (support != null) e.y = support - e.h;
+    if (e.kind === 'frog' || e.kind === 'snake' || e.kind === 'gun' || e.kind === 'net') ledgeSpan(e, 4);
   });
 
   var tokens = (def.tokens || []).map(function (t) { return cell(t[0], t[1], 'token', { got: false }); });
@@ -519,10 +555,12 @@ function compileLevel(def) {
     return { x: s[0] * 32 + 2, y: s[1] * 32 + 8, w: 28, h: 24 };
   });
   var boulders = (def.boulders || []).map(function (b, i) {
-    var rock = { x: b[0] * 32 + 5, y: b[1] * 32 + 10, w: 22, h: 22, vx: 0, vy: 0, grounded: false, slot: -1, snapped: false, held: false, tumble: 0, kick: 0 };
+    var sz = b[2] || 22;
+    var rock = { x: b[0] * 32 + (32 - sz) / 2, y: b[1] * 32 + (32 - sz), w: sz, h: sz, vx: 0, vy: 0, grounded: false, slot: -1, snapped: false, held: false, tumble: 0, kick: 0 };
     var bc = b[0], br = b[1];
+    var reach = sz > 22 ? 8 : 3;
     for (var dy = -2; dy <= 2 && !rock.held; dy++) {
-      for (var dx = -3; dx <= 3; dx++) {
+      for (var dx = -reach; dx <= reach; dx++) {
         var tx = bc + dx, ty = br + dy;
         if (!inside(tx, ty)) continue;
         if (tiles[I(tx, ty)] !== TILE.TNT) continue;
