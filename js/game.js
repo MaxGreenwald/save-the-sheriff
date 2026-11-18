@@ -320,8 +320,12 @@ function reachedFinish() {
   if (!level || gs !== 'play') return false;
   var cols = [];
   var i;
-  for (i = 0; i < level.signs.length; i++) cols.push(Math.floor(level.signs[i].x / T));
-  for (i = 0; i < level.doors.length; i++) if (level.doors[i].exit) cols.push(Math.floor(level.doors[i].x / T));
+  for (i = 0; i < level.signs.length; i++) if (level.signs[i].finish !== false) cols.push(Math.floor(level.signs[i].x / T));
+  for (i = 0; i < level.doors.length; i++) {
+    if (!level.doors[i].exit) continue;
+    if (level.doors[i].needKey && keys <= 0) continue;
+    cols.push(Math.floor(level.doors[i].x / T));
+  }
   for (i = 0; i < level.caves.length; i++) cols.push(Math.floor(level.caves[i].x / T));
   if (!cols.length && level.def.exit === 'edge') cols.push(level.cols - 1);
   var a = Math.floor(P.x / T), b = Math.floor((P.x + P.w - 1) / T);
@@ -858,7 +862,7 @@ function pickups() {
       if (st && st[0] === 'goto') scriptI++;
     }
   }
-  for (var s = 0; s < level.signs.length; s++) if (overlap(P, level.signs[s])) { completeLevel(); return; }
+  for (var s = 0; s < level.signs.length; s++) if (level.signs[s].finish !== false && overlap(P, level.signs[s])) { completeLevel(); return; }
   for (var c = 0; c < level.caves.length; c++) if (overlap(P, level.caves[c])) { completeLevel(); return; }
   if (level.def.exit === 'edge' && P.ground && P.x + P.w >= level.cols * T - 6) completeLevel();
   for (var h = 0; h < level.sheriffs.length; h++) {

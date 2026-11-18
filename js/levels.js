@@ -78,345 +78,345 @@ var LEVELS = [
     id: 2,
     biome: 'town',
     sky: 'day',
-    cols: 96,
+    cols: 128,
     rows: 18,
     exit: 'edge',
     goals: {},
-    /* Town from the level 2 frames: pegged poles, a balcony cage beside a
-       net bandit, the lady at the saloon, a hanging frame, and a star
-       plunger that frees the sphere pile. The bird quest is optional. */
-    ground: [[0, 95, 15]],
-    buildings: [[6, 8, 12, 7, 'saloon'], [22, 8, 18, 7, 'brick'], [44, 9, 8, 6, 'white'], [74, 10, 7, 5, 'yellow']],
-    women: [[11, 14]],
-    poles: [[18, 14, 8], [46, 14, 7]],
-    frames: [[40, 11]],
-    plats: [[32, 12, 6], [56, 13, 5], [74, 12, 10], [78, 11, 5]],
-    tokens: [[6, 13], [12, 10], [16, 10], [24, 13], [36, 10], [40, 10], [50, 12], [62, 13], [70, 11], [86, 13]],
-    frogs: [[4, 14]],
-    birds: [[20, 6, 8], [34, 6, 8]],
-    bugs: [[42, 8]],
-    guns: [[58, 11, 2]],
-    nets: [[81, 10, 1]],
-    cages: [[78, 10]],
-    rects: [[72, 9, 2, 4, TILE.TNT]],
-    plungers: [{ c: 66, r: 14, clears: [{ c: 72, r: 9, w: 2, h: 4 }] }],
+    /* Town, about 128 tiles. Poles, saloon and the lady, brick and yellow
+       fronts, a balcony cage beside a net, a hanging frame, then the plunger
+       and the sphere pile on a raised sand shelf. No swirl sign. */
+    ground: [[0, 127, 15]],
+    buildings: [[4, 8, 12, 7, 'saloon'], [22, 8, 16, 7, 'brick'], [42, 9, 10, 6, 'white'], [56, 8, 14, 7, 'yellow'], [78, 9, 10, 6, 'wood'], [92, 8, 12, 7, 'brick']],
+    women: [[8, 14]],
+    poles: [[18, 14, 8], [48, 14, 8]],
+    frames: [[40, 11], [70, 11]],
+    plats: [[34, 12, 6], [58, 12, 10], [104, 12, 18]],
+    tokens: [[6, 12], [14, 10], [20, 12], [28, 10], [36, 11], [44, 12], [52, 10], [64, 11], [74, 12], [86, 11], [98, 12], [120, 10]],
+    frogs: [[36, 11], [60, 11]],
+    birds: [[20, 6, 10], [50, 6, 8]],
+    bugs: [[44, 8]],
+    nets: [[62, 11, 1]],
+    cages: [[58, 11]],
+    rects: [[108, 9, 2, 3, TILE.TNT]],
+    plungers: [{ c: 100, r: 14, clears: [{ c: 108, r: 9, w: 2, h: 3 }] }],
     boulders: [
-      [76, 11, 30], [77, 11, 30], [78, 11, 30], [79, 11, 30], [80, 11, 30],
-      [77, 10, 30], [78, 10, 30], [79, 10, 30], [80, 10, 30],
-      [78, 9, 30], [79, 9, 30], [80, 9, 30],
-      [79, 8, 30], [80, 8, 30],
-      [80, 7, 30]
+      [112, 11, 30], [113, 11, 30], [114, 11, 30], [115, 11, 30], [116, 11, 30],
+      [113, 10, 30], [114, 10, 30], [115, 10, 30], [116, 10, 30],
+      [114, 9, 30], [115, 9, 30], [116, 9, 30],
+      [115, 8, 30], [116, 8, 30],
+      [116, 7, 30]
     ],
-    signs: [[92, 14]],
     script: [
-      ['goto', 14, 14],
-      ['goto', 40, 14],
-      ['goto', 66, 14],
-      ['goto', 94, 14]
+      ['goto', 16, 14],
+      ['goto', 46, 14],
+      ['goto', 84, 14],
+      ['goto', 126, 14]
     ]
   },
   {
     id: 3,
     biome: 'desert',
     sky: 'day',
-    cols: 92,
+    cols: 76,
     rows: 18,
     exit: 'edge',
     goals: {},
-    /* Desert canyon from the level 3 frames: cactus, a raised ledge with a
-       frog, a snake, a gun bandit on a terrace, then stairs. No sign was in
-       the frames before the level-done card. */
-    ground: [[0, 16, 15], [22, 91, 15]],
-    plats: [[8, 12, 6], [28, 13, 5], [48, 14, 1], [49, 13, 1], [50, 12, 1], [51, 11, 1], [52, 10, 1], [53, 11, 1], [54, 12, 1], [55, 13, 1], [56, 14, 1], [64, 12, 4], [70, 11, 5]],
-    tokens: [[4, 12], [12, 9], [18, 13], [26, 11], [32, 9], [40, 9], [52, 10], [66, 9], [78, 13], [86, 12]],
-    frogs: [[11, 11]],
-    snakes: [[30, 12, 3]],
-    guns: [[30, 12, 2], [72, 10, 2]],
-    boulders: [[28, 12]],
-    cacti: [[3, 14], [14, 14], [84, 14]],
-    signs: [[88, 14]],
+    /* Desert, about 76 tiles. Cactus, a 3-tile block with a frog, a pillar
+       and a rock, stairs, a snake ledge, one gun on a terrace. No swirl sign. */
+    ground: [[0, 75, 15]],
+    plats: [[8, 12, 8], [22, 13, 6], [32, 11, 4], [40, 12, 6], [50, 14, 1], [51, 13, 1], [52, 12, 1], [53, 11, 1], [54, 12, 1], [55, 13, 1], [56, 14, 1], [62, 12, 8]],
+    tokens: [[4, 12], [10, 9], [16, 13], [24, 11], [34, 8], [42, 9], [53, 9], [66, 9], [72, 13]],
+    frogs: [[12, 11]],
+    snakes: [[42, 11, 3]],
+    guns: [[64, 11, 2]],
+    boulders: [[33, 10]],
+    cacti: [[2, 14], [24, 14], [68, 14]],
     script: [
-      ['goto', 14, 14],
-      ['goto', 24, 14],
-      ['goto', 50, 14],
-      ['goto', 90, 14]
+      ['goto', 6, 14],
+      ['goto', 20, 14],
+      ['goto', 48, 14],
+      ['goto', 74, 14]
     ]
   },
   {
     id: 4,
     biome: 'canyon',
     sky: 'day',
-    cols: 100,
+    cols: 76,
     rows: 18,
     exit: 'sign',
     goals: { plungers: 1 },
-    /* Orange canyon from the level 4 frames. A high block and a cactus, a
-       snake in the notch, TNT on the rope, a plunger, boulder steps, a tower,
-       and the swirl sign at the end. */
-    ground: [[0, 12, 15], [16, 40, 15], [64, 99, 15]],
-    ropes: [[13, 14, 4], [42, 14, 22]],
+    /* Orange canyon, about 76 tiles. Plunger on the ground, dynamite beside
+       a rope, a cliff of spheres, a net on the sand, and the swirl sign. */
+    ground: [[0, 22, 15], [30, 44, 15], [56, 75, 15]],
+    ropes: [[20, 13, 12], [44, 13, 14]],
     rects: [
-      [14, 12, 2, 2, TILE.TNT],
-      [18, 12, 2, 2, TILE.TNT],
-      [82, 9, 4, 4, TILE.SOLID]
+      [24, 11, 3, 2, TILE.TNT],
+      [66, 10, 4, 4, TILE.SOLID]
     ],
-    plats: [[2, 14, 6], [4, 13, 4], [66, 12, 6], [68, 11, 4], [70, 10, 2], [88, 12, 4]],
-    tokens: [[6, 10], [15, 12], [19, 12], [30, 13], [46, 8], [60, 12], [74, 12], [76, 12], [92, 13]],
-    snakes: [[36, 12, 2]],
-    nets: [[36, 14, 1]],
-    plungers: [{ c: 28, r: 14, clears: [{ c: 14, r: 12, w: 6, h: 2 }, { c: 13, r: 14, w: 4, h: 1 }] }],
-    boulders: [[5, 12], [66, 11], [67, 11], [68, 11], [69, 11], [67, 10], [68, 10], [69, 10], [68, 9], [83, 8]],
-    cacti: [[4, 12], [64, 14]],
-    signs: [[96, 14]],
+    plats: [[4, 13, 6], [8, 12, 4], [34, 12, 8], [36, 11, 5], [38, 10, 3], [60, 13, 4]],
+    tokens: [[6, 10], [16, 12], [26, 9], [40, 9], [48, 11], [62, 12], [70, 13]],
+    snakes: [[36, 11, 2]],
+    nets: [[38, 11, 1]],
+    plungers: [{ c: 14, r: 14, clears: [{ c: 24, r: 11, w: 3, h: 2 }] }],
+    boulders: [[34, 11, 30], [35, 11, 30], [36, 11, 30], [37, 11, 30], [38, 11, 30], [39, 11, 30], [62, 12]],
+    cacti: [[2, 14], [58, 14], [70, 14]],
+    signs: [[73, 14]],
     script: [
-      ['goto', 6, 12],
-      ['goto', 20, 14],
-      ['plunge', 28],
+      ['goto', 8, 14],
+      ['plunge', 14],
       ['goto', 36, 14],
-      ['goto', 66, 14],
-      ['goto', 96, 14]
+      ['goto', 52, 14],
+      ['goto', 73, 14]
     ]
   },
   {
     id: 5,
     biome: 'desert',
     sky: 'day',
-    cols: 100,
+    cols: 109,
     rows: 18,
     exit: 'sign',
     goals: {},
-    /* Desert from the level 5 frames. The swirl by the porch is the exit.
-       Earlier signs in the video are mid-level and are not the end. */
-    ground: [[0, 20, 15], [40, 99, 15]],
-    ropes: [[21, 14, 19]],
-    rects: [[21, 16, 19, 2, TILE.TNT]],
-    plats: [[8, 13, 5], [36, 13, 4], [40, 12, 4], [44, 11, 5], [70, 13, 6], [88, 12, 6]],
-    tokens: [[4, 12], [10, 11], [16, 13], [22, 12], [34, 11], [42, 9], [52, 13], [66, 12], [76, 13], [92, 10]],
-    frogs: [[12, 12]],
-    snakes: [[72, 12, 2]],
-    nets: [[72, 12, 1]],
-    springs: [[50, 14]],
-    plungers: [{ c: 80, r: 14, clears: [] }],
-    boulders: [[38, 12], [45, 10], [46, 10]],
-    crates: [[38, 12]],
-    cacti: [[3, 14], [18, 14], [62, 14]],
-    buildings: [[88, 10, 7, 5]],
-    signs: [[96, 14]],
+    /* Desert, about 109 tiles. Cliff and crate, springs, three stones on
+       blocks, a rope to an open ledge with the net, then the porch and sign. */
+    ground: [[0, 28, 15], [40, 72, 15], [82, 108, 15]],
+    ropes: [[26, 13, 16], [70, 13, 14]],
+    plats: [[8, 12, 8], [34, 11, 2], [37, 11, 2], [40, 11, 2], [56, 14, 4], [58, 13, 4], [60, 12, 8], [90, 12, 8]],
+    tokens: [[4, 11], [10, 9], [16, 13], [30, 11], [44, 13], [60, 9], [76, 12], [94, 9], [102, 13]],
+    frogs: [[12, 11]],
+    snakes: [[92, 11, 2]],
+    nets: [[64, 11, 1]],
+    springs: [[20, 14], [50, 14], [96, 14]],
+    plungers: [{ c: 86, r: 14, clears: [] }],
+    boulders: [[34, 10, 22], [37, 10, 22], [40, 10, 22], [74, 14]],
+    crates: [[14, 12]],
+    cacti: [[2, 14], [46, 14], [100, 14]],
+    buildings: [[98, 10, 8, 5]],
+    signs: [[106, 14]],
     script: [
-      ['goto', 14, 14],
-      ['goto', 26, 14],
-      ['goto', 40, 14],
-      ['goto', 58, 14],
-      ['goto', 76, 14],
-      ['goto', 96, 14]
+      ['goto', 6, 14],
+      ['goto', 22, 14],
+      ['goto', 48, 14],
+      ['goto', 62, 11],
+      ['stomp', 'net'],
+      ['goto', 88, 14],
+      ['goto', 106, 14]
     ]
   },
   {
     id: 6,
     biome: 'town',
     sky: 'day',
-    cols: 96,
+    cols: 81,
     rows: 18,
     exit: 'edge',
     goals: {},
-    /* Town from the level 6 frames: buildings, pegged poles, a wire with birds,
-       a snake, and a caged bandit on a balcony. No plunger and no boulder wall. */
-    ground: [[0, 95, 15]],
-    buildings: [[10, 9, 8, 6], [26, 8, 8, 7], [50, 9, 7, 6], [72, 10, 8, 5]],
-    women: [[20, 14]],
-    poles: [[16, 14, 8], [42, 14, 8]],
-    wires: [[16, 7, 30]],
-    birds: [[20, 6, 12], [46, 6, 8]],
-    plats: [[34, 13, 5], [58, 13, 4], [74, 11, 6]],
-    tokens: [[6, 13], [12, 11], [20, 6], [24, 6], [30, 8], [31, 8], [32, 8], [30, 9], [31, 9], [32, 9], [30, 10], [31, 10], [32, 10], [38, 11], [54, 13], [64, 11], [80, 12], [90, 13]],
-    pale: [[84, 13, 8], [86, 12, 6], [88, 11, 4]],
-    frogs: [[36, 12]],
-    snakes: [[60, 12, 2]],
-    hostages: [[76, 9]],
-    cacti: [[92, 14]],
-    signs: [[90, 14]],
+    /* Town, about 81 tiles. The swirl sign is at the start and does not end
+       the level. Poles, a wire with birds, the lady, a roof cage, then pale steps. */
+    ground: [[0, 80, 15]],
+    buildings: [[8, 9, 10, 6, 'wood'], [22, 8, 12, 7, 'white'], [40, 8, 12, 7, 'brick'], [56, 9, 10, 6, 'yellow']],
+    women: [[26, 14]],
+    poles: [[16, 14, 8], [38, 14, 8]],
+    wires: [[16, 7, 26]],
+    birds: [[18, 6, 10], [40, 6, 8]],
+    plats: [[42, 12, 8], [66, 13, 8], [68, 12, 6], [70, 11, 4]],
+    tokens: [[6, 12], [14, 10], [22, 12], [30, 10], [36, 8], [48, 9], [60, 13], [74, 9]],
+    frogs: [[44, 11]],
+    snakes: [[34, 14, 2]],
+    nets: [[46, 11, 1]],
+    cages: [[42, 11]],
+    signs: [[4, 14, 0]],
     script: [
       ['goto', 12, 14],
+      ['stomp', 'snake'],
       ['goto', 32, 14],
-      ['goto', 52, 14],
-      ['goto', 70, 14],
-      ['goto', 94, 14]
+      ['goto', 58, 14],
+      ['goto', 79, 14]
     ]
   },
   {
     id: 7,
     biome: 'desert',
     sky: 'day',
-    cols: 88,
+    cols: 56,
     rows: 18,
     exit: 'door',
     goals: {},
-    /* Outdoor pale steps from the level 7 frames, then a building with a blue
-       door. A caged bird on the steps can be walked back to the woman.
-       The key sits on the roof and is not required. */
-    ground: [[0, 87, 15]],
-    buildings: [[60, 9, 8, 6, 'blue']],
-    women: [[54, 14]],
-    cages: [[15, 11]],
-    plats: [[8, 13, 4], [14, 12, 4], [20, 11, 4], [36, 13, 6], [52, 14, 4], [56, 13, 4], [60, 12, 4], [64, 11, 8]],
-    tokens: [[4, 13], [10, 11], [18, 9], [30, 13], [40, 11], [54, 10], [70, 9]],
-    frogs: [[16, 10]],
-    snakes: [[22, 10, 2]],
-    birds: [[40, 8, 6]],
-    keys: [[15, 11]],
-    doors: [{ c: 70, r: 10, exit: true, great: true, needKey: true }],
-    signs: [[70, 10]],
-    cacti: [[2, 14], [32, 14]],
+    /* Pale steps, about 56 tiles. Cage on the stone stair, then the yellow
+       building. The key is on the roof. The blue door needs it. */
+    ground: [[0, 55, 15]],
+    buildings: [[36, 9, 12, 6, 'yellow']],
+    women: [[30, 14]],
+    cages: [[12, 11]],
+    plats: [[6, 14, 4], [10, 13, 4], [12, 12, 8], [20, 11, 8], [28, 9, 8]],
+    tokens: [[4, 12], [8, 10], [14, 9], [20, 12], [26, 8], [34, 12], [46, 7]],
+    snakes: [[14, 11, 2]],
+    birds: [[24, 7, 6]],
+    keys: [[32, 8]],
+    doors: [{ c: 42, r: 12, exit: true, great: true, needKey: true }],
+    cacti: [[2, 14]],
+    rocks: [[4, 14]],
     script: [
-      ['goto', 12, 14],
-      ['goto', 15, 11],
-      ['goto', 34, 14],
-      ['goto', 56, 14],
-      ['goto', 70, 10]
+      ['goto', 8, 14],
+      ['goto', 12, 11],
+      ['stomp', 'snake'],
+      ['goto', 24, 10],
+      ['goto', 32, 8],
+      ['goto', 42, 12]
     ]
   },
   {
     id: 8,
     biome: 'hill',
     sky: 'rain',
-    cols: 86,
+    cols: 108,
     rows: 18,
     exit: 'sign',
     goals: {},
-    /* Rainy green hills. A cave mouth, a flat pillar and a spiked pillar that
-       stay put, two springs, and the swirl sign. */
-    ground: [[0, 85, 15]],
+    /* Green hills, about 108 tiles. Grey towers stand beside the path.
+       A spring launches over the spikes. The swirl sign is the finish. */
+    ground: [[0, 107, 15]],
     rects: [
-      [6, 9, 6, 4, TILE.SOLID],
-      [18, 8, 16, 5, TILE.SOLID],
-      [28, 11, 4, 3, TILE.SOLID],
-      [44, 11, 4, 3, TILE.SOLID]
+      [8, 12, 5, 2, TILE.SOLID],
+      [22, 12, 6, 2, TILE.SOLID],
+      [46, 12, 5, 2, TILE.SOLID],
+      [68, 12, 4, 2, TILE.SOLID],
+      [86, 12, 5, 2, TILE.SOLID]
     ],
-    carve: [[20, 10, 10, 2]],
     spikes: [[40, 14, 3]],
-    plats: [[18, 13, 5], [36, 13, 4], [56, 13, 6]],
-    tokens: [[4, 13], [10, 12], [14, 12], [18, 12], [22, 11], [34, 13], [48, 12], [60, 11], [72, 13]],
-    frogs: [[20, 12], [58, 12]],
-    springs: [[34, 14], [52, 14], [66, 14]],
-    cacti: [[74, 14]],
-    signs: [[80, 14]],
+    plats: [[16, 13, 4], [36, 13, 4], [58, 13, 6], [78, 13, 4]],
+    tokens: [[4, 13], [12, 8], [18, 12], [28, 7], [38, 12], [52, 8], [62, 12], [74, 12], [92, 9], [100, 13]],
+    frogs: [[10, 11], [48, 11]],
+    springs: [[34, 14], [56, 14], [96, 14]],
+    cacti: [[100, 14]],
+    signs: [[104, 14]],
     script: [
       ['goto', 16, 14],
       ['goto', 36, 14],
-      ['goto', 58, 14],
-      ['goto', 80, 14]
+      ['goto', 62, 14],
+      ['goto', 104, 14]
     ]
   },
   {
     id: 9,
     biome: 'water',
     sky: 'day',
-    cols: 108,
+    cols: 128,
     rows: 18,
     exit: 'cave',
     goals: {},
-    /* Water crossing: cactus, islets, fish, a cage, a row of stones, a net
-       on the stair, and a spring in the last shaft. The plunger is not required. */
-    ground: [[0, 14, 10]],
+    /* Water, about 128 tiles. Islets of 5, 4, 3, 2, 3 and 5 tiles with
+       5-tile gaps, fish in the gaps, a long rope to the cage tower, stones,
+       a net on the stair, and a spring before the cave. */
+    ground: [[0, 16, 10], [104, 127, 10]],
     rects: [
-      [18, 10, 11, 2, TILE.SOLID],
-      [32, 10, 11, 2, TILE.SOLID],
-      [46, 10, 9, 2, TILE.SOLID],
-      [58, 10, 9, 2, TILE.SOLID],
-      [70, 10, 11, 2, TILE.SOLID],
-      [84, 10, 11, 2, TILE.SOLID],
-      [98, 10, 10, 2, TILE.SOLID]
+      [22, 10, 5, 4, TILE.SOLID],
+      [32, 10, 4, 4, TILE.SOLID],
+      [41, 10, 3, 4, TILE.SOLID],
+      [49, 10, 2, 4, TILE.SOLID],
+      [56, 10, 3, 4, TILE.SOLID],
+      [64, 10, 5, 4, TILE.SOLID],
+      [78, 8, 6, 6, TILE.SOLID],
+      [92, 10, 8, 4, TILE.SOLID],
+      [104, 11, 4, 3, TILE.SOLID]
     ],
-    plats: [[48, 8, 4], [72, 8, 5]],
-    water: [[0, 14, 108, 4]],
-    tokens: [[3, 7], [6, 6], [12, 8], [20, 8], [26, 7], [36, 8], [40, 6], [50, 6], [60, 8], [64, 6], [76, 6], [88, 8], [102, 8]],
-    frogs: [[10, 9]],
-    snakes: [[36, 9, 3]],
-    nets: [[74, 7, 1]],
-    cages: [[49, 7]],
-    boulders: [[48, 7], [49, 7], [50, 7], [51, 7]],
-    plungers: [{ c: 46, r: 7, clears: [] }],
-    springs: [[100, 8]],
-    ropes: [[15, 9, 3], [29, 9, 3], [44, 9, 2], [55, 9, 3], [67, 9, 3], [81, 9, 3], [95, 9, 3]],
+    plats: [[86, 12, 4], [88, 11, 4], [90, 10, 4], [100, 9, 4]],
+    water: [[0, 14, 128, 4]],
+    tokens: [[4, 7], [8, 6], [24, 7], [34, 7], [42, 7], [50, 7], [58, 7], [66, 7], [80, 5], [94, 7], [108, 8], [116, 7]],
+    frogs: [[100, 8]],
+    nets: [[90, 9, 1]],
+    cages: [[80, 7]],
+    boulders: [[66, 9], [67, 9], [68, 9]],
+    plungers: [{ c: 74, r: 9, clears: [] }],
+    springs: [[106, 10]],
+    ropes: [[16, 9, 7], [26, 9, 7], [35, 9, 7], [43, 9, 7], [50, 9, 7], [58, 9, 7], [68, 9, 11], [99, 9, 6]],
     women: [[6, 9]],
-    fish: [[16], [30], [44], [56], [68], [82], [96]],
-    cacti: [[4, 9], [34, 9], [100, 9]],
-    caves: [[104, 9]],
-    signs: [[104, 9]],
+    fish: [[19], [30], [39], [47], [54], [62]],
+    cacti: [[4, 9], [112, 9]],
+    caves: [[124, 9]],
     script: [
-      ['goto', 12, 9],
-      ['goto', 22, 9],
-      ['goto', 36, 9],
+      ['goto', 8, 9],
+      ['goto', 24, 9],
+      ['goto', 34, 9],
+      ['goto', 42, 9],
       ['goto', 50, 9],
-      ['goto', 62, 9],
-      ['goto', 76, 9],
-      ['goto', 90, 9],
-      ['goto', 104, 9]
+      ['goto', 57, 9],
+      ['goto', 66, 9],
+      ['goto', 80, 7],
+      ['goto', 94, 9],
+      ['goto', 108, 9],
+      ['goto', 124, 9]
     ]
   },
   {
     id: 10,
     biome: 'canyon',
     sky: 'day',
-    cols: 96,
+    cols: 105,
     rows: 18,
     exit: 'edge',
     goals: {},
-    /* Orange canyon. Cave mouth, a sphere pile, a vertical coin shaft, a
-       spring, a floating key that is not required, and a star plunger on the roof. */
-    ground: [[0, 95, 15]],
-    rects: [[0, 9, 4, 4, TILE.SOLID]],
-    plats: [[10, 13, 5], [18, 11, 4], [36, 12, 6], [48, 13, 3], [50, 12, 3], [52, 11, 3], [66, 12, 5], [78, 11, 6]],
-    tokens: [[4, 14], [8, 12], [14, 10], [22, 9], [40, 7], [40, 8], [40, 9], [40, 10], [40, 11], [40, 12], [40, 13], [40, 14], [46, 13], [46, 11], [46, 9], [60, 10], [70, 10], [84, 9], [90, 14]],
-    boulders: [[36, 11], [37, 11], [38, 11], [39, 11], [40, 11], [37, 10], [38, 10], [39, 10], [38, 9], [39, 9], [38, 8]],
-    springs: [[62, 14]],
-    keys: [[68, 10]],
-    buildings: [[80, 9, 8, 6, 'blue']],
-    plungers: [{ c: 90, r: 14, clears: [] }],
-    cacti: [[2, 14]],
-    signs: [[92, 14]],
+    /* Orange canyon, about 105 tiles. A cliff mouth, a sphere wall, a coin
+       shaft with a spring, a loose key, and a plunger on the roof. No sign. */
+    ground: [[0, 104, 15]],
+    rects: [[0, 9, 6, 5, TILE.SOLID]],
+    plats: [[14, 12, 10], [30, 12, 8], [48, 13, 3], [52, 12, 4], [70, 11, 8], [88, 12, 12]],
+    tokens: [[8, 13], [16, 9], [24, 12], [42, 8], [42, 9], [42, 10], [42, 11], [42, 13], [44, 10], [56, 11], [64, 9], [76, 8], [84, 12], [98, 10]],
+    boulders: [
+      [16, 11, 30], [17, 11, 30], [18, 11, 30], [19, 11, 30],
+      [17, 10, 30], [18, 10, 30], [19, 10, 30],
+      [18, 9, 30], [19, 9, 30],
+      [90, 11, 30], [91, 11, 30], [92, 11, 30], [93, 11, 30],
+      [91, 10, 30], [92, 10, 30], [93, 10, 30],
+      [92, 9, 30], [93, 9, 30],
+      [93, 8, 30]
+    ],
+    springs: [[48, 14]],
+    keys: [[64, 9]],
+    buildings: [[70, 9, 12, 6, 'blue']],
+    plungers: [{ c: 74, r: 8, clears: [] }],
+    cacti: [[10, 14]],
     script: [
-      ['goto', 8, 14],
-      ['goto', 16, 14],
+      ['goto', 12, 14],
       ['goto', 28, 14],
-      ['goto', 44, 14],
-      ['goto', 58, 14],
-      ['goto', 74, 14],
-      ['goto', 94, 14]
+      ['goto', 46, 14],
+      ['goto', 60, 14],
+      ['goto', 84, 14],
+      ['goto', 103, 14]
     ]
   },
   {
     id: 11,
     biome: 'sunset',
     sky: 'rain',
-    cols: 92,
+    cols: 60,
     rows: 18,
     exit: 'edge',
     goals: { boss: 1 },
     wood: true,
-    woodUntil: 30,
-    /* Wood cave, then the boot. The fight has rain over orange ground.
-       The boot still takes 4 stomps. */
-    ground: [[0, 91, 15]],
-    plats: [[6, 12, 4], [14, 11, 3], [22, 13, 4], [48, 13, 5]],
+    woodUntil: 24,
+    /* Cave, then the boot, about 60 tiles. Spikes on a wood ledge, a key
+       over a step, then the arena and the sheriff building. The boot still
+       takes 4 stomps. No swirl sign. */
+    ground: [[0, 59, 15]],
+    plats: [[6, 12, 5], [14, 11, 4], [20, 13, 4], [34, 13, 8]],
     rects: [
-      [0, 0, 30, 10, TILE.SOLID],
-      [56, 11, 5, 3, TILE.WALL],
-      [72, 8, 2, 8, TILE.GATE]
+      [0, 0, 24, 10, TILE.SOLID],
+      [52, 8, 2, 7, TILE.GATE]
     ],
-    spikes: [[8, 12, 2]],
-    buildings: [[78, 10, 8, 5, 'sheriff']],
-    tokens: [[4, 13], [12, 13], [18, 12], [26, 14], [84, 14]],
+    spikes: [[8, 12, 3]],
+    buildings: [[54, 10, 6, 5, 'sheriff']],
+    tokens: [[4, 10], [12, 9], [18, 12], [28, 13], [56, 13]],
     frogs: [[16, 10]],
-    snakes: [[10, 11, 2]],
-    guns: [[24, 12, 2]],
-    boss: { c: 52 },
-    arena: [40, 70],
-    signs: [[88, 14]],
+    guns: [[22, 12, 2]],
+    keys: [[18, 9]],
+    boss: { c: 36 },
+    arena: [28, 48],
     script: [
-      ['goto', 32, 14],
+      ['goto', 26, 14],
       ['boss'],
-      ['goto', 90, 14]
+      ['goto', 58, 14]
     ]
   }
 ];
@@ -569,7 +569,9 @@ function compileLevel(def) {
 
   var tokens = (def.tokens || []).map(function (t) { return cell(t[0], t[1], 'token', { got: false }); });
   var keys = (def.keys || []).map(function (k) { return cell(k[0], k[1], 'key', { got: false }); });
-  var signs = (def.signs || []).map(function (s) { return cell(s[0], s[1], 'sign', { y: s[1] * 32 - 20, h: 52 }); });
+  var signs = (def.signs || []).map(function (s) {
+    return cell(s[0], s[1], 'sign', { y: s[1] * 32 - 20, h: 52, finish: s[2] !== 0 });
+  });
   var caves = (def.caves || []).map(function (s) { return cell(s[0], s[1], 'cave', { y: s[1] * 32 - 16, h: 48, w: 36 }); });
   var doors = (def.doors || []).map(function (d) {
     return cell(d.c, d.r, 'door', {
