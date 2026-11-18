@@ -20,6 +20,7 @@ var SAVE_KEY = 'sts-save-v2';
 
 var key = { left: false, right: false, up: false, down: false, jump: false, shift: false };
 var dropLatch = 0;
+var lookX = 0, lookT = 0;
 var touch = { left: false, right: false, jump: false };
 var auto = { left: false, right: false, up: false, creep: false, nojump: false };
 var ptrs = {};
@@ -302,9 +303,26 @@ function updatePlayer() {
   }
   if (P.ground) P.coyote = 6; else if (P.coyote > 0) P.coyote--;
   stepUp();
+  if (reachedFinish()) { completeLevel(); return; }
   hazards();
+  if (gs !== 'play') return;
   if (P.iframes > 0) P.iframes--;
+  if (reachedFinish()) { completeLevel(); return; }
   if (P.y > level.rows * T + 8) loseLife('pit');
+}
+function reachedFinish() {
+  if (!level || gs !== 'play') return false;
+  var cols = [];
+  var i;
+  for (i = 0; i < level.signs.length; i++) cols.push(Math.floor(level.signs[i].x / T));
+  for (i = 0; i < level.doors.length; i++) if (level.doors[i].exit) cols.push(Math.floor(level.doors[i].x / T));
+  for (i = 0; i < level.caves.length; i++) cols.push(Math.floor(level.caves[i].x / T));
+  if (!cols.length && level.def.exit === 'edge') cols.push(level.cols - 1);
+  var a = Math.floor(P.x / T), b = Math.floor((P.x + P.w - 1) / T);
+  for (var c = a; c <= b; c++) {
+    for (i = 0; i < cols.length; i++) if (cols[i] === c) return true;
+  }
+  return false;
 }
 
 function collideX() {
@@ -379,8 +397,18 @@ function blastAt(col, row, clears) {
   }
   releaseFreedStones();
   sfx('boom');
-  shake = 8;
-  burst((col != null ? col : 0) * T + 16, (row != null ? row : 0) * T, '#ffe14a', 14);
+  shake = 10;
+  var fx = (col != null ? col : 0) * T + 16;
+  var fy = (row != null ? row : 0) * T + 16;
+  if (clears && clears.length) {
+    fx = (clears[0].c + clears[0].w / 2) * T;
+    fy = (clears[0].r + clears[0].h / 2) * T;
+  }
+  lookX = fx;
+  lookT = 46;
+  burst(fx, fy, '#ffe14a', 16);
+  burst(fx, fy, '#ff7a22', 12);
+  burst(fx, fy, '#6a3a18', 8);
 }
 function releaseFreedStones() {
   for (var i = 0; i < level.boulders.length; i++) {
@@ -446,9 +474,9 @@ function pushBoulders() {
     var b = level.boulders[i];
     if (b.snapped || b.slot >= 0 || b.held) continue;
     if (!overlap(P, b)) continue;
-    if (P.y + P.h > b.y + 12 && P.y < b.y + b.h - 6) {
+    if (P.y + P.h > b.y + 4 && P.y < b.y + b.h - 2) {
       var dir = (P.x + P.w / 2) < (b.x + b.w / 2) ? 1 : -1;
-      b.vx = dir * 1.85;
+      b.vx = dir * 2.1;
       if (dir > 0) P.x = b.x - P.w - 0.5;
       else P.x = b.x + b.w + 0.5;
       P.vx = 0;
@@ -546,8 +574,9 @@ function updateBoulders() {
     if (hitBoxX(b)) b.vx = 0;
     b.y += b.vy;
     b.grounded = false;
-    if (hitBoxY(b)) { b.grounded = true; b.vy = 0; b.vx *= tumbling ? 0.992 : 0.9; }
-    if (Math.abs(b.vx) < 0.06) b.vx = 0;
+    if (hitBoxY(b)) { b.grounded = true; b.vy = 0; b.vx *= tumbling ? 0.992 : 0.985; }
+    if (Math.abs(b.vx) < 0.04) b.vx = 0;
+    cutRope(b);
     for (var o = 0; o < level.boulders.length; o++) {
       if (o === i) continue;
       var oth = level.boulders[o];
@@ -583,6 +612,31 @@ function updateBoulders() {
         sfx('boom'); burst(cr.x + 16, cr.y + 16, '#c4944a', 10); shake = 6;
       }
     }
+  }
+}
+function cutRope(b) {
+  if (Math.abs(b.vx) < 0.35) return;
+  var pts = [[b.x + 2, b.y + b.h / 2], [b.x + b.w - 2, b.y + b.h / 2], [b.x + b.w / 2, b.y + b.h - 2]];
+  for (var i = 0; i < pts.length; i++) {
+    var px = pts[i][0], py = pts[i][1];
+    var t = tileAt(px, py);
+    if (t !== TILE.ROPE && t !== TILE.WIRE) continue;
+    var c = Math.floor(px / T), r = Math.floor(py / T);
+    var c0 = c, c1 = c;
+    while (c0 > 0 && level.tiles[r * level.cols + (c0 - 1)] === t) c0--;
+    while (c1 < level.cols - 1 && level.tiles[r * level.cols + (c1 + 1)] === t) c1++;
+    for (var x = c0; x <= c1; x++) level.tiles[r * level.cols + x] = TILE.AIR;
+    for (var k = 0; k < level.tokens.length; k++) {
+      var tok = level.tokens[k];
+      var tc = Math.floor(tok.x / T);
+      if (!tok.got && tc >= c0 && tc <= c1 && Math.abs(tok.y - r * T) < T * 2) tok.falling = true;
+    }
+    level.counters.ropes = (level.counters.ropes || 0) + 1;
+    burst((c0 + c1) * T / 2, r * T, '#e2b56a', 14);
+    burst((c0 + c1) * T / 2, r * T + 10, '#ffb020', 8);
+    sfx('boom');
+    shake = 6;
+    return;
   }
 }
 function hitBoxX(b) {
@@ -653,7 +707,8 @@ function updateEnemies() {
     var fish = level.fish[f];
     var cyc = (frame + fish.phase) % 160;
     fish.on = cyc < 74;
-    fish.y = 15 * T - (fish.on ? Math.sin((cyc / 74) * Math.PI) * 58 : -10);
+    var lift = Math.sin((Math.min(cyc, 70) / 70) * Math.PI) * 188;
+    fish.y = 15 * T - (fish.on ? lift : -16);
     fish.x = fish.x;
   }
   for (var h = 0; h < level.sheriffs.length; h++) {
@@ -674,6 +729,7 @@ function combat() {
     if (!e.alive) continue;
     var hb = { x: e.x + 2, y: e.y + 2, w: e.w - 4, h: e.h - 4 };
     var stomp = P.vy > 0 && P.x < e.x + e.w - 2 && P.x + P.w > e.x + 2 && feet < e.y + e.h * 0.62 && feet > e.y - 10 && prevFeet <= e.y + e.h * 0.45;
+    if (e.kind === 'bird') continue;
     if (stomp) {
       P.vy = -10.6; P.ground = false; P.chain++; P.rideId = null;
       score += 100 * P.chain;
@@ -702,7 +758,7 @@ function combat() {
   for (var f = 0; f < level.fish.length; f++) {
     var fish = level.fish[f];
     if (!fish.on) continue;
-    if (Math.abs(fish.x - (P.x + 13)) < 18 && Math.abs(fish.y - (P.y + 14)) < 16) { hurt('fish'); return; }
+    if (Math.abs(fish.x - (P.x + 13)) < 20 && Math.abs(fish.y - (P.y + 14)) < 22) { loseLife('fish'); return; }
   }
   if (P.ground) P.chain = 0;
 }
@@ -914,6 +970,13 @@ function updatePlay() {
   if (gs !== 'play') return;
   pickups();
   updateQuest();
+  for (var ti = 0; ti < level.tokens.length; ti++) {
+    var tok = level.tokens[ti];
+    if (!tok.falling || tok.got) continue;
+    tok.vy = Math.min(8, (tok.vy || 0) + 0.4);
+    tok.y += tok.vy;
+    if (isSolid(tok.x + 8, tok.y + 28)) { tok.y = Math.floor((tok.y + 28) / T) * T - 28; tok.vy = 0; tok.falling = false; }
+  }
   timeAcc++;
   if (timeAcc >= 60) {
     timeAcc = 0;
@@ -930,7 +993,9 @@ function updateCam() {
      Vertical follow stays put during a normal jump and only scrolls when the pig
      climbs into the top of the view or drops near the bottom, which is how the
      playthrough keeps the ground band glued to the bottom of the square. */
-  var tx = P.x + P.w * 0.5 - VW * 0.36;
+  var tx = (lookT > 0 ? lookX : P.x + P.w * 0.5) - VW * 0.5;
+  if (lookT > 0) lookT--;
+  else tx = P.x + P.w * 0.5 - VW * 0.36;
   var head = P.y - camY;
   var feet = P.y + P.h - camY;
   var ty = camY;
@@ -1167,7 +1232,10 @@ function drawActors() {
     ctx.fillStyle = '#f2f4f8'; ctx.fillRect(s.x - 2, s.y, s.w + 4, 5);
   });
   level.boulders.forEach(function (b) {
-    ART.sphere(ctx, b.x, b.y);
+    ART.sphere(ctx, b.x, b.y, b.w);
+  });
+  (level.perchers || []).forEach(function (b) {
+    ART.bird(ctx, b.x, b.y, frame);
   });
   level.crates.forEach(function (c) {
     if (!c.alive) return;
@@ -1824,9 +1892,21 @@ function loop(t) {
 
 /* ---------------- autopilot ---------------- */
 var stuckT = 0, stuckX = 0, stuckStep = -1;
+function fishBlocking() {
+  if (!level || !level.fish || !level.fish.length) return false;
+  var px = P.x + P.w / 2;
+  for (var i = 0; i < level.fish.length; i++) {
+    var f = level.fish[i];
+    var cyc = (frame + f.phase) % 160;
+    var hot = cyc > 145 || cyc < 74;
+    if (hot && Math.abs(f.x - px) < 170) return true;
+  }
+  return false;
+}
 function think() {
   auto.left = auto.right = auto.up = auto.creep = auto.nojump = auto.down = false;
   if (!level) return;
+  if (fishBlocking()) return;
   if (scriptI !== stuckStep) { stuckStep = scriptI; stuckT = 0; }
   if (Math.abs(P.x - stuckX) < 0.8 && P.ground) stuckT++; else stuckT = 0;
   stuckX = P.x;

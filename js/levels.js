@@ -32,6 +32,7 @@ var LEVELS = [
     snakes: [[70, 11, 3], [78, 14, 3]],
     cacti: [[2, 14], [40, 11], [66, 14], [84, 14], [104, 14]],
     saloon: [112, 14],
+    signs: [[116, 14]],
     boulders: [[44, 14]],
     crates: [[24, 15], [50, 14]],
     plank: { c: 18, len: 6, dist: 8, period: 150, pause: 36 },
@@ -72,6 +73,7 @@ var LEVELS = [
     rects: [[86, 11, 2, 2, TILE.TNT]],
     plungers: [{ c: 84, r: 11, clears: [{ c: 86, r: 11, w: 2, h: 2 }] }],
     boulders: [[88, 11], [89, 11], [89, 10], [90, 11]],
+    signs: [[92, 14]],
     script: [
       ['goto', 14, 14],
       ['goto', 40, 14],
@@ -95,9 +97,10 @@ var LEVELS = [
     tokens: [[4, 12], [12, 9], [18, 13], [26, 11], [32, 9], [40, 9], [52, 10], [66, 9], [78, 13], [86, 12]],
     frogs: [[11, 11]],
     snakes: [[30, 12, 3]],
-    guns: [[38, 10, 3], [72, 10, 2]],
-    boulders: [[36, 10]],
+    guns: [[30, 12, 2], [72, 10, 2]],
+    boulders: [[28, 12]],
     cacti: [[3, 14], [14, 14], [84, 14]],
+    signs: [[88, 14]],
     script: [
       ['goto', 14, 14],
       ['goto', 24, 14],
@@ -157,10 +160,10 @@ var LEVELS = [
     tokens: [[4, 12], [10, 11], [16, 13], [22, 12], [34, 11], [42, 9], [52, 13], [66, 12], [76, 13], [92, 10]],
     frogs: [[12, 12]],
     snakes: [[72, 12, 2]],
-    nets: [[90, 11, 1]],
+    nets: [[72, 12, 1]],
     springs: [[50, 14]],
     plungers: [{ c: 80, r: 14, clears: [] }],
-    boulders: [[45, 10], [46, 10]],
+    boulders: [[38, 12], [45, 10], [46, 10]],
     crates: [[38, 12]],
     cacti: [[3, 14], [18, 14], [62, 14]],
     buildings: [[88, 10, 7, 5]],
@@ -196,6 +199,7 @@ var LEVELS = [
     snakes: [[60, 12, 2]],
     hostages: [[76, 10]],
     cacti: [[92, 14]],
+    signs: [[90, 14]],
     script: [
       ['goto', 12, 14],
       ['goto', 32, 14],
@@ -224,11 +228,13 @@ var LEVELS = [
     frogs: [[16, 10]],
     snakes: [[22, 10, 2]],
     birds: [[40, 8, 6]],
-    keys: [[68, 10]],
-    doors: [{ c: 70, r: 10, exit: true, great: true, needKey: false }],
+    keys: [[15, 11]],
+    doors: [{ c: 70, r: 10, exit: true, great: true, needKey: true }],
+    signs: [[70, 10]],
     cacti: [[2, 14], [32, 14]],
     script: [
       ['goto', 12, 14],
+      ['goto', 15, 11],
       ['goto', 34, 14],
       ['goto', 56, 14],
       ['goto', 70, 10]
@@ -252,11 +258,11 @@ var LEVELS = [
       [44, 11, 4, 3, TILE.SOLID]
     ],
     carve: [[20, 10, 10, 2]],
-    spikes: [[44, 10, 4]],
+    spikes: [[40, 14, 3]],
     plats: [[18, 13, 5], [36, 13, 4], [56, 13, 6]],
     tokens: [[4, 13], [10, 12], [14, 12], [18, 12], [22, 11], [34, 13], [48, 12], [60, 11], [72, 13]],
     frogs: [[20, 12], [58, 12]],
-    springs: [[52, 14], [66, 14]],
+    springs: [[34, 14], [52, 14], [66, 14]],
     cacti: [[74, 14]],
     signs: [[80, 14]],
     script: [
@@ -301,6 +307,7 @@ var LEVELS = [
     fish: [[16], [30], [44], [56], [68], [82], [96]],
     cacti: [[4, 9], [34, 9], [100, 9]],
     caves: [[104, 9]],
+    signs: [[104, 9]],
     script: [
       ['goto', 12, 9],
       ['goto', 22, 9],
@@ -332,6 +339,7 @@ var LEVELS = [
     buildings: [[80, 9, 8, 6, 'blue']],
     plungers: [{ c: 90, r: 14, clears: [] }],
     cacti: [[2, 14]],
+    signs: [[92, 14]],
     script: [
       ['goto', 8, 14],
       ['goto', 16, 14],
@@ -369,6 +377,7 @@ var LEVELS = [
     guns: [[24, 12, 2]],
     boss: { c: 52 },
     arena: [40, 70],
+    signs: [[88, 14]],
     script: [
       ['goto', 32, 14],
       ['boss'],
@@ -393,10 +402,6 @@ function compileLevel(def) {
   (def.ground || []).forEach(function (g) { fill(g[0], g[2], g[1] - g[0] + 1, rows - g[2], TILE.SOLID); });
   (def.plats || []).forEach(function (p) { fill(p[0], p[1], p[2], 1, TILE.SOLID); });
   (def.rects || []).forEach(function (r) { fill(r[0], r[1], r[2], r[3], r[4]); });
-  (def.cacti || []).forEach(function (c) {
-    fill(c[0] - 1, c[1] - 3, 1, 1, TILE.SOLID);
-    fill(c[0] + 1, c[1] - 2, 1, 1, TILE.SOLID);
-  });
   (def.carve || []).forEach(function (c) { fill(c[0], c[1], c[2], c[3], TILE.AIR); });
   (def.crumble || []).forEach(function (c) { fill(c[0], c[1], c[2], 1, TILE.CRUMBLE); });
   (def.spikes || []).forEach(function (s) { fill(s[0], s[1], s[2], 1, TILE.SPIKE); });
@@ -406,6 +411,14 @@ function compileLevel(def) {
   (def.ladders || []).forEach(function (L) { fill(L[0], L[1] - L[2] + 1, 1, L[2], TILE.LADDER); });
 
   var platforms = [];
+  (def.cacti || []).forEach(function (c) {
+    var x = c[0] * 32, feet = (c[1] + 1) * 32;
+    platforms.push({ x: x + 4, y: feet - 156, w: 22, h: 6, kind: 'cactus' });
+    platforms.push({ x: x - 14, y: feet - 124, w: 14, h: 6, kind: 'cactus' });
+    platforms.push({ x: x - 10, y: feet - 96, w: 20, h: 6, kind: 'cactus' });
+    platforms.push({ x: x + 20, y: feet - 96, w: 16, h: 6, kind: 'cactus' });
+    platforms.push({ x: x + 18, y: feet - 70, w: 20, h: 6, kind: 'cactus' });
+  });
   (def.poles || []).forEach(function (p) {
     var x = p[0] * 32, y = (p[1] + 1) * 32, h = p[2] * 32;
     var pegs = Math.max(3, Math.floor(h / 36));
@@ -457,8 +470,8 @@ function compileLevel(def) {
     while (right < Math.min(cols - 1, s[0] + span) && solidish(tiles, cols, right + 1, s[1] + 1) && !solidish(tiles, cols, right + 1, s[1])) right++;
     enemies.push(cell(s[0], s[1], 'snake', { dir: 1, minX: left * 32, maxX: (right + 1) * 32 - 36, w: 36, h: 18, y: s[1] * 32 + 14 }));
   });
-  (def.birds || []).forEach(function (b) {
-    enemies.push(cell(b[0], b[1], 'bird', { dir: 1, minX: b[0] * 32, maxX: (b[0] + (b[2] || 6)) * 32, w: 28, h: 18, y: b[1] * 32 }));
+  var perchers = (def.birds || []).map(function (b) {
+    return { x: b[0] * 32, y: b[1] * 32, w: 28, h: 18 };
   });
   (def.hostages || []).forEach(function (h) {
     enemies.push(cell(h[0], h[1], 'hostage', { dir: 1, w: 30, h: 40, y: h[1] * 32 - 8, freed: false }));
@@ -479,6 +492,15 @@ function compileLevel(def) {
   (def.bugs || []).forEach(function (b) {
     enemies.push(cell(b[0], b[1], 'bug', { w: 26, h: 18, homeX: b[0] * 32, homeY: b[1] * 32, swoop: 0, lockX: 0 }));
   });
+  enemies.forEach(function (e) {
+    var feet = e.y + e.h;
+    var c = Math.floor((e.x + e.w / 2) / 32);
+    var row = Math.floor((feet + 1) / 32);
+    if (solidish(tiles, cols, c, row)) return;
+    for (var rr = row; rr < rows; rr++) {
+      if (solidish(tiles, cols, c, rr)) { e.y = rr * 32 - e.h; break; }
+    }
+  });
 
   var tokens = (def.tokens || []).map(function (t) { return cell(t[0], t[1], 'token', { got: false }); });
   var keys = (def.keys || []).map(function (k) { return cell(k[0], k[1], 'key', { got: false }); });
@@ -497,7 +519,7 @@ function compileLevel(def) {
     return { x: s[0] * 32 + 2, y: s[1] * 32 + 8, w: 28, h: 24 };
   });
   var boulders = (def.boulders || []).map(function (b, i) {
-    var rock = { x: b[0] * 32, y: b[1] * 32, w: 32, h: 32, vx: 0, vy: 0, grounded: false, slot: -1, snapped: false, held: false, tumble: 0, kick: 0 };
+    var rock = { x: b[0] * 32 + 5, y: b[1] * 32 + 10, w: 22, h: 22, vx: 0, vy: 0, grounded: false, slot: -1, snapped: false, held: false, tumble: 0, kick: 0 };
     var bc = b[0], br = b[1];
     for (var dy = -2; dy <= 2 && !rock.held; dy++) {
       for (var dx = -3; dx <= 3; dx++) {
@@ -598,6 +620,7 @@ function compileLevel(def) {
     tiles: tiles,
     crumble: crumble,
     enemies: enemies,
+    perchers: perchers,
     tokens: tokens,
     keys: keys,
     signs: signs,
