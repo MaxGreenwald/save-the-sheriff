@@ -175,11 +175,18 @@ var ART = (function () {
   }
 
   function coin(ctx, x, y) {
-    blob(ctx, x + 6, y + 8, 6.5, 6.5, '#3a86e8', '#14325f');
+    var cx = x + 6, cy = y + 8;
+    blob(ctx, cx, cy, 6.2, 6.2, '#2f74d8', '#102848');
+    ctx.strokeStyle = '#f7fbff';
+    ctx.lineWidth = 1.35;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 3.5, 0.35, 5.5);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(cx + 0.3, cy, 1.6, 2.4, 5.6);
+    ctx.stroke();
     ctx.fillStyle = '#fff';
-    ctx.fillRect(x + 5, y + 5, 2, 5);
-    ctx.fillRect(x + 5, y + 5, 4, 2);
-    ctx.fillRect(x + 4, y + 9, 3, 2);
+    ctx.fillRect(cx + 1.2, cy - 4.2, 1.8, 1.8);
   }
 
   function sphere(ctx, x, y, s) {
