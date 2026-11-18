@@ -668,24 +668,30 @@ function updateEnemies() {
   for (var i = 0; i < level.enemies.length; i++) {
     var e = level.enemies[i];
     if (!e.alive) continue;
-    if (e.kind === 'frog') {
-      e.flip++;
-      if (e.flip % 70 === 0) e.dir *= -1;
-    } else if (e.kind === 'snake' || e.kind === 'bird' || e.kind === 'gun') {
-      var sp = e.kind === 'bird' ? 1.5 : e.kind === 'snake' ? 1.15 : 0.85;
-      e.x += e.dir * sp;
-      if (e.x <= e.minX) { e.x = e.minX; e.dir = 1; }
-      if (e.x >= e.maxX) { e.x = e.maxX; e.dir = -1; }
-      if (e.kind === 'bird') e.y = e.r * T + Math.sin(frame * 0.12 + i) * 6;
+    if (e.kind === 'frog' || e.kind === 'snake' || e.kind === 'gun' || e.kind === 'net') {
+      var sp = e.kind === 'snake' ? 1.15 : e.kind === 'gun' ? 0.85 : 0.7;
+      if (e.maxX - e.minX < 10) {
+        e.x = e.homeX + Math.sin(frame * 0.07 + i) * 8;
+        e.face = Math.sin(frame * 0.07 + i) >= 0 ? 1 : -1;
+      } else {
+        e.x += (e.dir || 1) * sp;
+        if (e.x <= e.minX) { e.x = e.minX; e.dir = 1; }
+        if (e.x >= e.maxX) { e.x = e.maxX; e.dir = -1; }
+        e.face = e.dir;
+      }
+      e.anim = (e.anim || 0) + 1;
+      if (e.kind === 'frog') e.flip = e.anim;
       if (e.kind === 'gun') {
+        if (e.cool < 18) e.face = (P.x + P.w / 2 >= e.x + e.w / 2) ? 1 : -1;
         e.cool--;
         if (e.cool <= 0) {
           e.cool = 115;
-          level.bullets.push({ x: e.x + (e.dir > 0 ? e.w : 0), y: e.y + 16, vx: e.dir * 3.3, life: 110 });
+          e.face = (P.x + P.w / 2 >= e.x + e.w / 2) ? 1 : -1;
+          var mx = e.face > 0 ? e.x + e.w - 4 : e.x + 4;
+          level.bullets.push({ x: mx, y: e.y + 16, vx: e.face * 3.3, face: e.face, life: 110 });
         }
       }
-    } else if (e.kind === 'net') {
-      e.swing = Math.sin(frame * 0.08 + i);
+      if (e.kind === 'net') e.swing = Math.sin(frame * 0.08 + i);
     } else if (e.kind === 'bug') {
       if (!e.swoop) {
         e.x = e.homeX; e.y = e.homeY + Math.sin(frame * 0.05 + i) * 3;
@@ -704,6 +710,13 @@ function updateEnemies() {
       e.y = e.r * T - 8;
     }
   }
+  (level.perchers || []).forEach(function (b, i) {
+    b.x += b.dir * 1.05;
+    if (b.x <= b.minX) { b.x = b.minX; b.dir = 1; }
+    if (b.x >= b.maxX) { b.x = b.maxX; b.dir = -1; }
+    b.y = b.baseY + Math.sin(frame * 0.14 + i) * 7;
+    b.flap = frame;
+  });
   for (var b = level.bullets.length - 1; b >= 0; b--) {
     var bul = level.bullets[b];
     bul.x += bul.vx; bul.life--;
@@ -1365,7 +1378,14 @@ function drawEnemy(e) {
   else if (e.kind === 'snake') ART.snake(ctx, e.x, e.y - 4, f);
   else if (e.kind === 'bird') ART.bird(ctx, e.x, e.y, f);
   else if (e.kind === 'bug') ART.bug(ctx, e.x, e.y, f);
-  else ART.bandit(ctx, e.x, e.y, e.kind, frame);
+  else {
+    var face = e.face || e.dir || 1;
+    ctx.save();
+    ctx.translate(e.x + e.w / 2, 0);
+    if (face < 0) ctx.scale(-1, 1);
+    ART.bandit(ctx, -e.w / 2, e.y, e.kind, frame);
+    ctx.restore();
+  }
 }
 function drawBoss(b) {
   var x = b.x + (b.state === 'shake' ? Math.sin(frame) * 2 : 0);
@@ -1516,10 +1536,23 @@ function drawSaloon(x, y) {
   ctx.fillStyle = '#6a3a18'; ctx.fillRect(x + 32, y - 44, 32, 8);
   ctx.fillStyle = '#f0d070'; ctx.fillRect(x + 36, y - 42, 4, 4); ctx.fillRect(x + 44, y - 42, 4, 4); ctx.fillRect(x + 52, y - 42, 4, 4);
   ctx.fillStyle = '#c4844a'; ctx.fillRect(x + 30, y - 34, 8, 30); ctx.fillRect(x + 58, y - 34, 8, 30);
-  drawWoman(x + 40, y);
+}
+function surfaceTop(x, fromY) {
+  if (!level) return fromY;
+  var c = Math.floor(x / T);
+  if (c < 0 || c >= level.cols) return level.rows * T;
+  var r0 = Math.max(0, Math.floor(fromY / T));
+  for (var r = r0; r < level.rows; r++) {
+    if (solidT(level.tiles[r * level.cols + c])) return r * T;
+  }
+  return level.rows * T;
 }
 function drawSign(x, y) {
-  ctx.fillStyle = '#1a120c'; ctx.fillRect(x + 12, y - 36, 6, 36);
+  var surface = surfaceTop(x + 15, y - 20);
+  var postTop = y - 46;
+  var postH = Math.max(16, surface - postTop);
+  ctx.fillStyle = '#1a120c'; ctx.fillRect(x + 12, postTop, 6, postH);
+  ctx.fillStyle = '#6a3a18'; ctx.fillRect(x + 13, postTop, 3, postH);
   ctx.fillStyle = '#2f74d0'; ctx.fillRect(x, y - 48, 30, 22);
   drawSwirl(x + 15, y - 37, 6);
 }
