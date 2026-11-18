@@ -175,9 +175,11 @@ var ART = (function () {
   }
 
   function coin(ctx, x, y) {
-    blob(ctx, x + 6, y + 8, 4, 7, '#2f74d8', '#14325f');
-    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.arc(x + 6, y + 8, 2.2, 0.4, 4); ctx.stroke();
+    blob(ctx, x + 6, y + 8, 6.5, 6.5, '#3a86e8', '#14325f');
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(x + 5, y + 5, 2, 5);
+    ctx.fillRect(x + 5, y + 5, 4, 2);
+    ctx.fillRect(x + 4, y + 9, 3, 2);
   }
 
   function sphere(ctx, x, y, s) {

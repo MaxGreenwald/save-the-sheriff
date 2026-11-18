@@ -1223,7 +1223,11 @@ function drawActors() {
     var fx = w[0] * T, fy = (w[1] + 1) * T;
     if (level.npc && Math.abs(level.npc.x - fx) < 4) drawPerch(fx - 18, fy);
   });
+  (level.decals.tufts || []).forEach(function (g) { drawTuft(g[0] * T, (g[1] + 1) * T); });
+  (level.decals.bushes || []).forEach(function (g) { drawBush(g[0] * T, (g[1] + 1) * T); });
+  (level.decals.rocks || []).forEach(function (g) { drawRock(g[0] * T, (g[1] + 1) * T); });
   level.decals.cacti.forEach(function (c) { drawCactus(c[0] * T, (c[1] + 1) * T); });
+  if (levelId === 1) text('LEVEL 1', 150, 168, 2, '#fff', '#1a120c');
   if (level.decals.saloon) drawSaloon(level.decals.saloon[0] * T, (level.decals.saloon[1] + 1) * T);
   level.decals.poles.forEach(function (p) { drawPole(p[0] * T, (p[1] + 1) * T, p[2] * T); });
 
@@ -1272,7 +1276,7 @@ function drawActors() {
     var by = t.y + Math.sin(frame * 0.1 + t.x) * 3;
     ctx.save();
     ctx.translate(t.x + 6, by + 2);
-    ctx.scale(1.7, 1.7);
+    ctx.scale(2.1, 2.1);
     ART.coin(ctx, 0, 0);
     ctx.restore();
   });
@@ -1319,6 +1323,16 @@ function drawActors() {
   if (level.boss && level.boss.alive) drawBoss(level.boss);
   else if (level.boss && !level.boss.alive) {
     /* freed sheriff stands where the boot was */
+  }
+  if (levelId === 1 && frame < 180 && gs === 'play') {
+    var bx = P.x + 6, by = P.y - 22;
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.ellipse(bx, by, 14, 11, 0, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#1c140c'; ctx.lineWidth = 1; ctx.stroke();
+    ctx.beginPath(); ctx.arc(bx - 8, by + 10, 3, 0, 7); ctx.fill();
+    ctx.fillStyle = '#6a4a22'; ctx.fillRect(bx - 6, by - 6, 12, 3);
+    ctx.fillStyle = '#f0c2a4'; ctx.fillRect(bx - 4, by - 4, 8, 6);
+    ctx.fillStyle = '#1c140c'; ctx.fillRect(bx - 3, by - 3, 2, 2); ctx.fillRect(bx + 2, by - 3, 2, 2);
   }
   if (level.pet && level.pet.free) {
     ART.bird(ctx, level.pet.x, level.pet.y, frame);
@@ -1400,6 +1414,31 @@ function drawSheriff(x, y, heart) {
   ctx.fillStyle = '#2450c8'; ctx.fillRect(x + 4, y + 16, 16, 12);
   if (heart) { ctx.fillStyle = '#e23b3b'; ctx.fillRect(x + 8, y - 18, 8, 6); ctx.fillRect(x + 6, y - 16, 4, 4); ctx.fillRect(x + 14, y - 16, 4, 4); }
 }
+function drawTuft(x, y) {
+  ctx.fillStyle = '#1a4a18';
+  ctx.fillRect(x + 10, y - 10, 2, 10);
+  ctx.fillRect(x + 16, y - 14, 2, 14);
+  ctx.fillRect(x + 22, y - 8, 2, 8);
+  ctx.fillStyle = '#3aaa38';
+  ctx.fillRect(x + 6, y - 8, 6, 3);
+  ctx.fillRect(x + 14, y - 12, 6, 3);
+  ctx.fillRect(x + 20, y - 6, 6, 3);
+}
+function drawBush(x, y) {
+  ctx.fillStyle = '#145018';
+  ctx.beginPath(); ctx.ellipse(x + 16, y - 8, 16, 10, 0, 0, 7); ctx.fill();
+  ctx.fillStyle = '#3aaa38';
+  ctx.beginPath(); ctx.ellipse(x + 10, y - 12, 8, 6, 0, 0, 7); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(x + 22, y - 11, 7, 5, 0, 0, 7); ctx.fill();
+}
+function drawRock(x, y) {
+  ctx.fillStyle = '#3a4048';
+  ctx.beginPath(); ctx.ellipse(x + 18, y - 10, 18, 12, 0, 0, 7); ctx.fill();
+  ctx.fillStyle = '#9aa3ad';
+  ctx.beginPath(); ctx.ellipse(x + 16, y - 14, 14, 9, 0, 0, 7); ctx.fill();
+  ctx.fillStyle = '#e7eef4';
+  ctx.beginPath(); ctx.ellipse(x + 10, y - 18, 5, 3, 0, 0, 7); ctx.fill();
+}
 function drawCactus(x, y) {
   /* Saguaro drawn at the playthrough scale. Spines are ticks, not a copy of their sprite. */
   function body(bx, by, bw, bh) {
@@ -1412,13 +1451,13 @@ function drawCactus(x, y) {
       ctx.fillRect(bx + bw - 1, sy + 3, 3, 2);
     }
   }
-  body(x + 10, y - 148, 16, 148);
-  body(x - 10, y - 96, 14, 10);
-  body(x - 12, y - 124, 10, 30);
-  body(x + 22, y - 70, 14, 10);
-  body(x + 28, y - 96, 10, 28);
-  ctx.fillStyle = '#2f8a38'; ctx.fillRect(x + 8, y - 156, 20, 12);
-  ctx.fillStyle = '#1a3c16'; ctx.fillRect(x + 7, y - 158, 22, 2);
+  body(x + 2, y - 168, 30, 168);
+  body(x - 46, y - 108, 48, 16);
+  body(x - 46, y - 142, 16, 36);
+  body(x + 32, y - 72, 40, 16);
+  body(x + 54, y - 104, 16, 34);
+  ctx.fillStyle = '#2f8a38'; ctx.fillRect(x, y - 180, 34, 16);
+  ctx.fillStyle = '#1a3c16'; ctx.fillRect(x - 1, y - 182, 36, 2);
 }
 function drawPole(x, y, h) {
   ctx.fillStyle = '#4a2c14'; ctx.fillRect(x + 8, y - h, 16, h);
@@ -1444,6 +1483,31 @@ function drawFacade(x, y, w, h, bi) {
   };
   var key = level.decals.buildings[bi][4];
   if (key === 'saloon') { drawSaloonFacade(x, y, w, h); return; }
+  if (key === 'shed') {
+    ctx.fillStyle = '#6a3a18';
+    ctx.beginPath();
+    ctx.moveTo(x - 8, y + 18);
+    ctx.lineTo(x + w / 2, y - 28);
+    ctx.lineTo(x + w + 8, y + 18);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#e0a050';
+    ctx.beginPath();
+    ctx.moveTo(x - 2, y + 16);
+    ctx.lineTo(x + w / 2, y - 20);
+    ctx.lineTo(x + w + 2, y + 16);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#c4843a';
+    ctx.fillRect(x, y + 14, w, h - 14);
+    ctx.fillStyle = '#a86830';
+    for (var sx = x + 6; sx < x + w - 4; sx += 8) ctx.fillRect(sx, y + 16, 2, h - 18);
+    ctx.fillStyle = '#3a2412';
+    ctx.fillRect(x + w / 2 - 12, y + h - 36, 24, 36);
+    ctx.fillStyle = '#8a4a20';
+    ctx.fillRect(x + w / 2 - 8, y + h - 32, 16, 28);
+    return;
+  }
   var order = ['white', 'yellow', 'wood', 'brick'];
   var s = named[key] || named[order[bi % 4]];
   ctx.fillStyle = '#1a120c'; ctx.fillRect(x, y, w, h);

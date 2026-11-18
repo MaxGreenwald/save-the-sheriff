@@ -12,38 +12,77 @@ var LEVELS = [
     id: 1,
     biome: 'desert',
     sky: 'day',
-    cols: 120,
+    cols: 250,
     rows: 18,
     exit: 'edge',
-    goals: { crates: 1 },
-    /* Desert from the full level 1 frames: cactus, the frog block and four
-       coins, a plank over the pit, stairs, a snake ledge, and the wood
-       building at the end. */
-    ground: [[0, 20, 15], [28, 119, 15]],
-    plats: [[34, 13, 5], [38, 12, 6], [60, 14, 4], [64, 13, 4], [68, 12, 6], [78, 13, 8], [90, 12, 6]],
+    goals: {},
+    /* Level 1 from the frames. Flat sand, tall saguaro, rock and grass,
+       then the frog block and four coins, a rope over the pit (column,
+       sphere, crate), stairs, a snake ledge, a high plateau, and the
+       wooden building. No wheeled plank and no swirl sign in the frames. */
+    ground: [[0, 249, 13]],
     rects: [
-      [6, 12, 8, 3, TILE.SOLID],
-      [22, 13, 2, 1, TILE.SOLID],
-      [21, 16, 7, 2, TILE.SOLID]
+      [18, 10, 14, 3, TILE.SOLID],
+      [34, 12, 8, 1, TILE.SOLID],
+      [48, 12, 4, 1, TILE.SOLID],
+      [52, 11, 4, 2, TILE.SOLID],
+      [56, 10, 10, 3, TILE.SOLID],
+      [66, 7, 3, 2, TILE.SOLID],
+      [66, 10, 3, 3, TILE.SOLID],
+      [78, 10, 12, 3, TILE.SOLID],
+      [90, 11, 4, 2, TILE.SOLID],
+      [94, 12, 4, 1, TILE.SOLID],
+      [118, 11, 6, 2, TILE.SOLID],
+      [126, 12, 4, 1, TILE.SOLID],
+      [130, 11, 4, 2, TILE.SOLID],
+      [134, 10, 12, 3, TILE.SOLID],
+      [148, 8, 8, 5, TILE.SOLID],
+      [158, 7, 18, 6, TILE.SOLID],
+      [180, 10, 6, 3, TILE.SOLID],
+      [190, 12, 6, 1, TILE.SOLID],
+      [200, 11, 8, 2, TILE.SOLID],
+      [212, 10, 8, 3, TILE.SOLID],
+      [224, 12, 6, 1, TILE.SOLID]
     ],
-    ropes: [[21, 14, 7]],
-    tokens: [[2, 11], [4, 9], [7, 8], [9, 8], [11, 8], [13, 8], [22, 13], [36, 10], [42, 9], [49, 8], [56, 14], [64, 11], [72, 9], [80, 12], [88, 14]],
-    frogs: [[10, 11]],
-    snakes: [[70, 11, 3], [78, 14, 3]],
-    cacti: [[2, 14], [40, 11], [66, 14], [84, 14], [104, 14]],
-    saloon: [112, 14],
-    signs: [[116, 14]],
-    boulders: [[44, 14]],
-    crates: [[24, 15], [50, 14]],
-    plank: { c: 18, len: 6, dist: 8, period: 150, pause: 36 },
+    ropes: [[58, 9, 24]],
+    tokens: [
+      [7, 4],
+      [20, 5], [23, 5], [26, 5], [29, 5],
+      [62, 7], [72, 6], [76, 7],
+      [104, 5], [104, 7],
+      [110, 6], [114, 6], [117, 6],
+      [128, 11], [132, 11], [136, 11],
+      [178, 8],
+      [214, 5],
+      [230, 8]
+    ],
+    frogs: [[28, 9], [168, 6]],
+    snakes: [[140, 9, 3]],
+    cacti: [[6, 12], [40, 11], [102, 12], [162, 6], [196, 11], [214, 9], [232, 12]],
+    buildings: [[238, 8, 8, 5, 'shed']],
+    boulders: [[67, 6, 30]],
+    crates: [[63, 12]],
+    tufts: [[4, 12], [36, 11], [100, 12], [160, 6], [216, 9]],
+    bushes: [[12, 12], [32, 11], [166, 6], [202, 10]],
+    rocks: [[11, 12], [84, 9], [150, 7], [182, 9], [222, 12]],
     script: [
-      ['goto', 4, 14],
-      ['goto', 8, 11],
-      ['goto', 16, 14],
-      ['plank', 30],
-      ['goto', 42, 14],
-      ['push', 1, 'crates'],
-      ['goto', 118, 14]
+      ['goto', 6, 12],
+      ['goto', 6, 6],
+      ['goto', 18, 9],
+      ['stomp', 'frog'],
+      ['goto', 38, 11],
+      ['goto', 60, 9],
+      ['goto', 84, 9],
+      ['goto', 104, 12],
+      ['goto', 136, 9],
+      ['stomp', 'snake'],
+      ['goto', 152, 7],
+      ['goto', 162, 6],
+      ['stomp', 'frog'],
+      ['goto', 184, 9],
+      ['goto', 204, 10],
+      ['goto', 216, 9],
+      ['goto', 246, 12]
     ]
   },
   {
@@ -420,11 +459,12 @@ function compileLevel(def) {
   var platforms = [];
   (def.cacti || []).forEach(function (c) {
     var x = c[0] * 32, feet = (c[1] + 1) * 32;
-    platforms.push({ x: x + 4, y: feet - 156, w: 22, h: 6, kind: 'cactus' });
-    platforms.push({ x: x - 14, y: feet - 124, w: 14, h: 6, kind: 'cactus' });
-    platforms.push({ x: x - 10, y: feet - 96, w: 20, h: 6, kind: 'cactus' });
-    platforms.push({ x: x + 20, y: feet - 96, w: 16, h: 6, kind: 'cactus' });
-    platforms.push({ x: x + 18, y: feet - 70, w: 20, h: 6, kind: 'cactus' });
+    platforms.push({ x: x, y: feet - 178, w: 34, h: 6, kind: 'cactus' });
+    platforms.push({ x: x + 2, y: feet - 124, w: 30, h: 6, kind: 'cactus' });
+    platforms.push({ x: x - 46, y: feet - 140, w: 16, h: 6, kind: 'cactus' });
+    platforms.push({ x: x - 46, y: feet - 106, w: 78, h: 6, kind: 'cactus' });
+    platforms.push({ x: x + 54, y: feet - 102, w: 16, h: 6, kind: 'cactus' });
+    platforms.push({ x: x + 16, y: feet - 70, w: 52, h: 6, kind: 'cactus' });
   });
   (def.poles || []).forEach(function (p) {
     var x = p[0] * 32, y = (p[1] + 1) * 32, h = p[2] * 32;
@@ -688,7 +728,10 @@ function compileLevel(def) {
       ladders: def.ladders || [],
       buildings: def.buildings || [],
       women: def.women || [],
-      pale: def.pale || []
+      pale: def.pale || [],
+      tufts: def.tufts || [],
+      bushes: def.bushes || [],
+      rocks: def.rocks || []
     },
     script: (def.script || []).map(function (s) { return s.slice(); }),
     counters: { crates: 0, hostages: 0, plungers: 0, keyed: 0, slots: 0, boss: 0, ride: 0 }
