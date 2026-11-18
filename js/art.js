@@ -99,20 +99,26 @@ var ART = (function () {
   }
 
   function bandit(ctx, x, y, kind, frame) {
-    blob(ctx, x + 14, y + 22, 7, 8, '#6b4a32', INK);
-    blob(ctx, x + 14, y + 10, 8, 7, '#f0c8a8', INK);
-    blob(ctx, x + 14, y + 4, 9, 3, '#3a2a18', INK);
-    pix(ctx, x + 11, y + 10, INK); pix(ctx, x + 16, y + 10, INK);
+    var step = (frame % 2) ? 3 : -2;
+    blob(ctx, x + 14, y + 20, 7, 7, '#6b4a32', INK);
+    blob(ctx, x + 14, y + 12, 6, 4, '#c4a07a', null);
+    blob(ctx, x + 10, y + 30, 2.4, 5, '#3a2a18', INK);
+    blob(ctx, x + 18, y + 30, 2.4, 5, '#3a2a18', INK);
+    blob(ctx, x + 10 + step, y + 36, 3.2, 2.2, '#1a120c', INK);
+    blob(ctx, x + 18 - step, y + 36, 3.2, 2.2, '#1a120c', INK);
+    blob(ctx, x + 14, y + 8, 8, 6, '#f0c8a8', INK);
+    blob(ctx, x + 14, y + 2, 9, 3, '#3a2a18', INK);
+    pix(ctx, x + 11, y + 8, INK); pix(ctx, x + 16, y + 8, INK);
     if (kind === 'hostage') {
-      blob(ctx, x - 2, y + 16, 5, 6, '#c9a15a', INK);
-      pix(ctx, x - 2, y + 14, '#3e9a34');
+      blob(ctx, x - 2, y + 14, 5, 6, '#c9a15a', INK);
+      pix(ctx, x - 2, y + 12, '#3e9a34');
     } else if (kind === 'gun') {
-      ctx.fillStyle = INK; ctx.fillRect(x + 20, y + 16, 10, 3);
-      ctx.fillStyle = '#888'; ctx.fillRect(x + 28, y + 15, 4, 4);
+      ctx.fillStyle = INK; ctx.fillRect(x + 20, y + 14, 10, 3);
+      ctx.fillStyle = '#888'; ctx.fillRect(x + 28, y + 13, 4, 4);
     } else if (kind === 'net') {
       var s = Math.sin(frame * 0.3) * 4;
       ctx.strokeStyle = '#6b4424'; ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(x + 18, y + 12); ctx.lineTo(x + 28, y + 4 + s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x + 18, y + 10); ctx.lineTo(x + 28, y + 2 + s); ctx.stroke();
       ctx.strokeStyle = '#ddd'; ctx.strokeRect(x + 26, y + s, 12, 10);
     }
   }
@@ -126,11 +132,19 @@ var ART = (function () {
   }
 
   function fish(ctx, x, y, frame) {
-    blob(ctx, x, y, 10, 5, '#3aa0e8', INK);
-    blob(ctx, x + 8, y - 1, 4, 3, '#7ec8f0', INK);
-    blob(ctx, x - 10, y, 3, 4, '#1d6cb8', INK);
-    pix(ctx, x + 6, y - 1, INK);
-    pix(ctx, x + 11, y, '#fff'); pix(ctx, x + 11, y + 2, '#fff');
+    var bite = (frame % 2) ? 2 : 0;
+    blob(ctx, x, y, 11, 6, '#e23b3b', INK);
+    blob(ctx, x + 2, y + 1, 7, 3, '#ff8a7a', null);
+    blob(ctx, x + 8, y - 2, 4, 3.2, '#c42a2a', INK);
+    blob(ctx, x - 11, y, 4, 5, '#8a1818', INK);
+    pix(ctx, x + 6, y - 2, '#fff');
+    pix(ctx, x + 7, y - 2, INK);
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(x - 2, y + 1, 3, 3);
+    ctx.fillRect(x + 2, y + 1 + bite, 3, 3);
+    ctx.fillRect(x + 6, y + 1, 2, 3);
+    ctx.fillStyle = INK;
+    ctx.fillRect(x - 1, y + 3, 2, 2);
   }
 
   function boot(ctx, x, y, frame, landed) {
@@ -166,11 +180,13 @@ var ART = (function () {
     ctx.beginPath(); ctx.arc(x + 6, y + 8, 2.2, 0.4, 4); ctx.stroke();
   }
 
-  function sphere(ctx, x, y) {
-    blob(ctx, x + 16, y + 16, 14.2, 14.2, '#d7dee6', INK);
-    blob(ctx, x + 16, y + 18, 11.2, 10, '#b4bec8', null);
-    blob(ctx, x + 17, y + 22, 7.5, 5.2, '#8e98a3', null);
-    blob(ctx, x + 11, y + 10, 4.2, 3, '#f7fbff', null);
+  function sphere(ctx, x, y, s) {
+    s = s || 22;
+    var cx = x + s / 2, cy = y + s / 2, r = s / 2 - 1.2;
+    blob(ctx, cx, cy, r, r, '#d7dee6', INK);
+    blob(ctx, cx + 1, cy + 2, r * 0.72, r * 0.62, '#b4bec8', null);
+    blob(ctx, cx + 1, cy + r * 0.35, r * 0.45, r * 0.32, '#8e98a3', null);
+    blob(ctx, cx - r * 0.28, cy - r * 0.32, r * 0.28, r * 0.2, '#f7fbff', null);
   }
 
   function lady(ctx, x, y) {
