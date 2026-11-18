@@ -20,6 +20,7 @@ var SAVE_KEY = 'sts-save-v2';
 
 var key = { left: false, right: false, up: false, down: false, jump: false, shift: false };
 var dropLatch = 0;
+var pickerFrom = 'title';
 var lookX = 0, lookT = 0;
 var touch = { left: false, right: false, jump: false };
 var auto = { left: false, right: false, up: false, creep: false, nojump: false };
@@ -99,6 +100,11 @@ function loadLevel(n) {
   jumpQueue = 0;
 }
 
+function startPickedLevel(n) {
+  if (n < 1 || n > 11) return;
+  score = 0; lives = 5; coins = 0; hearts = HEARTS;
+  begin(n, { instant: true });
+}
 function begin(n, opt) {
   if (!(opt && opt.keepHearts)) hearts = HEARTS;
   loadLevel(n);
@@ -1559,6 +1565,10 @@ function drawHUD() {
   text(pad(score, 6), (VW - textWidth(pad(score, 6), 2)) / 2, 8, 2, '#fff', '#1a120c');
   ART.clock(ctx, VW - 58, 4);
   text(String(timer), VW - 42, 8, 2, timer < 30 ? '#ffb0b0' : '#fff', '#1a120c');
+  var lb = levelsBtn();
+  ctx.fillStyle = '#1a120c'; ctx.fillRect(lb.x - 1, lb.y - 1, lb.w + 2, lb.h + 2);
+  ctx.fillStyle = '#2f74d0'; ctx.fillRect(lb.x, lb.y, lb.w, lb.h);
+  textC('LV', lb.x + lb.w / 2, lb.y + 4, 1, '#fff', '#1a120c');
   var pb = pauseBtn();
   ctx.fillStyle = '#1a120c';
   ctx.fillRect(pb.x - 1, pb.y - 1, 8, 24);
@@ -1577,6 +1587,7 @@ function drawHUD() {
   }
 }
 function pauseBtn() { return { x: VW - 28, y: VH - 28, w: 20, h: 22 }; }
+function levelsBtn() { return { x: VW - 78, y: VH - 26, w: 42, h: 20 }; }
 function drawTouch() {
   var pads = touchPads();
   ctx.globalAlpha = 0.55;
@@ -1615,27 +1626,36 @@ function centerBtn(y, h, id, label, disabled) {
 }
 function renderTitle() {
   drawSky();
-  ctx.fillStyle = '#e6c36a'; ctx.fillRect(0, VH - 96, VW, 96);
-  ctx.fillStyle = '#c89a40'; ctx.fillRect(0, VH - 96, VW, 6);
-  for (var gy = VH - 90; gy < VH; gy += 3) { ctx.fillStyle = 'rgba(120,70,20,0.18)'; ctx.fillRect(0, gy, VW, 1); }
-  drawSaloon(4, VH - 96);
-  drawCactus(VW - 36, VH - 96);
-  drawPig(VW / 2 - 70, VH - 124, 1, frame, false);
-  textC('SAVE THE', VW / 2, 28, 4, '#e8a05a', '#4a240c');
-  textC('SHERIFF', VW / 2, 64, 4, '#e8a05a', '#4a240c');
+  ctx.fillStyle = '#e6c36a'; ctx.fillRect(0, VH - 70, VW, 70);
+  ctx.fillStyle = '#c89a40'; ctx.fillRect(0, VH - 70, VW, 6);
+  for (var gy = VH - 64; gy < VH; gy += 3) { ctx.fillStyle = 'rgba(120,70,20,0.18)'; ctx.fillRect(0, gy, VW, 1); }
+  drawSaloon(4, VH - 70);
+  drawCactus(VW - 36, VH - 70);
+  drawPig(VW / 2 - 70, VH - 98, 1, frame, false);
+  textC('SAVE THE', VW / 2, 18, 4, '#e8a05a', '#4a240c');
+  textC('SHERIFF', VW / 2, 52, 4, '#e8a05a', '#4a240c');
   BTNS = [];
   var labels = [['CONTINUE', 'continue', !runSnap], ['NEW GAME', 'new', false], ['SETTINGS', 'settings', false], ['HIGH SCORES', 'scores', false], ['HELP', 'help', false], ['ABOUT', 'about', false]];
-  for (var i = 0; i < labels.length; i++) centerBtn(108 + i * 40, 34, labels[i][1], labels[i][0], labels[i][2]);
+  for (var i = 0; i < labels.length; i++) centerBtn(92 + i * 36, 32, labels[i][1], labels[i][0], labels[i][2]);
+  textC('LEVEL', VW / 2, 312, 1, '#1a120c', '#ffe14a');
+  addLevelRow(328, 36);
   BTNS.forEach(drawPill);
-  textC('ARROWS  SPACE  P  M  SHIFT', VW / 2, VH - 18, 1, '#3a2a14', null);
+  textC('ARROWS  SPACE  P  M  SHIFT', VW / 2, VH - 14, 1, '#3a2a14', null);
+}
+function addLevelRow(y, h) {
+  var gap = 4, n = 11;
+  var w = Math.floor((VW - 16 - gap * (n - 1)) / n);
+  var x0 = Math.floor((VW - (w * n + gap * (n - 1))) / 2);
+  for (var i = 0; i < n; i++) addBtn(x0 + i * (w + gap), y, w, h, 'stage:' + (i + 1), String(i + 1), false);
 }
 
 function menuButtons() {
   BTNS = [];
   if (gs === 'pause') {
-    centerBtn(VH * 0.42, 40, 'resume', 'RESUME', false);
-    centerBtn(VH * 0.42 + 48, 40, 'music', musicOn ? 'MUSIC ON' : 'MUSIC OFF', false);
-    centerBtn(VH * 0.42 + 96, 40, 'quit', 'QUIT', false);
+    centerBtn(VH * 0.34, 40, 'resume', 'RESUME', false);
+    centerBtn(VH * 0.34 + 48, 40, 'levels', 'LEVELS', false);
+    centerBtn(VH * 0.34 + 96, 40, 'music', musicOn ? 'MUSIC ON' : 'MUSIC OFF', false);
+    centerBtn(VH * 0.34 + 144, 40, 'quit', 'QUIT', false);
   }
 }
 function renderMenu(title, lines, extra) {
@@ -1830,10 +1850,15 @@ function onUI(id) {
   }
   else if (id === 'new') gs = 'confirm';
   else if (id === 'yes') { score = 0; lives = 5; coins = 0; hearts = HEARTS; begin(1); }
+  else if (id === 'back' && (pickerFrom === 'pause' || pickerFrom === 'play')) {
+    gs = pickerFrom === 'play' ? 'play' : 'pause';
+    pickerFrom = 'title';
+    return;
+  }
   else if (id === 'no' || id === 'back' || id === 'title' || id === 'quit') { gs = 'title'; setTune('title'); persist(); }
   else if (id === 'settings') gs = 'settings';
-  else if (id === 'stages') gs = 'stages';
-  else if (id.indexOf('stage:') === 0) { score = 0; lives = 5; coins = 0; hearts = HEARTS; begin(parseInt(id.slice(6), 10)); }
+  else if (id === 'stages' || id === 'levels') { pickerFrom = (gs === 'pause' || gs === 'play') ? gs : 'title'; gs = 'stages'; }
+  else if (id.indexOf('stage:') === 0) startPickedLevel(parseInt(id.slice(6), 10));
   else if (id === 'scores') gs = 'scores';
   else if (id === 'help') gs = 'help';
   else if (id === 'about') gs = 'about';
@@ -2145,6 +2170,10 @@ function boot() {
   try { wantTouch = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 900; } catch (e) { wantTouch = false; }
   loadStore();
   setTune('title');
+  var urlLevel = 0;
+  var urlMatch = /[?&]level=(\d+)/.exec(location.search || '');
+  if (urlMatch) urlLevel = parseInt(urlMatch[1], 10);
+  if (urlLevel >= 1 && urlLevel <= 11) startPickedLevel(urlLevel);
   window.addEventListener('keydown', function (e) {
     unlockAudio();
     if (e.repeat && e.code !== 'Backspace') {}
@@ -2159,6 +2188,14 @@ function boot() {
     if (e.code === 'KeyP' && !e.repeat) { if (gs === 'play') gs = 'pause'; else if (gs === 'pause') gs = 'play'; }
     if (e.code === 'KeyM' && !e.repeat) { setMusicEnabled(!musicOn); persist(); }
     if (e.code === 'BracketRight' && gs === 'play') forceComplete();
+    if (!e.repeat && gs !== 'nick') {
+      var pick = 0;
+      if (e.code === 'Digit0' || e.code === 'Numpad0') pick = 10;
+      else if (e.code === 'Minus' || e.code === 'NumpadSubtract') pick = 11;
+      else if (/^Digit[1-9]$/.test(e.code)) pick = parseInt(e.code.slice(5), 10);
+      else if (/^Numpad[1-9]$/.test(e.code)) pick = parseInt(e.code.slice(6), 10);
+      if (pick >= 1 && pick <= 11) startPickedLevel(pick);
+    }
     if (e.code === 'Escape') { if (gs === 'play' || gs === 'pause') { gs = 'title'; setTune('title'); } }
     if (gs === 'nick') {
       if (e.code === 'Backspace') nickStr = nickStr.slice(0, -1);
@@ -2181,7 +2218,9 @@ function boot() {
     var p = canvasPos(e); mx = p.x; my = p.y; ptrs[e.pointerId] = p;
     if (gs === 'play') {
       var pb = pauseBtn();
-      if (p.x >= pb.x && p.y >= pb.y) gs = 'pause';
+      var lb = levelsBtn();
+      if (p.x >= lb.x && p.x <= lb.x + lb.w && p.y >= lb.y && p.y <= lb.y + lb.h) { pickerFrom = 'play'; gs = 'stages'; }
+      else if (p.x >= pb.x && p.y >= pb.y) gs = 'pause';
       var pads = touchPads();
       for (var i = 0; i < pads.length; i++) if (p.x >= pads[i].x && p.x <= pads[i].x + pads[i].w && p.y >= pads[i].y && p.y <= pads[i].y + pads[i].h && pads[i].id === 'jump') jumpQueue = 8;
     }
