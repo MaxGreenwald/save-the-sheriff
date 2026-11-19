@@ -22,17 +22,35 @@ var LEVELS = [
        crate), a plateau with bushes and frogs, and the wood building. */
     ground: [[0, 119, 13]],
     rects: [
-      [18, 9, 10, 4, TILE.SOLID],
+      [12, 12, 2, 1, TILE.SOLID],
+      [14, 11, 2, 2, TILE.SOLID],
+      [16, 10, 2, 3, TILE.SOLID],
+      [18, 9, 2, 4, TILE.SOLID],
+      [20, 9, 8, 4, TILE.SOLID],
+      [28, 12, 2, 1, TILE.SOLID],
+      [29, 11, 2, 2, TILE.SOLID],
+      [30, 10, 2, 3, TILE.SOLID],
+      [31, 9, 1, 1, TILE.SOLID],
       [32, 9, 8, 4, TILE.SOLID],
       [40, 12, 5, 1, TILE.SOLID],
-      [46, 12, 3, 1, TILE.SOLID],
-      [48, 10, 3, 3, TILE.SOLID],
+      [46, 12, 2, 1, TILE.SOLID],
+      [47, 11, 1, 2, TILE.SOLID],
+      [48, 10, 2, 3, TILE.SOLID],
+      [50, 9, 1, 4, TILE.SOLID],
       [51, 7, 6, 6, TILE.SOLID],
       [58, 4, 3, 2, TILE.SOLID],
-      [58, 7, 3, 6, TILE.SOLID],
+      [57, 7, 4, 6, TILE.SOLID],
+      [61, 12, 1, 1, TILE.SOLID],
+      [62, 11, 1, 2, TILE.SOLID],
+      [63, 10, 1, 3, TILE.SOLID],
+      [64, 9, 1, 4, TILE.SOLID],
+      [65, 8, 1, 5, TILE.SOLID],
+      [65, 7, 1, 1, TILE.SOLID],
       [66, 7, 8, 6, TILE.SOLID],
       [78, 12, 3, 1, TILE.SOLID],
       [80, 11, 3, 2, TILE.SOLID],
+      [80, 10, 2, 1, TILE.SOLID],
+      [81, 9, 1, 1, TILE.SOLID],
       [82, 9, 18, 4, TILE.SOLID],
       [100, 10, 4, 3, TILE.SOLID],
       [104, 11, 4, 2, TILE.SOLID],
@@ -47,28 +65,27 @@ var LEVELS = [
       [84, 6], [88, 6], [92, 6],
       [110, 6]
     ],
-    frogs: [[23, 8], [84, 8], [94, 8]],
-    snakes: [[49, 9, 3]],
+    frogs: [[27, 8], [96, 8]],
+    snakes: [[48, 9, 2]],
     cacti: [[7, 12], [33, 8], [74, 12], [86, 8], [109, 10]],
     buildings: [[114, 8, 6, 5, 'shed']],
     boulders: [[59, 3, 30]],
     crates: [[62, 12]],
     tufts: [[4, 12], [42, 11], [80, 8], [110, 10]],
     bushes: [[17, 12], [28, 12], [82, 8], [90, 8], [96, 8]],
-    rocks: [[13, 12], [30, 12], [68, 6], [106, 12]],
+    rocks: [[9, 12], [44, 11], [68, 6], [106, 12]],
     script: [
       ['goto', 7, 12],
       ['goto', 7, 6],
       ['goto', 22, 8],
       ['stomp', 'frog'],
-      ['goto', 34, 8],
+      ['goto', 36, 8],
       ['goto', 42, 11],
       ['stomp', 'snake'],
       ['goto', 54, 6],
       ['goto', 70, 6],
       ['goto', 76, 12],
-      ['goto', 82, 8],
-      ['stomp', 'frog'],
+      ['goto', 84, 8],
       ['stomp', 'frog'],
       ['goto', 110, 10],
       ['goto', 118, 12]
@@ -124,12 +141,12 @@ var LEVELS = [
     /* Desert, about 76 tiles. Cactus, a 3-tile block with a frog, a pillar
        and a rock, stairs, a snake ledge, one gun on a terrace. No swirl sign. */
     ground: [[0, 75, 15]],
-    plats: [[8, 12, 8], [22, 13, 6], [32, 11, 4], [40, 12, 6], [50, 14, 1], [51, 13, 1], [52, 12, 1], [53, 11, 1], [54, 12, 1], [55, 13, 1], [56, 14, 1], [62, 12, 8]],
+    plats: [[8, 12, 8], [22, 13, 6], [32, 12, 4], [40, 12, 6], [50, 14, 1], [51, 13, 1], [52, 12, 1], [53, 11, 1], [54, 12, 1], [55, 13, 1], [56, 14, 1], [62, 12, 8]],
     tokens: [[4, 12], [10, 9], [16, 13], [24, 11], [34, 8], [42, 9], [53, 9], [66, 9], [72, 13]],
     frogs: [[12, 11]],
     snakes: [[42, 11, 3]],
     guns: [[64, 11, 2]],
-    boulders: [[33, 10]],
+    boulders: [[33, 11]],
     cacti: [[2, 14], [24, 14], [68, 14]],
     script: [
       ['goto', 6, 14],
@@ -152,14 +169,18 @@ var LEVELS = [
     ropes: [[20, 13, 12], [44, 13, 14]],
     rects: [
       [24, 11, 3, 2, TILE.TNT],
+      [60, 14, 2, 1, TILE.SOLID],
+      [62, 13, 2, 2, TILE.SOLID],
+      [64, 12, 1, 3, TILE.SOLID],
+      [65, 11, 1, 4, TILE.SOLID],
       [66, 10, 4, 4, TILE.SOLID]
     ],
-    plats: [[4, 13, 6], [8, 12, 4], [34, 12, 8], [36, 11, 5], [38, 10, 3], [60, 13, 4]],
+    plats: [[4, 13, 6], [8, 12, 4], [34, 12, 8], [36, 11, 5], [38, 10, 3]],
     tokens: [[6, 10], [16, 12], [26, 9], [40, 9], [48, 11], [62, 12], [70, 13]],
     snakes: [[36, 11, 2]],
     nets: [[38, 11, 1]],
     plungers: [{ c: 14, r: 14, clears: [{ c: 24, r: 11, w: 3, h: 2 }] }],
-    boulders: [[34, 11, 30], [35, 11, 30], [36, 11, 30], [37, 11, 30], [38, 11, 30], [39, 11, 30], [62, 12]],
+    boulders: [[34, 11, 30], [35, 11, 30], [36, 11, 30], [37, 11, 30], [38, 11, 30], [39, 11, 30], [72, 14]],
     cacti: [[2, 14], [58, 14], [70, 14]],
     signs: [[73, 14]],
     script: [
@@ -182,11 +203,11 @@ var LEVELS = [
        blocks, a rope to an open ledge with the net, then the porch and sign. */
     ground: [[0, 28, 15], [40, 72, 15], [82, 108, 15]],
     ropes: [[26, 13, 16], [70, 13, 14]],
-    plats: [[8, 12, 8], [34, 11, 2], [37, 11, 2], [40, 11, 2], [56, 14, 4], [58, 13, 4], [60, 12, 8], [90, 12, 8]],
+    plats: [[8, 12, 8], [34, 11, 2], [37, 11, 2], [40, 11, 2], [60, 14, 8], [90, 12, 8]],
     tokens: [[4, 11], [10, 9], [16, 13], [30, 11], [44, 13], [60, 9], [76, 12], [94, 9], [102, 13]],
     frogs: [[12, 11]],
     snakes: [[92, 11, 2]],
-    nets: [[64, 11, 1]],
+    nets: [[64, 13, 1]],
     springs: [[20, 14], [50, 14], [96, 14]],
     plungers: [{ c: 86, r: 14, clears: [] }],
     boulders: [[34, 10, 22], [37, 10, 22], [40, 10, 22], [74, 14]],
@@ -198,7 +219,7 @@ var LEVELS = [
       ['goto', 6, 14],
       ['goto', 22, 14],
       ['goto', 48, 14],
-      ['goto', 62, 11],
+      ['goto', 62, 13],
       ['stomp', 'net'],
       ['goto', 88, 14],
       ['goto', 106, 14]
@@ -258,7 +279,7 @@ var LEVELS = [
     cacti: [[2, 14]],
     rocks: [[4, 14]],
     script: [
-      ['goto', 8, 14],
+      ['goto', 4, 14],
       ['goto', 12, 11],
       ['stomp', 'snake'],
       ['goto', 24, 10],
@@ -327,7 +348,7 @@ var LEVELS = [
     frogs: [[100, 8]],
     nets: [[90, 9, 1]],
     cages: [[80, 7]],
-    boulders: [[66, 9], [67, 9], [68, 9]],
+    boulders: [[64, 9], [65, 9], [66, 9]],
     plungers: [{ c: 74, r: 9, clears: [] }],
     springs: [[106, 10]],
     ropes: [[16, 9, 7], [26, 9, 7], [35, 9, 7], [43, 9, 7], [50, 9, 7], [58, 9, 7], [68, 9, 11], [99, 9, 6]],
@@ -400,7 +421,7 @@ var LEVELS = [
        over a step, then the arena and the sheriff building. The boot still
        takes 4 stomps. No swirl sign. */
     ground: [[0, 59, 15]],
-    plats: [[6, 12, 5], [14, 11, 4], [20, 13, 4], [34, 13, 8]],
+    plats: [[6, 12, 5], [12, 13, 2], [14, 11, 4], [20, 13, 4], [34, 13, 8]],
     rects: [
       [0, 0, 24, 10, TILE.SOLID],
       [52, 8, 2, 7, TILE.GATE]
@@ -604,6 +625,16 @@ function compileLevel(def) {
     }
     return rock;
   });
+  (def.rocks || []).forEach(function (rk) {
+    var szw = 28, szh = 22;
+    boulders.push({
+      x: rk[0] * 32 + 2,
+      y: rk[1] * 32 + (32 - szh),
+      w: szw, h: szh,
+      vx: 0, vy: 0, grounded: false, slot: -1, snapped: false,
+      held: false, tumble: 0, kick: 0, rock: true
+    });
+  });
   var crates = (def.crates || []).map(function (c) {
     return { x: c[0] * 32, y: c[1] * 32, w: 32, h: 32, alive: true };
   });
@@ -722,7 +753,7 @@ function compileLevel(def) {
       pale: def.pale || [],
       tufts: def.tufts || [],
       bushes: def.bushes || [],
-      rocks: def.rocks || []
+      rocks: []
     },
     script: (def.script || []).map(function (s) { return s.slice(); }),
     counters: { crates: 0, hostages: 0, plungers: 0, keyed: 0, slots: 0, boss: 0, ride: 0 }

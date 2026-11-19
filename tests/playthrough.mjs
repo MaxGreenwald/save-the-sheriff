@@ -52,6 +52,9 @@ if (!only) {
   await new Promise((r) => setTimeout(r, 200));
   await page.screenshot({ path: '/tmp/sts-level.png' });
 }
+const walk = await page.evaluate(() => STS.walkLevel1(16000));
+console.log('WALK', JSON.stringify({ ok: walk.ok, gs: walk.gs, frames: walk.frames, x: walk.x, y: walk.y, lives: walk.lives, reason: walk.reason }));
+if (!walk.ok) failed++;
 console.log(failed ? 'FAILED ' + failed : 'ALL OK');
 await browser.close();
 process.exit(failed ? 1 : 0);
