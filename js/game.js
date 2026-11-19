@@ -1,9 +1,16 @@
 /* Save the Sheriff fan remake. Original art, levels, and music. */
 /* Square playfield, matching the game window in the playthrough (black bars on a 16:9 video). */
 var VW = 480, VH = 480, T = 32;
-/* 60 Hz. RUN is 1.00 screen width per second (480 px/s, 15 tiles/s).
-   Jump apex is 3.75 tiles (120 px). Full air control at the same top speed. */
-var RUN = 8.0, GRAV = 0.64, JUMPV = -12.4, MAXF = 13;
+/* 60 Hz. Measured from the level 1 YouTube frames (720 px square, 48 px
+   per tile, 15 tiles on screen). Between timers 283 and 281 the cactus and
+   the step edge both slide 428 to 430 source pixels while the pig stays
+   pinned on screen, so the run is 4.5 tiles/s, 0.30 screen widths a second.
+   An airborne frame sits 3.15 tiles over the sand, and the blocks he lands
+   on are 3.46 tiles. Gravity is applied on the launch frame, so JUMPV is
+   set for a measured apex of 3.6 tiles (116 px), just over those blocks.
+   The 2-second frame gap already shows cruise speed, so the ramp to full
+   speed is a short ease of about a tenth of a second. */
+var RUN = 2.4, GRAV = 0.64, JUMPV = -12.5, MAXF = 13;
 var canvas, ctx, frame = 0;
 var gs = 'title', sceneT = 0;
 var level = null, levelId = 1;
@@ -89,6 +96,7 @@ function loadLevel(n) {
   P.y = level.start.y;
   P.prevX = P.x; P.prevY = P.y;
   scriptI = 0;
+  fishGo = -1;
   keys = 0;
   dropLatch = 0;
   timer = 300;
@@ -239,9 +247,17 @@ function updatePlayer() {
   var speed = auto.creep ? RUN * 0.55 : (key.shift ? RUN * 0.40 : RUN);
   var ridingRoll = P.rideId === 'ride';
   if (!ridingRoll) {
-    if (heldLeft()) { P.vx = -speed; P.dir = -1; P.anim++; }
-    else if (heldRight()) { P.vx = speed; P.dir = 1; P.anim++; }
-    else P.vx *= 0.12;
+    var target = 0;
+    if (heldLeft()) target = -speed;
+    else if (heldRight()) target = speed;
+    /* Full speed in about a tenth of a second. The 2-second frame gap is
+       too coarse to see the ramp, so this is a short ease up to the
+       measured top speed, and the same ramp back down to a stop. */
+    var accel = 0.4;
+    if (P.vx < target) P.vx = Math.min(target, P.vx + accel);
+    else if (P.vx > target) P.vx = Math.max(target, P.vx - accel);
+    if (Math.abs(P.vx) < 0.05) P.vx = 0;
+    if (target !== 0) { P.dir = target > 0 ? 1 : -1; if (P.ground) P.anim++; }
   } else P.vx = 0;
   if (Math.abs(P.vx) < 0.08) P.vx = 0;
 
@@ -507,10 +523,18 @@ function stepUp() {
   var dir = heldRight() ? 1 : heldLeft() ? -1 : 0;
   if (!dir) return;
   var feet = P.y + P.h;
-  var front = dir > 0 ? P.x + P.w + 1 : P.x - 1;
+  var front = dir > 0 ? P.x + P.w + 6 : P.x - 6;
   if (isSolid(front, feet - 8) && !isSolid(front, feet - 36) && !isSolid(P.x + 8, feet - 36) && !isSolid(P.x + P.w - 8, feet - 36)) {
     var top = Math.floor((feet - 8) / T) * T;
-    if (feet - top <= 34 && feet - top >= 8) { P.y = top - P.h; P.vy = 0; return; }
+    if (feet - top <= 34 && feet - top >= 8) {
+      var tread = Math.floor(front / T) * T;
+      if (dir > 0 && P.x + 8 < tread) P.x = tread - 6;
+      if (dir < 0 && P.x + P.w - 8 > tread + T) P.x = tread + T - P.w + 6;
+      P.y = top - P.h;
+      P.vy = 0;
+      P.ground = true;
+      return;
+    }
   }
   var list = tops();
   for (var i = 0; i < list.length; i++) {
@@ -1012,7 +1036,7 @@ function updatePlay() {
   if (shake > 0) shake--;
 }
 function updateCam() {
-  /* Horizontal follow is quick so a 1-screen-per-second run does not leave the pig behind.
+  /* Horizontal follow is quick so the run does not leave the pig behind.
      Vertical follow stays put during a normal jump and only scrolls when the pig
      climbs into the top of the view or drops near the bottom, which is how the
      playthrough keeps the ground band glued to the bottom of the square. */
@@ -1259,7 +1283,8 @@ function drawActors() {
     ctx.fillStyle = '#f2f4f8'; ctx.fillRect(s.x - 2, s.y, s.w + 4, 5);
   });
   level.boulders.forEach(function (b) {
-    ART.sphere(ctx, b.x, b.y, b.w);
+    if (b.rock) drawRock(b.x - 4, b.y + b.h + 4);
+    else ART.sphere(ctx, b.x, b.y, b.w);
   });
   (level.perchers || []).forEach(function (b) {
     ART.bird(ctx, b.x, b.y, frame);
@@ -2018,14 +2043,29 @@ function loop(t) {
 
 /* ---------------- autopilot ---------------- */
 var stuckT = 0, stuckX = 0, stuckStep = -1;
+var fishGo = -1;
 function fishBlocking() {
-  if (!level || !level.fish || !level.fish.length) return false;
+  if (!level || !level.fish || !level.fish.length) { fishGo = -1; return false; }
   var px = P.x + P.w / 2;
+  /* Quiet water is cycle frames 74..145. He waits a short hold line, then
+     commits to one dash at the start of quiet so the slower run still
+     clears the fish before it surfaces. */
+  var hold = Math.round(RUN * 40);
+  if (fishGo >= 0) {
+    var dashing = level.fish[fishGo];
+    var cycD = dashing ? (frame + dashing.phase) % 160 : 0;
+    var past = !dashing || px > dashing.x + 40 || cycD < 70 || cycD > 148;
+    if (past) fishGo = -1;
+    else return false;
+  }
   for (var i = 0; i < level.fish.length; i++) {
     var f = level.fish[i];
+    if (px > f.x + 40) continue;
+    var dist = f.x - px;
+    if (dist > hold + 6) continue;
     var cyc = (frame + f.phase) % 160;
-    var hot = cyc > 145 || cyc < 74;
-    if (hot && Math.abs(f.x - px) < 170) return true;
+    if (cyc >= 74 && cyc <= 78) { fishGo = i; return false; }
+    return true;
   }
   return false;
 }
@@ -2128,10 +2168,24 @@ function lipAhead(dir) {
   if (isSolid(P.x + P.w / 2, P.y - 6)) return false;
   return true;
 }
+function ropeAhead(dir, feet) {
+  var x0 = dir > 0 ? P.x + P.w - 4 : P.x + 4;
+  for (var dx = 0; dx <= 56; dx += 8) {
+    var x = x0 + dir * dx;
+    var t = tileAt(x, feet - 10);
+    if (t === TILE.ROPE || t === TILE.WIRE) return true;
+    var below = tileAt(x, feet + 6);
+    if (below === TILE.ROPE || below === TILE.WIRE) return true;
+  }
+  return false;
+}
 function shouldJump(dir, feetY, dx) {
   var feet = P.y + P.h;
   var under = tileAt(P.x + P.w / 2, feet - 8);
   if ((under === TILE.ROPE || under === TILE.WIRE) && feetY > feet - 48) return false;
+  /* A rope or wire is the bridge. Walking onto it keeps the shorter jump
+     from dropping him in the gap. */
+  if (ropeAhead(dir, feet) && feetY > feet - 80) return false;
   var ax = dir > 0 ? P.x + P.w + 8 : P.x - 8;
   if (isSolid(ax, P.y + 8) && !isSolid(ax, P.y - 20)) return true;
   if (tileAt(ax, feet + 2) === TILE.SPIKE) return true;
@@ -2140,6 +2194,20 @@ function shouldJump(dir, feetY, dx) {
   if (gap && feetY + 8 >= feet) return true;
   if (feetY < feet - 28 && Math.abs(dx) < 86) return true;
   if (enemyClose(dir)) return true;
+  if (boulderBlocks(dir)) return true;
+  return false;
+}
+function boulderBlocks(dir) {
+  for (var i = 0; i < level.boulders.length; i++) {
+    var b = level.boulders[i];
+    if (b.held || b.snapped || b.slot >= 0) continue;
+    var dx = (b.x + b.w / 2) - (P.x + P.w / 2);
+    var beside = dir > 0 ? dx > 0 && dx < b.w + 24 : dx < 0 && dx > -(b.w + 24);
+    if (!beside) continue;
+    if (P.y + P.h < b.y + 8 || P.y > b.y + b.h) continue;
+    var ahead = dir > 0 ? b.x + b.w + 2 : b.x - 2;
+    if (isSolid(ahead, b.y + 4) || isSolid(ahead, b.y + b.h - 4)) return true;
+  }
   return false;
 }
 function enemyClose(dir) {
@@ -2174,7 +2242,14 @@ function stepPlank(destCol) {
 }
 function stepStomp(kind) {
   var e = null;
-  for (var i = 0; i < level.enemies.length; i++) if (level.enemies[i].alive && level.enemies[i].kind === kind) { e = level.enemies[i]; break; }
+  var px = P.x + P.w / 2;
+  for (var i = 0; i < level.enemies.length; i++) {
+    var en = level.enemies[i];
+    if (!en.alive || en.kind !== kind) continue;
+    if (Math.abs(en.x + en.w / 2 - px) > 10 * T) continue;
+    e = en;
+    break;
+  }
   if (!e) { scriptI++; return; }
   var stand = e.y + e.h;
   if (P.y + P.h > stand + 16) { moveToward(e.x - 140, stand, false); return; }
@@ -2364,6 +2439,97 @@ window.STS = {
   },
   state: function () {
     return { gs: gs, level: levelId, x: P.x, y: P.y, lives: lives, hearts: hearts, scriptI: scriptI, score: score, reason: deathReason, counters: level && level.counters };
+  },
+  measureJump: function () {
+    testing = true; STS.silent = true;
+    STS.startLevel(1, { instant: true });
+    P.x = 48; P.vx = 0; P.vy = 0; P.ground = true;
+    P.y = 13 * T - P.h;
+    var start = P.y + P.h;
+    jumpQueue = 8;
+    var peak = start;
+    for (var i = 0; i < 90; i++) {
+      step();
+      var feet = P.y + P.h;
+      if (feet < peak) peak = feet;
+      if (i > 8 && P.ground) break;
+    }
+    testing = false;
+    return { px: Math.round(start - peak), tiles: (start - peak) / T };
+  },
+  probeFaces: function (maxTiles) {
+    testing = true; STS.silent = true;
+    var limit = (maxTiles || 3) * T;
+    var out = [];
+    function solid(tiles, cols, rows, c, r) {
+      if (c < 0 || r < 0 || c >= cols || r >= rows) return false;
+      var t = tiles[r * cols + c];
+      return t === TILE.SOLID || t === TILE.CRUMBLE || t === TILE.SPIKE || t === TILE.WALL || t === TILE.TNT;
+    }
+    for (var n = 1; n <= 11; n++) {
+      STS.startLevel(n, { instant: true });
+      var cols = level.cols, rows = level.rows, tiles = level.tiles;
+      for (var c = 0; c < cols - 1; c++) {
+        for (var r = 1; r < rows; r++) {
+          if (!solid(tiles, cols, rows, c, r) || solid(tiles, cols, rows, c, r - 1)) continue;
+          var standY = r * T;
+          var bodyTop = standY - P.h;
+          var hit = null;
+          for (var rr = 0; rr < rows; rr++) {
+            if (!solid(tiles, cols, rows, c + 1, rr)) continue;
+            var top = rr * T, bot = top + T;
+            if (bot > bodyTop && top < standY && (hit === null || rr < hit)) hit = rr;
+          }
+          if (hit === null || hit >= r) continue;
+          var topRow = hit;
+          while (topRow > 0 && solid(tiles, cols, rows, c + 1, topRow - 1)) topRow--;
+          var rise = standY - topRow * T;
+          if (rise > limit) out.push({ level: n, col: c, stand: r, top: topRow, rise: Math.round(rise) });
+        }
+      }
+    }
+    testing = false;
+    return out;
+  },
+  walkLevel1: function (max) {
+    testing = true; STS.silent = true;
+    auto.left = auto.right = auto.up = auto.creep = auto.nojump = auto.down = false;
+    STS.startLevel(1, { instant: true });
+    level.script = [];
+    max = max || 16000;
+    var log = [];
+    var stall = 0;
+    function riseAt(x, feet) {
+      if (!isSolid(x, feet - 6)) return 0;
+      var y = feet - 6;
+      while (y > feet - 160 && isSolid(x, y)) y -= 2;
+      return feet - y;
+    }
+    for (var i = 0; i < max; i++) {
+      if (gs === 'gameover' || gs === 'leveldone' || gs === 'victory') break;
+      key.left = false; key.up = false; key.right = true; key.jump = false;
+      var feet = P.y + P.h;
+      var foe = false;
+      for (var e = 0; e < level.enemies.length; e++) {
+        var en = level.enemies[e];
+        if (!en.alive) continue;
+        var dx = en.x - (P.x + P.w);
+        if (dx > -4 && dx < 40 && Math.abs((en.y + en.h) - feet) < 36) foe = true;
+      }
+      /* One-tile lips are stepped. Taller faces get a running jump from
+         about a tile out, which is where the measured arc clears them. */
+      var soon = riseAt(P.x + P.w + 32, feet);
+      var jammed = boulderBlocks(1);
+      if (P.ground && (foe || jammed || (soon > 40 && soon < 130))) jumpQueue = 8;
+      var prev = P.x;
+      step();
+      if (P.ground && P.x < prev + 0.3) stall++; else stall = 0;
+      if (stall > 24 && P.ground) { jumpQueue = 8; stall = 0; }
+      if (i % 120 === 0) log.push([Math.round(P.x), Math.round(P.y), gs, deathReason, lives]);
+    }
+    testing = false;
+    key.right = false;
+    return { ok: gs === 'leveldone' || gs === 'victory', gs: gs, frames: i, x: Math.round(P.x), y: Math.round(P.y), lives: lives, reason: deathReason, log: log };
   },
   testAll: function (max) {
     testing = true; STS.silent = true;
